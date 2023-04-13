@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import RootLayout from './layouts/root/RootLayout'
 import RegisterLayout from './layouts/register/RegisterLayout'
 import Home from './pages/Home'
-import Login from './pages/Login'
+import Login from './pages/LoginPage'
 
 
 
