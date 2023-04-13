@@ -20,7 +20,7 @@ const StyledHeader = styled('header')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-function SimpleLayout() {
+function RegisterLayout() {
   return (
     <>
       <StyledHeader>
@@ -32,4 +32,4 @@ function SimpleLayout() {
   );
 }
 
-export default SimpleLayout
+export default RegisterLayout
