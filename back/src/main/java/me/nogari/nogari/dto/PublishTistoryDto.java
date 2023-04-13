@@ -15,6 +15,7 @@ public class PublishTistoryDto {
 
 	private String title;
 	private String category;
+	private String tag;
 	private String link;
 
 }
