@@ -1,4 +1,8 @@
 package me.nogari.nogari.repository;
 
-public class MemberRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import me.nogari.nogari.entity.Member;
+
+public interface MemberRepository extends JpaRepository<Member, Long> {
 }
