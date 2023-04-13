@@ -2,6 +2,7 @@ package me.nogari.nogari.entity;
 
 import java.time.LocalDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
 
@@ -23,8 +24,10 @@ import lombok.experimental.SuperBuilder;
 public abstract class BaseTimeEntity {
 
 	@CreatedDate
+	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdDate;
 
 	@LastModifiedDate
+	@Column(name = "modified_at")
 	private LocalDateTime modifiedDate;
 }
