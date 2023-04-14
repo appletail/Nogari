@@ -33,9 +33,9 @@ server:
 
 app:
   auth:
-    oauth2:
-      #      authorizedRedirectUri: http://localhost:8081/oauth2/redirect     # Token을 받을 Url를 지정
-      authorizedRedirectUri: http://localhost:3000/login     # Token을 받을 Url를 지정
+    kakao:
+#      redirect-uri: http://localhost:8080/api/vi/oauth    # Token 받을 Uri 지정
+      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
 
 logging:
   level:

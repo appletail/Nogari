@@ -1,4 +1,4 @@
-package me.nogari.nogari.dto;
+package me.nogari.nogari.api.request;
 
 import javax.persistence.Column;
 

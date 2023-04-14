@@ -1,4 +1,4 @@
-package me.nogari.nogari.dto;
+package me.nogari.nogari.api.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlatformTokenDto {
-	private String platform;
+public class LoginDto {
 
 	private String id;
-
 	private String password;
+
 }

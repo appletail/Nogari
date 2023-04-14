@@ -1,4 +1,4 @@
-package me.nogari.nogari.dto;
+package me.nogari.nogari.api.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TokenDto {
+public class NotionTokenDto {
 
 	private long memberId;
-	private String accessToken;
-	private String refreshToken;
+
+	private String notionToken;
 
 }
