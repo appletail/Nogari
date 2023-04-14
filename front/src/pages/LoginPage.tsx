@@ -31,7 +31,7 @@ const StyledSection = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
-  // boxShadow: theme.customShadows.card,
+  boxShadow: theme.customShadows.card,
   backgroundColor: theme.palette.background.default,
 }))
 
