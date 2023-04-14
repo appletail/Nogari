@@ -18,6 +18,9 @@ import shadows from './shadows'
 import typography from './typography'
 
 // ----------------------------------------------------------------------
+ThemeProvider.propTypes = {
+  children: PropTypes.node,
+}
 
 export default function ThemeProvider({ children }: any) {
   const themeOptions = useMemo<CustomThemeOptions>(
