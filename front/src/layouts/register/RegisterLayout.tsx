@@ -26,7 +26,6 @@ function RegisterLayout() {
       <StyledHeader>
         <Logo />
       </StyledHeader>
-
       <Outlet />
     </>
   );
