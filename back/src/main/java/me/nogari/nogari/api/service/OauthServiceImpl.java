@@ -39,7 +39,7 @@ public class OauthServiceImpl implements OauthService {
 			StringBuilder sb = new StringBuilder();
 			sb.append("grant_type=authorization_code");
 			sb.append("&client_id=" + REST_API_KEY);
-			// sb.append("&redirect_uri=" + REDIRECT_URI);
+			sb.append("&redirect_uri=" + REDIRECT_URI);
 			sb.append("&code=" + code);
 			bw.write(sb.toString());
 			bw.flush();
