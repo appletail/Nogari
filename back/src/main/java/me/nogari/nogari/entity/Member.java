@@ -3,8 +3,10 @@ package me.nogari.nogari.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -23,14 +25,14 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Member{
+public class Member {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "member_id")
 	private Long memberId;
 
-	@Column(name = "id", nullable = false, length = 40)
+	@Column(name = "id", unique = true, nullable = false, length = 40)
 	private String id;
 
 	@Column(name = "password", nullable = false, length = 40)
@@ -38,8 +40,12 @@ public class Member{
 	@ToString.Exclude
 	private String password;
 
-	@Column(name = "notionToken", nullable = false)
+	@Column(name = "notionToken")
 	private String notionToken;
+
+	@OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@Builder.Default
+	private List<Authority> roles = new ArrayList<>();
 
 	@Builder.Default
 	@OneToMany(mappedBy = "member")
@@ -53,4 +59,8 @@ public class Member{
 	@OneToMany(mappedBy = "member")
 	private List<Github> githubs = new ArrayList<>();
 
+	public void setRoles(List<Authority> role) {
+		this.roles = role;
+		role.forEach(o -> o.setMember(this));
+	}
 }

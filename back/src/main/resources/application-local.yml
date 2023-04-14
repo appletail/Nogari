@@ -57,3 +57,8 @@ logging:
     web: INFO
     com: INFO
     root: INFO
+
+# jwt.secret.key의 값은 256bit 이상이어야 합니다.
+jwt:
+  secret:
+    key: x!A%D*G-KaPdSgVkYp3s5v8y/B?E(H+M
