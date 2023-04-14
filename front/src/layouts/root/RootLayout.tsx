@@ -1,10 +1,13 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom'
+
+import SideBar from './SideBar'
 
 function RootLayout() {
   return (
-    <div>RootLayout
-       <Outlet />
+    <div>
+      <SideBar />
+      <Outlet />
     </div>
   )
 }

@@ -52,9 +52,7 @@ module.exports = {
     ],
     'react/no-unknown-property': [
       'error',
-      {
-        ignore: ['args', 'rotation', 'position', 'side', 'castShadow'],
-      },
+      { ignore: ['args', 'rotation', 'position', 'side', 'castShadow'] },
     ],
     'import/no-unresolved': 'off',
     'import/order': [
