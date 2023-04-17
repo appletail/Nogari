@@ -1,7 +1,7 @@
 import { Theme, ThemeOptions } from '@mui/material/styles'
 
 declare module '@mui/material/styles' {
-  interface CustomTheme extends Theme {
+  interface Theme {
     status: {
       danger: string
     }
@@ -24,7 +24,7 @@ declare module '@mui/material/styles' {
     }
   }
   // allow configuration using `createTheme`
-  interface CustomThemeOptions extends ThemeOptions {
+  interface ThemeOptions {
     status?: {
       danger?: string
     }

@@ -44,16 +44,7 @@ const StyledAccount = styled('div')(({ theme }) => ({
 
 export default function Nav() {
   const renderContent = (
-    <Scrollbar
-      sx={{
-        height: 1,
-        '& .simplebar-content': {
-          height: 1,
-          display: 'flex',
-          flexDirection: 'column',
-        },
-      }}
-    >
+    <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
         <Logo height={'40px'} width={'40px'} />
       </Box>
@@ -77,7 +68,7 @@ export default function Nav() {
       </Box>
 
       <NavSection data={navConfig} />
-    </Scrollbar>
+    </>
   )
 
   return (
