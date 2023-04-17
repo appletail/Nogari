@@ -10,4 +10,6 @@ import me.nogari.nogari.entity.Member;
 @Transactional
 public interface MemberRepository extends JpaRepository<Member, Long> {
 	Optional<Member> findById(String id);
+
+	boolean existsById(String id);
 }

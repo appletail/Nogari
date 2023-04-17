@@ -49,7 +49,7 @@ server:
 app:
   auth:
     kakao:
-#      redirect-uri: http://localhost:8080/api/vi/oauth    # Token 받을 Uri 지정
+      #      redirect-uri: http://localhost:8080/api/vi/oauth    # Token 받을 Uri 지정
       redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
 
 logging:

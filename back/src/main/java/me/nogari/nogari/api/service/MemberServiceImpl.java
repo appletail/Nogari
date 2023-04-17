@@ -18,13 +18,13 @@ import me.nogari.nogari.repository.MemberRepository;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class SignServiceImpl implements SignService {
+public class MemberServiceImpl implements MemberService {
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;
 
 	@Override
-	public SignResponseDto login(SignRequestDto request) throws Exception {
+	public SignResponseDto login(SignRequestDto request) {
 		Member member = memberRepository.findById(request.getId()).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 
@@ -36,6 +36,7 @@ public class SignServiceImpl implements SignService {
 			.memberId(member.getMemberId())
 			.id(member.getId())
 			.password(member.getPassword())
+			.notionToken(member.getNotionToken())
 			.roles(member.getRoles())
 			.token(jwtProvider.createToken(member.getId(), member.getRoles()))
 			.build();
@@ -44,28 +45,32 @@ public class SignServiceImpl implements SignService {
 
 	@Override
 	@Transactional
-	public boolean register(SignRequestDto request) throws Exception {
+	public boolean signup(SignRequestDto request) throws Exception {
 		try {
 			Member member = Member.builder()
-				.memberId(request.getMemberId())
 				.id(request.getId())
 				.password(passwordEncoder.encode(request.getPassword()))
+				.notionToken(request.getNotionToken())
 				.build();
 
 			member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
 
 			memberRepository.save(member);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
 			throw new Exception("잘못된 요청입니다.");
 		}
 		return true;
 	}
 
 	@Override
-	public SignResponseDto getMember(String Id) throws Exception {
-		Member member = memberRepository.findById(Id)
+	public SignResponseDto getMember(String id) throws Exception {
+		Member member = memberRepository.findById(id)
 			.orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
 		return new SignResponseDto(member);
+	}
+
+	@Override
+	public boolean checkIdDuplicate(String id) {
+		return memberRepository.existsById(id);
 	}
 }

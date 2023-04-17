@@ -61,7 +61,7 @@ public class SecurityConfig {
 			.and()
 			// 조건별로 요청 허용/제한 설정
 			.authorizeRequests()
-			.antMatchers("/register", "/login", "/refresh").permitAll()
+			.antMatchers("/members/signup", "/members/login", "/members/duplicate", "/refresh").permitAll()
 			.antMatchers("/admin/**").hasRole("ADMIN")
 			.antMatchers("/user/**").hasRole("USER")
 			.anyRequest().denyAll()
@@ -100,13 +100,13 @@ public class SecurityConfig {
 	public WebSecurityCustomizer webSecurityCustomizer() {
 		return (web) -> web.ignoring().antMatchers(
 			/* swagger v2 */
-			"/v2/api-docs",
-			"/swagger-resources",
-			"/swagger-resources/**",
-			"/configuration/ui",
-			"/configuration/security",
-			"/swagger-ui.html",
-			"/webjars/**",
+			// "/v2/api-docs",
+			// "/swagger-resources",
+			// "/swagger-resources/**",
+			// "/configuration/ui",
+			// "/configuration/security",
+			// "/swagger-ui.html",
+			// "/webjars/**",
 			/* swagger v3 */
 			"/v3/api-docs/**",
 			"/swagger-ui/**");
