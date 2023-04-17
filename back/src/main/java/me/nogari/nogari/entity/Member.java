@@ -35,7 +35,7 @@ public class Member {
 	@Column(name = "id", unique = true, nullable = false, length = 40)
 	private String id;
 
-	@Column(name = "password", nullable = false, length = 40)
+	@Column(name = "password", nullable = false)
 	@JsonIgnore
 	@ToString.Exclude
 	private String password;
