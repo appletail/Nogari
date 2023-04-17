@@ -17,6 +17,8 @@ import PropTypes from 'prop-types'
 // mock
 import navConfig from './config'
 
+import { NavContent, NavBottomBox, NavConnectedSite } from './styles'
+
 import account from '@/_mock/account'
 
 // hooks
@@ -26,7 +28,6 @@ import NavSection from '@/components/nav-section'
 import Scrollbar from '@/components/scrollbar'
 
 // components
-//
 
 // ----------------------------------------------------------------------
 
@@ -66,8 +67,21 @@ export default function Nav() {
           </StyledAccount>
         </Link>
       </Box>
-
-      <NavSection data={navConfig} />
+      <NavContent>
+        <NavSection data={navConfig} />
+        <NavBottomBox>
+          <div>
+            <p>연결된 사이트</p>
+            <NavConnectedSite>
+              <div>버튼 1</div>
+              <div>버튼 2</div>
+              <div>버튼 3</div>
+              <div>버튼 4</div>
+            </NavConnectedSite>
+          </div>
+          <div>세팅 공지 이메일</div>
+        </NavBottomBox>
+      </NavContent>
     </>
   )
 
