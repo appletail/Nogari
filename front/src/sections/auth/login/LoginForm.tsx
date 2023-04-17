@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // @mui
+import { LoadingButton } from '@mui/lab'
 import {
   Link,
   Stack,
@@ -10,10 +11,9 @@ import {
   TextField,
 } from '@mui/material'
 
-// components
 import Iconify from '@/components/iconify'
 
-export default function SignupForm() {
+function LoginForm() {
   const navigate = useNavigate()
 
   const [showPassword, setShowPassword] = useState(false)
@@ -46,16 +46,21 @@ export default function SignupForm() {
             ),
           }}
         />
-      </Stack>
 
-      <Stack
-        alignItems="center"
-        direction="row"
-        justifyContent="space-between"
-        sx={{ my: 2 }}
-      />
+        <LoadingButton
+          fullWidth
+          size="large"
+          type="submit"
+          variant="contained"
+          onClick={handleClick}
+        >
+          Login
+        </LoadingButton>
+      </Stack>
 
       {/* 여기에 추후 로딩이 들어갑ㄴ디ㅏ. */}
     </>
   )
 }
+
+export default LoginForm
