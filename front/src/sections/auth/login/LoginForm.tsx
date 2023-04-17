@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 
 import Iconify from '@/components/iconify'
+import InputText from '@/components/input-text/InputText'
 
 function LoginForm() {
   const navigate = useNavigate()
@@ -26,7 +27,7 @@ function LoginForm() {
     <>
       <Stack spacing={3}>
         <TextField label="Email address" name="email" />
-
+        <InputText control={control} name="nickname" />
         <TextField
           label="Password"
           name="password"
