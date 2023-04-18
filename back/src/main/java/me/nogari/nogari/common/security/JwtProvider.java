@@ -32,8 +32,8 @@ public class JwtProvider {
 
 	private Key secretKey;
 
-	// 만료시간 : 1Hour
-	private final long exp = 1000L * 60;
+	// 만료시간 : 3Hour
+	private final long exp = 1000L * 60 * 60 * 3;
 
 	private final JpaUserDetailsService userDetailsService;
 
