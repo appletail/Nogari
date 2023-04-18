@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom'
 
 import { styled } from '@mui/material/styles'
 
-import SideBar from './SideBar'
+import SideBar from './sideBar/SideBar'
 
 function RootLayout() {
   return (
