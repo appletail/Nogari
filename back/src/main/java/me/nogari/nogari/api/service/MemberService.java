@@ -11,7 +11,7 @@ public interface MemberService {
 
 	SignResponseDto getMember(String account) throws Exception;
 
-	boolean checkIdDuplicate(String id);
+	boolean checkEmailDuplicate(String id);
 
 	JWTDto refreshAccessToken(JWTDto token) throws Exception;
 }

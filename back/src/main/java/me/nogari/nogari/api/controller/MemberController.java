@@ -46,7 +46,7 @@ public class MemberController {
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("중복된 id입니다")
+				.resultMsg("중복된 email입니다")
 				.build();
 		}
 	}
@@ -62,11 +62,11 @@ public class MemberController {
 	}
 
 	@GetMapping("/duplicate")
-	public BaseResponse<Object> checkIdDuplicate(@RequestParam String id) {
+	public BaseResponse<Object> checkEmailDuplicate(@RequestParam String email) {
 		return BaseResponse.builder()
-			.result(memberService.checkIdDuplicate(id))
+			.result(memberService.checkEmailDuplicate(email))
 			.resultCode(HttpStatus.OK.value())
-			.resultMsg("아이디 중복이면 True")
+			.resultMsg("이메일 중복이면 True")
 			.build();
 	}
 

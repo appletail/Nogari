@@ -41,12 +41,12 @@ public class MemberServiceImpl implements MemberService {
 
 		return SignResponseDto.builder()
 			.memberId(member.getMemberId())
-			.id(member.getId())
+			.id(member.getEmail())
 			.password(member.getPassword())
 			.notionToken(member.getNotionToken())
 			.roles(member.getRoles())
 			.token(JWTDto.builder()
-				.access_token(jwtProvider.createToken(member.getId(), member.getRoles()))
+				.access_token(jwtProvider.createToken(member.getEmail(), member.getRoles()))
 				.refresh_token(member.getRefreshToken())
 				.build())
 			.build();
@@ -58,7 +58,7 @@ public class MemberServiceImpl implements MemberService {
 	public boolean signup(SignRequestDto request) throws Exception {
 		try {
 			Member member = Member.builder()
-				.id(request.getId())
+				.email(request.getId())
 				.password(passwordEncoder.encode(request.getPassword()))
 				.notionToken(request.getNotionToken())
 				.build();
@@ -80,8 +80,8 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public boolean checkIdDuplicate(String id) {
-		return memberRepository.existsById(id);
+	public boolean checkEmailDuplicate(String email) {
+		return memberRepository.existsByEmail(email);
 	}
 
 	// Refresh Token ================

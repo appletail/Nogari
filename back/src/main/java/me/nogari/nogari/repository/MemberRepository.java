@@ -11,5 +11,5 @@ import me.nogari.nogari.entity.Member;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 	Optional<Member> findById(String id);
 
-	boolean existsById(String id);
+	boolean existsByEmail(String email);
 }
