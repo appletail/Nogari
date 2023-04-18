@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import me.nogari.nogari.api.response.BaseResponse;
@@ -22,14 +24,9 @@ public class OAuthController {
 	@Autowired
 	private OauthServiceImpl oauthService;
 
-	// @ResponseBody
-	// @GetMapping
-	// public BaseResponse<Object> test(){
-	//
-	// }
-
 	@ResponseBody
 	@GetMapping("/kakao")
+	@Operation(summary = "카카오(티스토리) 토큰 발급")
 	public BaseResponse<Object> kakaoCallBack(@RequestParam String code){
 		// 카카오 인가코드 받기
 		// System.out.println("code: " + code);
@@ -49,6 +46,32 @@ public class OAuthController {
 				.build();
 
 		}
+	}
+
+	@ResponseBody
+	@GetMapping("/velog")
+	@Operation(summary = "velog 토큰 발급")
+	public BaseResponse<Object> velogCallBack(
+		@RequestParam @Parameter(description="로그인할 소셜이름") String socialName){
+
+		// socialName : github, google, facebook
+		String loginUrl = "https://v2.velog.io/api/v2/auth/social/redirect/" + socialName + "?next=/&amp;isIntegrate=0";
+
+
+		// try{
+		// 	return BaseResponse.builder()
+		// 		.result(oauthService.getVelogAccessToken(loginUrl))
+		// 		.resultCode(HttpStatus.OK.value())
+		// 		.resultMsg("정상적으로 velog 엑세스 토근 얻기 성공")
+		// 		.build();
+		// }catch (Exception e){
+		// 	return BaseResponse.builder()
+		// 		.result(null)
+		// 		.resultCode(HttpStatus.BAD_REQUEST.value())
+		// 		.resultMsg("velog 엑세스 토큰 얻기에 실패")
+		// 		.build();
+		//
+		// }
 	}
 
 }
