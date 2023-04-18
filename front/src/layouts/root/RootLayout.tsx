@@ -1,15 +1,21 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 
+import { styled } from '@mui/material/styles'
+
 import SideBar from './SideBar'
 
 function RootLayout() {
   return (
-    <div>
+    <LeftBodyPadding>
       <SideBar />
       <Outlet />
-    </div>
+    </LeftBodyPadding>
   )
 }
+
+const LeftBodyPadding = styled('div')({
+  paddingLeft: '280px',
+})
 
 export default RootLayout

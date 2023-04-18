@@ -8,7 +8,6 @@ import {
   IconButton,
   InputAdornment,
   TextField,
-  Checkbox,
 } from '@mui/material'
 
 // components
