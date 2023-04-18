@@ -57,26 +57,15 @@ function SignupPage() {
       <StyledRoot>
         <StyledSection>
           <Typography sx={{ px: 5, mt: 10, mb: 5 }} variant="h3">
-            안녕 노가리노가리
+            반갑습니다. 들어오십쇼
           </Typography>
           <img alt="login" src="/assets/illustrations/illustration_login.png" />
         </StyledSection>
         <Container maxWidth="sm">
           <StyledContent>
-            <Typography gutterBottom variant="h4">
-              Sign in to Minimal
+            <Typography gutterBottom sx={{ mb: 5 }} variant="h4">
+              노가리 회원가입하기
             </Typography>
-
-            <Typography sx={{ mb: 5 }} variant="body2">
-              Don’t have an account? {''}
-              <Link variant="subtitle2">Get started</Link>
-            </Typography>
-
-            <Divider sx={{ my: 3 }}>
-              <Typography sx={{ color: 'text.secondary' }} variant="body2">
-                OR
-              </Typography>
-            </Divider>
 
             <SignupForm />
           </StyledContent>
