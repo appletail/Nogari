@@ -26,11 +26,7 @@ function LoginForm() {
   const navigate = useNavigate()
 
   // form 생성
-  const { control, handleSubmit } = useForm<LoginValue>({
-    defaultValues: {
-      email: '',
-    },
-  })
+  const { control, handleSubmit } = useForm<LoginValue>({})
   const [showPassword, setShowPassword] = useState(false)
 
   // replace : true 를 적용해서 뒤로가기가 안되게 적용하였습니다.
@@ -49,15 +45,16 @@ function LoginForm() {
         <Stack spacing={3}>
           <InputText
             control={control}
+            defaultValue=""
             name="email"
             rules={{ required: '이메일을 입력해주세요' }}
             textFieldProps={{
               label: 'Email',
-              placeholder: 'ssafy@ssafy.com',
             }}
           />
           <InputText
             control={control}
+            defaultValue=""
             name="password"
             rules={{ required: '비밀번호를 입력해주세요' }}
             textFieldProps={{
