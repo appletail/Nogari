@@ -75,7 +75,7 @@ public class MemberController {
 		return BaseResponse.builder()
 			.result(memberService.refreshAccessToken(jwt))
 			.resultCode(HttpStatus.OK.value())
-			.resultMsg("아이디 중복이면 True")
+			.resultMsg("refresh 토큰이 재발급 되었습니다.")
 			.build();
 	}
 }
