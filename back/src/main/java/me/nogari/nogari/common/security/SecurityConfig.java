@@ -64,6 +64,7 @@ public class SecurityConfig {
 			.antMatchers("/members/signup", "/members/login", "/members/duplicate", "/refresh").permitAll()
 			.antMatchers("/admin/**").hasRole("ADMIN")
 			.antMatchers("/user/**").hasRole("USER")
+			.antMatchers("/oauth/**").hasRole("USER")
 			.anyRequest().denyAll()
 			.and()
 			// JWT 인증 필터 적용
