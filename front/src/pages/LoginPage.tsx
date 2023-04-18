@@ -2,20 +2,17 @@ import React from 'react'
 import { Helmet } from 'react-helmet-async'
 
 // @mui
-import {
-  Link,
-  Container,
-  Typography,
-  Divider,
-  Stack,
-  Button,
-} from '@mui/material'
+import { useNavigate } from 'react-router-dom'
+
+import { Link, Container, Typography, Divider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 // components
 import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
 import Iconify from '@/components/iconify/Iconify'
 import { LoginForm } from '@/sections/auth/login'
+
+// navigate
 
 // ----------------------------------------------------------------------
 
@@ -48,6 +45,7 @@ const StyledContent = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 function LoginPage() {
+  const navigate = useNavigate()
   return (
     <>
       <Helmet>
@@ -69,7 +67,9 @@ function LoginPage() {
 
             <Typography sx={{ mb: 5 }} variant="body2">
               아직 계정이 없으신가요? {''}
-              <Link variant="subtitle2">회원가입 하기</Link>
+              <Link variant="subtitle2" onClick={() => navigate('/signup')}>
+                회원가입 하기
+              </Link>
             </Typography>
 
             <Divider sx={{ my: 3 }}>

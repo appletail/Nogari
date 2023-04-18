@@ -4,13 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 // @mui
 import { LoadingButton } from '@mui/lab'
-import {
-  Link,
-  Stack,
-  IconButton,
-  InputAdornment,
-  TextField,
-} from '@mui/material'
+import { Link, Stack, IconButton, InputAdornment } from '@mui/material'
 
 import Iconify from '@/components/iconify'
 
@@ -30,13 +24,10 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
 
   // replace : true 를 적용해서 뒤로가기가 안되게 적용하였습니다.
-  const handleLogin = () => {
-    navigate('/test', { replace: true })
-  }
-
   // form 제출 handler
   const submitHandler = (data: LoginValue) => {
     console.log(data)
+    navigate('/test', { replace: true })
   }
 
   return (
