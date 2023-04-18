@@ -14,6 +14,7 @@ import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.SignResponseDto;
 import me.nogari.nogari.api.service.MemberService;
+import me.nogari.nogari.common.JWTDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -64,6 +65,15 @@ public class MemberController {
 	public BaseResponse<Object> checkIdDuplicate(@RequestParam String id) {
 		return BaseResponse.builder()
 			.result(memberService.checkIdDuplicate(id))
+			.resultCode(HttpStatus.OK.value())
+			.resultMsg("아이디 중복이면 True")
+			.build();
+	}
+
+	@GetMapping("/refresh")
+	public BaseResponse<Object> refresh(@RequestBody JWTDto jwt) throws Exception {
+		return BaseResponse.builder()
+			.result(memberService.refreshAccessToken(jwt))
 			.resultCode(HttpStatus.OK.value())
 			.resultMsg("아이디 중복이면 True")
 			.build();
