@@ -52,8 +52,8 @@ public class MemberController {
 	}
 
 	@GetMapping("/user/get")
-	public ResponseEntity<SignResponseDto> getUser(@RequestParam String id) throws Exception {
-		return new ResponseEntity<>(memberService.getMember(id), HttpStatus.OK);
+	public ResponseEntity<SignResponseDto> getUser(@RequestParam String email) throws Exception {
+		return new ResponseEntity<>(memberService.getMember(email), HttpStatus.OK);
 	}
 
 	@GetMapping("/admin/get")

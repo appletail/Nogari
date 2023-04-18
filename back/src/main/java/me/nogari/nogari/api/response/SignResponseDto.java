@@ -18,7 +18,7 @@ import me.nogari.nogari.entity.Member;
 public class SignResponseDto {
 
 	private Long memberId;
-	private String id;
+	private String email;
 	private String password;
 	private String notionToken;
 	private List<Authority> roles = new ArrayList<>();
@@ -26,7 +26,7 @@ public class SignResponseDto {
 
 	public SignResponseDto(Member member) {
 		this.memberId = member.getMemberId();
-		this.id = member.getId();
+		this.email = member.getEmail();
 		this.password = member.getPassword();
 		this.notionToken = member.getNotionToken();
 		this.roles = member.getRoles();

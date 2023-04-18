@@ -30,7 +30,7 @@ public class MemberServiceImpl implements MemberService {
 
 	@Override
 	public SignResponseDto login(SignRequestDto request) {
-		Member member = memberRepository.findById(request.getId()).orElseThrow(() ->
+		Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 
 		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
@@ -41,7 +41,7 @@ public class MemberServiceImpl implements MemberService {
 
 		return SignResponseDto.builder()
 			.memberId(member.getMemberId())
-			.id(member.getEmail())
+			.email(member.getEmail())
 			.password(member.getPassword())
 			.notionToken(member.getNotionToken())
 			.roles(member.getRoles())
@@ -58,7 +58,7 @@ public class MemberServiceImpl implements MemberService {
 	public boolean signup(SignRequestDto request) throws Exception {
 		try {
 			Member member = Member.builder()
-				.email(request.getId())
+				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
 				.notionToken(request.getNotionToken())
 				.build();
@@ -73,8 +73,8 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public SignResponseDto getMember(String id) throws Exception {
-		Member member = memberRepository.findById(id)
+	public SignResponseDto getMember(String email) throws Exception {
+		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
 		return new SignResponseDto(member);
 	}
@@ -126,14 +126,14 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	public JWTDto refreshAccessToken(JWTDto token) throws Exception {
-		String id = jwtProvider.getId(token.getAccess_token());
-		Member member = memberRepository.findById(id).orElseThrow(() ->
+		String email = jwtProvider.getEmail(token.getAccess_token());
+		Member member = memberRepository.findByEmail(email).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 		JWT refreshToken = validRefreshToken(member, token.getRefresh_token());
 
 		if (refreshToken != null) {
 			return JWTDto.builder()
-				.access_token(jwtProvider.createToken(id, member.getRoles()))
+				.access_token(jwtProvider.createToken(email, member.getRoles()))
 				.refresh_token(refreshToken.getRefresh_token())
 				.build();
 		} else {
