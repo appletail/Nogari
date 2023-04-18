@@ -1,19 +1,36 @@
-import React from 'react'
-
-import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
+import {
+  useController,
+  FieldValues,
+  FieldPath,
+  UseControllerProps,
+} from 'react-hook-form'
 
 import { TextField, TextFieldProps } from '@mui/material'
 
-function InputText<T extends FieldValues>({
-  name,
-  control,
+interface MuiProps {
+  textFieldProps?: TextFieldProps
+}
+
+function InputText<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({
+  textFieldProps, // textField를 위한 prop들, mui에서 import 해온다.
   ...props
-}: UseControllerProps) {
+}: MuiProps & UseControllerProps<TFieldValues, TName>) {
   const {
-    field: { value, onChange },
+    field,
     fieldState: { error },
-  } = useController({ name, control, rules: { required: true } })
-  return <TextField value={value} onChange={onChange} {...props} />
+  } = useController(props)
+
+  return (
+    <TextField
+      {...textFieldProps}
+      {...field}
+      error={!!error}
+      helperText={!!error && error.message}
+    />
+  )
 }
 
 export default InputText
