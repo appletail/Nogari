@@ -1,31 +1,19 @@
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-
 // @mui
-import {
-  Box,
-  Link,
-  Button,
-  Drawer,
-  Typography,
-  Avatar,
-  Stack,
-} from '@mui/material'
+import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
-import PropTypes from 'prop-types'
 
 // mock
-import navConfig from './config'
+import { navConfig, settingConfig, connectedConfig } from './config'
 
-import { NavContent, NavBottomBox, NavConnectedSite } from './styles'
+import { NavContent, NavConnectedSite } from './styles'
 
 import account from '@/_mock/account'
 
 // hooks
 import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
+import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
-
-import Scrollbar from '@/components/scrollbar'
+import SettingSection from '@/components/setting-section'
 
 // components
 
@@ -69,18 +57,23 @@ export default function Nav() {
       </Box>
       <NavContent>
         <NavSection data={navConfig} />
-        <NavBottomBox>
-          <div>
-            <p>연결된 사이트</p>
+        <div>
+          <div style={{ padding: '0 22px' }}>
+            <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
             <NavConnectedSite>
-              <div>버튼 1</div>
-              <div>버튼 2</div>
-              <div>버튼 3</div>
-              <div>버튼 4</div>
+              <ConnectedSection data={connectedConfig} />
             </NavConnectedSite>
           </div>
-          <div>세팅 공지 이메일</div>
-        </NavBottomBox>
+          <div
+            style={{
+              borderBottom: 'solid',
+              borderBottomWidth: '1px',
+              borderBottomColor: '#E0E4E8',
+              margin: '15px 22px 0 22px',
+            }}
+          ></div>
+          <SettingSection data={settingConfig} />
+        </div>
       </NavContent>
     </>
   )
