@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.LoginRequestDto;
 import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.SignResponseDto;
@@ -24,7 +25,7 @@ public class MemberController {
 	private final MemberService memberService;
 
 	@PostMapping("/login")
-	public BaseResponse<Object> login(@RequestBody SignRequestDto request) throws Exception {
+	public BaseResponse<Object> login(@RequestBody LoginRequestDto request) throws Exception {
 
 		return BaseResponse.builder()
 			.result(memberService.login(request))
@@ -75,7 +76,7 @@ public class MemberController {
 		return BaseResponse.builder()
 			.result(memberService.refreshAccessToken(jwt))
 			.resultCode(HttpStatus.OK.value())
-			.resultMsg("refresh 토큰이 재발급 되었습니다.")
+			.resultMsg("refresh 토큰이 만료되지 않아 access 토큰이 재발급 되었습니다.")
 			.build();
 	}
 }

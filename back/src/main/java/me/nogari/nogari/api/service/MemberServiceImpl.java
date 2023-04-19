@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.LoginRequestDto;
 import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.SignResponseDto;
 import me.nogari.nogari.common.JWT;
@@ -29,7 +30,7 @@ public class MemberServiceImpl implements MemberService {
 	private final TokenRepository tokenRepository;
 
 	@Override
-	public SignResponseDto login(SignRequestDto request) {
+	public SignResponseDto login(LoginRequestDto request) {
 		Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 
@@ -97,7 +98,7 @@ public class MemberServiceImpl implements MemberService {
 			JWT.builder()
 				.id(member.getMemberId())
 				.refresh_token(UUID.randomUUID().toString())
-				.expiration(14) // refresh 만료기간 2주
+				.expiration(120) // refresh 만료기간 2주
 				.build()
 		);
 		return jwt.getRefresh_token();
@@ -105,7 +106,7 @@ public class MemberServiceImpl implements MemberService {
 
 	public JWT validRefreshToken(Member member, String refreshToken) throws Exception {
 		JWT jwt = tokenRepository.findById(member.getMemberId())
-			.orElseThrow(() -> new Exception("만료된 계정입니다. 로그인을 다시 시도하세요"));
+			.orElseThrow(() -> new Exception("refresh 토큰이 만료된 계정입니다. 로그인을 다시 시도하세요"));
 		// 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
 		if (jwt.getRefresh_token() == null) {
 			return null;
