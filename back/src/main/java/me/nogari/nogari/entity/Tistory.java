@@ -37,8 +37,8 @@ public class Tistory extends BaseTimeEntity {
 	@Column(name = "category_name", length = 50)
 	private String categoryName;
 
-	@Column(name = "visibility", columnDefinition = "TINYINT", length = 4, nullable = false)
-	private int visibility;
+	@Column(name = "visibility", nullable = false)
+	private Byte visibility;
 
 	@Column(name = "status", length = 50, nullable = false)
 	private String status;
