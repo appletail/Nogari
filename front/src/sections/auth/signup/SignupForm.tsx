@@ -74,7 +74,7 @@ function SignupForm() {
               required: '비밀번호를 입력해주세요',
               pattern: {
                 value: Regex.password,
-                message: '대문자, 특수문자를 포함해 8자 이상입력해주세요',
+                message: '대문자, 숫자, 특수문자를 포함해 8자 이상입력해주세요',
               },
             }}
             textFieldProps={{
