@@ -1,32 +1,21 @@
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-
 // @mui
-import {
-  Box,
-  Link,
-  Button,
-  Drawer,
-  Typography,
-  Avatar,
-  Stack,
-} from '@mui/material'
+import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
-import PropTypes from 'prop-types'
 
 // mock
-import navConfig from './config'
+import { navConfig, settingConfig, connectedConfig } from './config'
+
+import { NavContent, NavConnectedSite } from './styles'
 
 import account from '@/_mock/account'
 
 // hooks
 import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
+import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
-
-import Scrollbar from '@/components/scrollbar'
+import SettingSection from '@/components/setting-section'
 
 // components
-//
 
 // ----------------------------------------------------------------------
 
@@ -66,8 +55,26 @@ export default function Nav() {
           </StyledAccount>
         </Link>
       </Box>
-
-      <NavSection data={navConfig} />
+      <NavContent>
+        <NavSection data={navConfig} />
+        <div>
+          <div style={{ padding: '0 22px' }}>
+            <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
+            <NavConnectedSite>
+              <ConnectedSection data={connectedConfig} />
+            </NavConnectedSite>
+          </div>
+          <div
+            style={{
+              borderBottom: 'solid',
+              borderBottomWidth: '1px',
+              borderBottomColor: '#E0E4E8',
+              margin: '15px 22px 0 22px',
+            }}
+          ></div>
+          <SettingSection data={settingConfig} />
+        </div>
+      </NavContent>
     </>
   )
 

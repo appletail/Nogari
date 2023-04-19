@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import me.nogari.nogari.api.response.BaseResponse;
@@ -22,14 +24,9 @@ public class OAuthController {
 	@Autowired
 	private OauthServiceImpl oauthService;
 
-	// @ResponseBody
-	// @GetMapping
-	// public BaseResponse<Object> test(){
-	//
-	// }
-
 	@ResponseBody
 	@GetMapping("/kakao")
+	@Operation(summary = "카카오(티스토리) 토큰 발급")
 	public BaseResponse<Object> kakaoCallBack(@RequestParam String code){
 		// 카카오 인가코드 받기
 		// System.out.println("code: " + code);
@@ -50,5 +47,6 @@ public class OAuthController {
 
 		}
 	}
+
 
 }

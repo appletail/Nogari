@@ -32,8 +32,8 @@ public class Member {
 	@Column(name = "member_id")
 	private Long memberId;
 
-	@Column(name = "id", unique = true, nullable = false, length = 40)
-	private String id;
+	@Column(name = "email", unique = true, nullable = false, length = 50)
+	private String email;
 
 	@Column(name = "password", nullable = false)
 	@JsonIgnore
@@ -53,10 +53,6 @@ public class Member {
 	@Builder.Default
 	@OneToMany(mappedBy = "member")
 	private List<Tistory> tistorys = new ArrayList<>();
-
-	@Builder.Default
-	@OneToMany(mappedBy = "member")
-	private List<Velog> velogs = new ArrayList<>();
 
 	@Builder.Default
 	@OneToMany(mappedBy = "member")
