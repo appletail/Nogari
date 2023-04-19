@@ -98,7 +98,7 @@ public class MemberServiceImpl implements MemberService {
 			JWT.builder()
 				.id(member.getMemberId())
 				.refresh_token(UUID.randomUUID().toString())
-				.expiration(120) // refresh 만료기간 2주
+				.expiration(14) // refresh 만료기간 2주
 				.build()
 		);
 		return jwt.getRefresh_token();

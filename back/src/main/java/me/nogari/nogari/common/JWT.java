@@ -27,7 +27,7 @@ public class JWT {
 
 	private String refresh_token;
 
-	@TimeToLive(unit = TimeUnit.SECONDS)        // 토큰의 TTL 결정
+	@TimeToLive(unit = TimeUnit.DAYS)        // 토큰의 TTL 결정
 	private Integer expiration;
 
 	public void setExpiration(Integer expiration) {
