@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.LoginRequestDto;
 import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.SignResponseDto;
@@ -24,7 +25,7 @@ public class MemberController {
 	private final MemberService memberService;
 
 	@PostMapping("/login")
-	public BaseResponse<Object> login(@RequestBody SignRequestDto request) throws Exception {
+	public BaseResponse<Object> login(@RequestBody LoginRequestDto request) throws Exception {
 
 		return BaseResponse.builder()
 			.result(memberService.login(request))
@@ -46,14 +47,14 @@ public class MemberController {
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("중복된 id입니다")
+				.resultMsg("중복된 email입니다")
 				.build();
 		}
 	}
 
 	@GetMapping("/user/get")
-	public ResponseEntity<SignResponseDto> getUser(@RequestParam String id) throws Exception {
-		return new ResponseEntity<>(memberService.getMember(id), HttpStatus.OK);
+	public ResponseEntity<SignResponseDto> getUser(@RequestParam String email) throws Exception {
+		return new ResponseEntity<>(memberService.getMember(email), HttpStatus.OK);
 	}
 
 	@GetMapping("/admin/get")
@@ -62,11 +63,11 @@ public class MemberController {
 	}
 
 	@GetMapping("/duplicate")
-	public BaseResponse<Object> checkIdDuplicate(@RequestParam String id) {
+	public BaseResponse<Object> checkEmailDuplicate(@RequestParam String email) {
 		return BaseResponse.builder()
-			.result(memberService.checkIdDuplicate(id))
+			.result(memberService.checkEmailDuplicate(email))
 			.resultCode(HttpStatus.OK.value())
-			.resultMsg("아이디 중복이면 True")
+			.resultMsg("이메일 중복이면 True")
 			.build();
 	}
 
@@ -75,7 +76,7 @@ public class MemberController {
 		return BaseResponse.builder()
 			.result(memberService.refreshAccessToken(jwt))
 			.resultCode(HttpStatus.OK.value())
-			.resultMsg("refresh 토큰이 재발급 되었습니다.")
+			.resultMsg("refresh 토큰이 만료되지 않아 access 토큰이 재발급 되었습니다.")
 			.build();
 	}
 }
