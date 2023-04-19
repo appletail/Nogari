@@ -56,10 +56,6 @@ public class Member {
 
 	@Builder.Default
 	@OneToMany(mappedBy = "member")
-	private List<Velog> velogs = new ArrayList<>();
-
-	@Builder.Default
-	@OneToMany(mappedBy = "member")
 	private List<Github> githubs = new ArrayList<>();
 
 	public void setRoles(List<Authority> role) {
