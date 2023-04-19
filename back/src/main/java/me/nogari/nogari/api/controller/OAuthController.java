@@ -48,30 +48,5 @@ public class OAuthController {
 		}
 	}
 
-	@ResponseBody
-	@GetMapping("/velog")
-	@Operation(summary = "velog 토큰 발급")
-	public BaseResponse<Object> velogCallBack(
-		@RequestParam @Parameter(description="로그인할 소셜이름") String socialName){
-
-		// socialName : github, google, facebook
-		String loginUrl = "https://v2.velog.io/api/v2/auth/social/redirect/" + socialName + "?next=/&amp;isIntegrate=0";
-
-
-		// try{
-		// 	return BaseResponse.builder()
-		// 		.result(oauthService.getVelogAccessToken(loginUrl))
-		// 		.resultCode(HttpStatus.OK.value())
-		// 		.resultMsg("정상적으로 velog 엑세스 토근 얻기 성공")
-		// 		.build();
-		// }catch (Exception e){
-		// 	return BaseResponse.builder()
-		// 		.result(null)
-		// 		.resultCode(HttpStatus.BAD_REQUEST.value())
-		// 		.resultMsg("velog 엑세스 토큰 얻기에 실패")
-		// 		.build();
-		//
-		// }
-	}
 
 }
