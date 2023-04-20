@@ -1,19 +1,18 @@
 import { Client } from "@notionhq/client"
-// const { NotionToMarkdown } = require("notion-to-md");
-import { writeFileSync } from 'fs';
-// or
 import { NotionToMarkdown } from "notion-to-md";
+import { writeFileSync } from 'fs';
+import customNotionToMarkdown from "./utils/customNotionToMarkdown";
 
 const notion = new Client({
-  auth: "secret_OJV9jrAZksbShNhS53oGKrUfPRL5u33h14z1BZCr6jW",
+  auth: "사용자 엑세스 토큰",
 });
 
 // passing notion client to the option
-const n2m = new NotionToMarkdown({ notionClient: notion });
+const custom_n2m = customNotionToMarkdown(notion);
 
 (async () => {
-  const mdblocks = await n2m.pageToMarkdown("19f5ec24f45e4c1e947f5ddddeb8667e");
-  const mdString = n2m.toMarkdownString(mdblocks);
+  const mdblocks = await custom_n2m.pageToMarkdown("노션 페이지 혹은 블럭 고유 id");
+  const mdString = custom_n2m.toMarkdownString(mdblocks);
 
   //writing to file
   writeFileSync("test.md", mdString);
