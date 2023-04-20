@@ -39,7 +39,8 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList) {
 
-		String accessToken = "9801867a8a6a3bf7f479efef015c14fa_68660d2eb83c367ca71309f6de896723";
+		// 토큰에서 tistory accesstoken 받아오기
+		String accessToken = "";
 
 		if(!"".equals(accessToken) && accessToken != null){
 			String blogInfoUrl = "https://www.tistory.com/apis/blog/info?"
@@ -83,7 +84,8 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	public HashMap<String, List<Object>> getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categoriesList){
 
-		String accessToken = "9801867a8a6a3bf7f479efef015c14fa_68660d2eb83c367ca71309f6de896723";
+		// 토큰에서 tistory accesstoken 받아오기
+		String accessToken = "";
 
 		if(!"".equals(accessToken) && accessToken != null){
 			String blogInfoUrl = "https://www.tistory.com/apis/category/list?"

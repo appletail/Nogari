@@ -1,5 +1,7 @@
 package me.nogari.nogari.api.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,8 +47,5 @@ public class ContentController {
 				.build();
 
 		}
-
 	}
-
-
 }
