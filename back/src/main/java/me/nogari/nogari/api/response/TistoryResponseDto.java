@@ -30,10 +30,4 @@ public class TistoryResponseDto {
 	// 발행요청, 발행완료, 수정요청,접근불가, 기타오류
 	private String status;
 
-	// 멤버의 블로그이름 리스트
-	private List<String> blogNameList;
-
-	// 각 블로그이름을 키로, 카테고리 리스트를 값으로 갖는 해시맵
-	private HashMap<String,categoriesDto> categories;
-
 }
