@@ -51,7 +51,7 @@ export const connectedConfig = [
     title: 'notion',
     path: '/notion',
     icon: <Notion style={{ width: 35, height: 35 }} />,
-    isLogin: true,
+    isLogin: false,
   },
   {
     title: 'github',
