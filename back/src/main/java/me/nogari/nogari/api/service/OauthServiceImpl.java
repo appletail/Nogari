@@ -3,6 +3,8 @@ package me.nogari.nogari.api.service;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
 
+import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -92,6 +94,21 @@ public class OauthServiceImpl implements OauthService {
 			getGitHubParams(code),
 			OAuthAccessTokenResponse.class);
 		String accessToken = response.getBody().getAccessToken();
+
+		System.out.println("github response.getBody().getAccessToken() : " + response.getBody().getAccessToken());
+		System.out.println("github bot : "  +response.getBody().getBot_id());
+
+		System.out.println(response.getBody().getWorkspace_name());
+
+		String ATK = response.getBody().getAccessToken();
+		try {
+			GitHub gitHub = new GitHubBuilder().withOAuthToken(ATK).build();
+			System.out.println("github 생성 성공 : " + gitHub);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("github 생성 실패");
+		}
+
 		return response.getBody();
 	}
 
@@ -108,6 +125,7 @@ public class OauthServiceImpl implements OauthService {
 	@Override
 	public String getNotionAccessToken(String code) {
 		HttpHeaders headers = new HttpHeaders();
+		//NOTION_CLIENT_ID, NOTION_CLIENT_SECRET를 base64 인코딩해서 요청 	헤더에 넣어야함
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		headers.setBasicAuth(NOTION_CLIENT_ID, NOTION_CLIENT_SECRET);
 
@@ -124,7 +142,6 @@ public class OauthServiceImpl implements OauthService {
 			NotionAccessTokenResponse.class
 		);
 
-		System.out.println("response.getBody().getAccessToken() : " + response.getBody().getAccess_token());
 		return response.getBody().getAccess_token();
 	}
 
