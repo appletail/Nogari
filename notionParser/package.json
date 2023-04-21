@@ -1,0 +1,24 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "author": "appletail",
+  "license": "ISC",
+  "dependencies": {
+    "@notionhq/client": "^2.2.4",
+    "markdown-table": "^2.0.0",
+    "notion-to-md": "^2.5.6",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/markdown-table": "^2.0.0",
+    "@types/node": "^18.15.12",
+    "ts-node": "^10.9.1"
+  }
+}
