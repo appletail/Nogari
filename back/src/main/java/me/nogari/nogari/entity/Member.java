@@ -10,7 +10,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -57,6 +59,11 @@ public class Member {
 	@Builder.Default
 	@OneToMany(mappedBy = "member")
 	private List<Github> githubs = new ArrayList<>();
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "token_id", referencedColumnName = "token_id")
+	private Token token;
+
 
 	public void setRoles(List<Authority> role) {
 		this.roles = role;
