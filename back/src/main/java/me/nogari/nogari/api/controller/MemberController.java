@@ -73,6 +73,7 @@ public class MemberController {
 
 	@GetMapping("/refresh")
 	public BaseResponse<Object> refresh(@RequestBody JWTDto jwt) throws Exception {
+
 		return BaseResponse.builder()
 			.result(memberService.refreshAccessToken(jwt))
 			.resultCode(HttpStatus.OK.value())
