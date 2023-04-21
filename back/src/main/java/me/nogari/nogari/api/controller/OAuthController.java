@@ -83,8 +83,7 @@ public class OAuthController {
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try{
-			OAuthAccessTokenResponse tokenResponse = oauthService.getNotionAccessToken(code);
-			String ATK = tokenResponse.getAccessToken();
+			String ATK =oauthService.getNotionAccessToken(code);
 			System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
 				.result(ATK)
@@ -99,5 +98,4 @@ public class OAuthController {
 				.build();
 		}
 	}
-
 }

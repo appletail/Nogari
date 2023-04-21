@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -19,6 +20,7 @@ import java.net.URL;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
 
 @Slf4j
@@ -31,6 +33,9 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.github.redirect-uri}") private String ACCESS_TOKEN_URL;
 	@Value("${app.auth.github.client-id}") private String CLIENT_ID;
 	@Value("${app.auth.github.client-secret}") private String CLIENT_SECRET;
+	@Value("${app.auth.notion.oauth-client-id}") private String NOTION_CLIENT_ID;
+	@Value("${app.auth.notion.oauth-client-secret}") private String NOTION_CLIENT_SECRET;
+
 
 	@Override
 	public String getKakaoAccessToken(String code) {
@@ -101,13 +106,26 @@ public class OauthServiceImpl implements OauthService {
 	}
 
 	@Override
-	public OAuthAccessTokenResponse getNotionAccessToken(String code) {
-		ResponseEntity<OAuthAccessTokenResponse> response = restTemplate.exchange("https://api.notion.com/v1/oauth/token",
-			HttpMethod.POST,
-			getGitHubParams(code),
-			OAuthAccessTokenResponse.class);
-		String accessToken = response.getBody().getAccessToken();
-		return response.getBody();
+	public String getNotionAccessToken(String code) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setBasicAuth(NOTION_CLIENT_ID, NOTION_CLIENT_SECRET);
+
+		MultiValueMap<String, String> params= new LinkedMultiValueMap<>();
+		params.add("grant_type", "authorization_code");
+		params.add("code", code);
+		params.add("redirect_uri", "http://localhost:3000/");
+
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+		ResponseEntity<NotionAccessTokenResponse> response = restTemplate.postForEntity(
+			"https://api.notion.com/v1/oauth/token",
+			request,
+			NotionAccessTokenResponse.class
+		);
+
+		System.out.println("response.getBody().getAccessToken() : " + response.getBody().getAccess_token());
+		return response.getBody().getAccess_token();
 	}
 
 }

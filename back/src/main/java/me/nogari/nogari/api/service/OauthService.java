@@ -11,5 +11,5 @@ public interface OauthService {
 
 	OAuthAccessTokenResponse getGithubAccessToken(String code);
 
-	OAuthAccessTokenResponse getNotionAccessToken(String code);
+	String getNotionAccessToken(String code);
 }
