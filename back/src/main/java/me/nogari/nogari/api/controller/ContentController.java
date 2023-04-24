@@ -2,6 +2,8 @@ package me.nogari.nogari.api.controller;
 
 import java.util.List;
 
+import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,6 +48,31 @@ public class ContentController {
 				.resultMsg("티스토리 발행 내역 조회 실패")
 				.build();
 
+		}
+	}
+
+	@ResponseBody
+	@GetMapping("/github")
+	@Operation(summary = "github 포스팅")
+	public BaseResponse<Object> publishGithub(){
+		String ATK = "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";
+
+		try{
+			GitHub gitHub = new GitHubBuilder().withOAuthToken(ATK).build();
+			System.out.println("github 생성 성공 : " + gitHub);
+
+			return BaseResponse.builder()
+				.result(contentService.githubConnectionTest(gitHub))
+				.resultCode(HttpStatus.OK.value())
+				.resultMsg("정상적으로 성공")
+				.build();
+		}catch (Exception e){
+			e.printStackTrace();
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("github 생성 실패")
+				.build();
 		}
 	}
 }

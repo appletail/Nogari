@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GitHub;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -166,5 +168,16 @@ public class ContentServiceImpl implements ContentService {
 		System.out.println(rslt);
 
 		return rslt;
+	}
+
+	@Override
+	public Void githubConnectionTest(GitHub github) {
+		try {
+			GHRepository repo = github.getRepository("encoreKwang/PR").getSource();
+			System.out.println(repo + " repo 진입 성공");
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
