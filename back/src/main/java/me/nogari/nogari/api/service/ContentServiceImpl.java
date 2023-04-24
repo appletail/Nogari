@@ -1,48 +1,24 @@
 package me.nogari.nogari.api.service;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import org.kohsuke.github.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import org.kohsuke.github.GHCommit;
-import org.kohsuke.github.GHContentUpdateResponse;
-import org.kohsuke.github.GHRef;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.gson.JsonArray;
-
 import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.response.TistoryResponseDto;
-import me.nogari.nogari.api.response.categoriesDto;
 
-import me.nogari.nogari.entity.Member;
-import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.util.ResourceUtils;
 
 @Service
 @Transactional
@@ -185,79 +161,7 @@ public class ContentServiceImpl implements ContentService {
 		return rslt;
 	}
 
-	@Override
-	public Void githubConnectionTest(GitHub github) {
-		try {
-			GHRepository repository = github.getRepository("encoreKwang/PR").getSource();
-			System.out.println(repository + " repo 진입 성공");
-
-			// GHContent file;
-			File file = ResourceUtils.getFile("classpath:test.md");
-
-			String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-
-			// 저장소에 파일이 이미 있는지 확인
-			GHContent file = repository.getFileContent(filePath);;
-
-
-			// Create a new commit
-			GHContentBuilder contentBuilder = repository.createContent();
-			GHContentUpdate contentUpdate = contentBuilder
-				.content(content)
-				.message("Commit message")
-				.path("test.md");
-			GHContent commit = contentUpdate.commit();
-
-			// Push the changes to the repository
-			GHRef ref = repository.getRef("heads/main");
-			GHRefUpdate refUpdate = ref.updateTo(commit.getSha()).force(true);
-			GHRefUpdate.Result result = refUpdate.execute();
-
-			// Log the responses
-			System.out.println("Commit response: " + commit.toString());
-			System.out.println("Push response: " + result.toString());
-
-
-			// 기존 파일 업데이트
-			// byte[] fileBytes = fileContent.getBytes(StandardCharsets.UTF_8);
-			// String base64Content = Base64.getEncoder().encodeToString(fileBytes);
-			// file.update(fileContent, "cm");
-
-
-			// GHRepository repository  = repo.getRef("heads/" + "dev");
-			// GHRepository repository = github.getRepository("username/repo-name");
-
-
-			// GHCommit latestCommit = repo.
-			//
-			//
-			// // Get the file to be committed
-			// File file = ResourceUtils.getFile("classpath:test.md");
-			// String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-			//
-			// // Create a new commit
-			// GHContentUpdateResponse commitResponse = repository.createContent()
-			// 	.content(content)
-			// 	.message("Commit message")
-			// 	.path("test.md")
-			// 	.commit();
-			//
-			//
-			//
-			// // Push the changes to the repository
-			// // GHRef ref = repository.getRef("heads/main");
-			// // ref.updateTo(commitResponse.getSHA1());
-			//
-			// GHRefUpdate refUpdate = ref.updateTo(commit.getSha()).force(true);
-			// GHRefUpdate.Result result = refUpdate.execute();
-			//
-			// // Log the responses
-			// System.out.println("Commit response: " + commitResponse.toString());
-			// System.out.println("Push response: " + pushResponse.toString());
-
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-		return null;
+	public void githubConnectionTest() {
+	return;
 	}
 }

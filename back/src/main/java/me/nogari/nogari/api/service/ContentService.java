@@ -3,10 +3,6 @@ package me.nogari.nogari.api.service;
 import java.util.HashMap;
 import java.util.List;
 
-import org.kohsuke.github.GitHub;
-
-import me.nogari.nogari.api.response.categoriesDto;
-import me.nogari.nogari.common.JWTDto;
 
 public interface ContentService {
 
@@ -16,6 +12,6 @@ public interface ContentService {
 
 	Object getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categories);
 
-	Void githubConnectionTest(GitHub gitHub);
+	void githubConnectionTest();
 
 }
