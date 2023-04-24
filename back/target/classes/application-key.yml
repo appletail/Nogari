@@ -1,0 +1,10 @@
+app:
+  auth:
+    kakao:
+      restapi-key: 3109c8f089f95eab06fc4653610a9438
+    notion:
+      oauth-client-id: 98352116-89e9-46b7-b1cb-dffad1a36b89
+      oauth-client-secret: secret_gf1E20HelmCTrTS3dy5aP6XSkRB5doKrUUh7WJINxZd
+    github:
+      client-id: 9c456c2ea6b092fcfd0f
+      client-secret: c366ca926592d42ecb6713ff11edbee53620882d
