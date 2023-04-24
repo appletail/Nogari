@@ -1,6 +1,6 @@
 # React Frontend Dockerfile
 
-FROM node:16 as build-stage
+FROM node:16.19 as build-stage
 WORKDIR /var/jenkins_home/workspace/gitlab/front
 COPY package*.json ./
 # ARG DISABLE_CACHE
