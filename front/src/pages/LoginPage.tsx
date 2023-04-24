@@ -8,10 +8,7 @@ import { Link, Container, Typography, Divider } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 // components
-// api
-import axios from "axios";
 
-import { postEmailLogin } from "@/apis/authApis";
 import { ReactComponent as Logo } from "@/assets/logo/nogari.svg";
 import Iconify from "@/components/iconify/Iconify";
 import { LoginForm } from "@/sections/auth/login";

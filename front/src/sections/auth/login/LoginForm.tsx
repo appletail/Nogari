@@ -1,55 +1,55 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 
 // @mui
-import { LoadingButton } from "@mui/lab";
-import { Link, Stack, IconButton, InputAdornment } from "@mui/material";
+import { LoadingButton } from '@mui/lab'
+import { Link, Stack, IconButton, InputAdornment } from '@mui/material'
 
 // api
-import axios from "axios";
+import axios from 'axios'
 
-import { postEmailLogin } from "@/apis/authApis";
-import Iconify from "@/components/iconify";
+import { postEmailLogin } from '@/apis/authApis'
+import Iconify from '@/components/iconify'
 
 // react-hook-form
-import InputText from "@/components/input-text/InputText";
+import InputText from '@/components/input-text/InputText'
 
 interface ILoginInput {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 function LoginForm() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   // form 생성
-  const { control, handleSubmit } = useForm<ILoginInput>({});
-  const [showPassword, setShowPassword] = useState(false);
+  const { control, handleSubmit } = useForm<ILoginInput>({})
+  const [showPassword, setShowPassword] = useState(false)
 
   // replace : true 를 적용해서 뒤로가기가 안되게 적용하였습니다.
   // form 제출 handler
   const submitHandler = async (data: ILoginInput) => {
     // console.log(data);
     try {
-      const response = await postEmailLogin(data);
+      const response = await postEmailLogin(data)
 
       // response 요청 성공시
       if (response.data.resultCode === 200) {
         localStorage.setItem(
-          "accessToken",
+          'accessToken',
           JSON.stringify(response.data.result.token.access_token)
-        );
+        )
         localStorage.setItem(
-          "refreshToken",
+          'refreshToken',
           JSON.stringify(response.data.result.token.refresh_token)
-        );
-        navigate("/test", { replace: true });
+        )
+        navigate('/test', { replace: true })
       }
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
-  };
+  }
 
   return (
     <>
@@ -59,19 +59,19 @@ function LoginForm() {
             control={control}
             defaultValue=""
             name="email"
-            rules={{ required: "이메일을 입력해주세요" }}
+            rules={{ required: '이메일을 입력해주세요' }}
             textFieldProps={{
-              label: "Email",
+              label: 'Email',
             }}
           />
           <InputText
             control={control}
             defaultValue=""
             name="password"
-            rules={{ required: "비밀번호를 입력해주세요" }}
+            rules={{ required: '비밀번호를 입력해주세요' }}
             textFieldProps={{
-              label: "Password",
-              type: `${showPassword ? "text" : "password"}`,
+              label: 'Password',
+              type: `${showPassword ? 'text' : 'password'}`,
               InputProps: {
                 endAdornment: (
                   <InputAdornment position="end">
@@ -81,7 +81,7 @@ function LoginForm() {
                     >
                       <Iconify
                         icon={
-                          showPassword ? "eva:eye-fill" : "eva:eye-off-fill"
+                          showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'
                         }
                       />
                     </IconButton>
@@ -102,7 +102,7 @@ function LoginForm() {
         </Stack>
       </form>
     </>
-  );
+  )
 }
 
-export default LoginForm;
+export default LoginForm
