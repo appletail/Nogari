@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11
-COPY ./back/target/*.jar app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+FROM openjdk:11
+COPY target/nogari-0.0.1-SNAPSHOT.jar /app/app.jar
+WORKDIR /app
+CMD ["java","-jar", "app.jar"]
