@@ -1,10 +1,8 @@
-FROM maven:4.0.0-jdk-11 as MAVEN_BUILD
+FROM maven:3.8.6-jdk-11 as MAVEN_BUILD
 
 WORKDIR /build
 
 COPY pom.xml .
-
-RUN mvn dependency:go-offline
 
 COPY src ./src
 
