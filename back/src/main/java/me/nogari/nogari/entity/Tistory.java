@@ -25,21 +25,32 @@ public class Tistory extends BaseTimeEntity {
 	@Column(name = "tistory_id")
 	private Long tistoryId;
 
-	@Column(name = "title", length = 50)
+	@Column(name = "post_id")
+	private Long postId;
+
+	@Column(name = "blog_name", length = 300, nullable = false)
+	private String blogName;
+
+	@Column(name = "title", length = 300, nullable = false)
 	private String title;
 
-	@Column(name = "category", length = 50)
-	private String category;
+	@Column(name = "category_name", length = 50)
+	private String categoryName;
 
-	@Column(name = "status", length = 15, nullable = false)
+	@Column(name = "visibility", nullable = false)
+	private Byte visibility;
+
+	@Column(name = "status", length = 50, nullable = false)
 	private String status;
 
-	@Column(name = "link", length = 300)
-	private String link;
+	@Column(name = "request_link", length = 300, nullable = false)
+	private String requestLink;
 
-	// @Builder.Default
-	// @OneToMany(mappedBy = "tistory")
-	// private List<TistoryTag> tags = new ArrayList<>();
+	@Column(name = "response_link", length = 300)
+	private String responseLink;
+
+	@Column(name = "tag_list", length = 300)
+	private String tagList;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")

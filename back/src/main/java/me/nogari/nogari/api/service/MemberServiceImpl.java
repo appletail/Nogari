@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.LoginRequestDto;
 import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.SignResponseDto;
 import me.nogari.nogari.common.JWT;
@@ -29,8 +30,8 @@ public class MemberServiceImpl implements MemberService {
 	private final TokenRepository tokenRepository;
 
 	@Override
-	public SignResponseDto login(SignRequestDto request) {
-		Member member = memberRepository.findById(request.getId()).orElseThrow(() ->
+	public SignResponseDto login(LoginRequestDto request) {
+		Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 
 		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
@@ -41,12 +42,12 @@ public class MemberServiceImpl implements MemberService {
 
 		return SignResponseDto.builder()
 			.memberId(member.getMemberId())
-			.id(member.getId())
+			.email(member.getEmail())
 			.password(member.getPassword())
 			.notionToken(member.getNotionToken())
 			.roles(member.getRoles())
 			.token(JWTDto.builder()
-				.access_token(jwtProvider.createToken(member.getId(), member.getRoles()))
+				.access_token(jwtProvider.createToken(member.getEmail(), member.getRoles()))
 				.refresh_token(member.getRefreshToken())
 				.build())
 			.build();
@@ -58,7 +59,7 @@ public class MemberServiceImpl implements MemberService {
 	public boolean signup(SignRequestDto request) throws Exception {
 		try {
 			Member member = Member.builder()
-				.id(request.getId())
+				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
 				.notionToken(request.getNotionToken())
 				.build();
@@ -73,15 +74,15 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public SignResponseDto getMember(String id) throws Exception {
-		Member member = memberRepository.findById(id)
+	public SignResponseDto getMember(String email) throws Exception {
+		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
 		return new SignResponseDto(member);
 	}
 
 	@Override
-	public boolean checkIdDuplicate(String id) {
-		return memberRepository.existsById(id);
+	public boolean checkEmailDuplicate(String email) {
+		return memberRepository.existsByEmail(email);
 	}
 
 	// Refresh Token ================
@@ -97,7 +98,7 @@ public class MemberServiceImpl implements MemberService {
 			JWT.builder()
 				.id(member.getMemberId())
 				.refresh_token(UUID.randomUUID().toString())
-				.expiration(14) // refresh 만료기간 2주
+				.expiration(120) // refresh 만료기간 2주
 				.build()
 		);
 		return jwt.getRefresh_token();
@@ -105,7 +106,7 @@ public class MemberServiceImpl implements MemberService {
 
 	public JWT validRefreshToken(Member member, String refreshToken) throws Exception {
 		JWT jwt = tokenRepository.findById(member.getMemberId())
-			.orElseThrow(() -> new Exception("만료된 계정입니다. 로그인을 다시 시도하세요"));
+			.orElseThrow(() -> new Exception("refresh 토큰이 만료된 계정입니다. 로그인을 다시 시도하세요"));
 		// 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
 		if (jwt.getRefresh_token() == null) {
 			return null;
@@ -126,14 +127,14 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	public JWTDto refreshAccessToken(JWTDto token) throws Exception {
-		String id = jwtProvider.getId(token.getAccess_token());
-		Member member = memberRepository.findById(id).orElseThrow(() ->
+		String email = jwtProvider.getEmail(token.getAccess_token());
+		Member member = memberRepository.findByEmail(email).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 		JWT refreshToken = validRefreshToken(member, token.getRefresh_token());
 
 		if (refreshToken != null) {
 			return JWTDto.builder()
-				.access_token(jwtProvider.createToken(id, member.getRoles()))
+				.access_token(jwtProvider.createToken(email, member.getRoles()))
 				.refresh_token(refreshToken.getRefresh_token())
 				.build();
 		} else {

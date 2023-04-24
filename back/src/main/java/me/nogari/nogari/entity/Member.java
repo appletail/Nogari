@@ -10,7 +10,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -32,8 +34,8 @@ public class Member {
 	@Column(name = "member_id")
 	private Long memberId;
 
-	@Column(name = "id", unique = true, nullable = false, length = 40)
-	private String id;
+	@Column(name = "email", unique = true, nullable = false, length = 50)
+	private String email;
 
 	@Column(name = "password", nullable = false)
 	@JsonIgnore
@@ -56,11 +58,12 @@ public class Member {
 
 	@Builder.Default
 	@OneToMany(mappedBy = "member")
-	private List<Velog> velogs = new ArrayList<>();
-
-	@Builder.Default
-	@OneToMany(mappedBy = "member")
 	private List<Github> githubs = new ArrayList<>();
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "token_id", referencedColumnName = "token_id")
+	private Token token;
+
 
 	public void setRoles(List<Authority> role) {
 		this.roles = role;
