@@ -35,10 +35,14 @@ function LoginForm() {
       const response = await postEmailLogin(data);
 
       // response 요청 성공시
-      if (response.data.result.resultCode === 200) {
+      if (response.data.resultCode === 200) {
         localStorage.setItem(
           "accessToken",
-          JSON.stringify(response.data.result.token)
+          JSON.stringify(response.data.result.token.access_token)
+        );
+        localStorage.setItem(
+          "refreshToken",
+          JSON.stringify(response.data.result.token.refresh_token)
         );
         navigate("/test", { replace: true });
       }

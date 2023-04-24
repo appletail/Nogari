@@ -13,7 +13,8 @@ export const interceptors = (instance: AxiosInstance) => {
   return instance;
 };
 
-const BASE_URL = ""; // 서버 기입 필요
+const BASE_URL = "http://localhost:8080/api/v1"; // 로컬 서버
+// const BASE_URL = ""; // 배포 서버
 
 // 단순 get요청으로 인증값이 필요없는 경우
 const axiosApi = (url: string, options?: object) => {
