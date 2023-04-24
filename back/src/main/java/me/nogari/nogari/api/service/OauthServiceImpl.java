@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.entity.Member;
 
 @Slf4j
 @Service
@@ -40,7 +43,7 @@ public class OauthServiceImpl implements OauthService {
 
 
 	@Override
-	public String getKakaoAccessToken(String code) {
+	public String getKakaoAccessToken(String code, Member member) {
 
 		String access_Token = "";
 		String reqURL = "https://kauth.kakao.com/oauth/token";
@@ -77,6 +80,9 @@ public class OauthServiceImpl implements OauthService {
 			JsonElement element = parser.parse(result);
 
 			access_Token = element.getAsJsonObject().get("access_token").getAsString();
+
+			// Member의 Token에 카카오엑세스 토큰 저장
+			member.getToken().setTistoryToken(access_Token);
 
 			br.close();
 			bw.close();

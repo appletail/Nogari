@@ -2,6 +2,7 @@ package me.nogari.nogari.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +16,8 @@ import lombok.AllArgsConstructor;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
 import me.nogari.nogari.api.service.OauthServiceImpl;
+import me.nogari.nogari.common.security.CustomUserDetails;
+import me.nogari.nogari.entity.Member;
 
 @RestController
 @AllArgsConstructor
@@ -28,14 +31,18 @@ public class OAuthController {
 	@ResponseBody
 	@GetMapping("/kakao")
 	@Operation(summary = "카카오(티스토리) 토큰 발급")
-	public BaseResponse<Object> kakaoCallBack(@RequestParam String code){
+	public BaseResponse<Object> kakaoCallBack(@RequestParam String code, @AuthenticationPrincipal CustomUserDetails customUserDetails ){
+
+		// security session에 있는 유저 정보를 가져온다
+		Member member = customUserDetails.getMember();
+
 		// 카카오 인가코드 받기
 		// System.out.println("code: " + code);
 
 		// 카카오 서버에 엑세스토큰 (access token) 받기
 		try{
 			return BaseResponse.builder()
-				.result(oauthService.getKakaoAccessToken(code))
+				.result(oauthService.getKakaoAccessToken(code, member))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 카카오 엑세스 토근 얻기 성공")
 				.build();
