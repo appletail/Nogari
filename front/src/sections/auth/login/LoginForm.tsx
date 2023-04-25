@@ -24,7 +24,11 @@ function LoginForm() {
   const navigate = useNavigate()
 
   // form 생성
-  const { control, handleSubmit } = useForm<ILoginInput>({})
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid },
+  } = useForm<ILoginInput>({})
   const [showPassword, setShowPassword] = useState(false)
 
   // replace : true 를 적용해서 뒤로가기가 안되게 적용하였습니다.
@@ -33,21 +37,21 @@ function LoginForm() {
     // console.log(data);
     try {
       const response = await postEmailLogin(data)
-
       // response 요청 성공시
       if (response.data.resultCode === 200) {
-        localStorage.setItem(
+        sessionStorage.setItem(
           'accessToken',
           JSON.stringify(response.data.result.token.access_token)
         )
-        localStorage.setItem(
+        sessionStorage.setItem(
           'refreshToken',
           JSON.stringify(response.data.result.token.refresh_token)
         )
         navigate('/test', { replace: true })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error)
+      alert(error.response.data)
     }
   }
 
@@ -93,6 +97,7 @@ function LoginForm() {
 
           <LoadingButton
             fullWidth
+            disabled={isValid ? false : true}
             size="large"
             type="submit"
             variant="contained"
