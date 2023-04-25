@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.gson.JsonArray;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.aws.LambdaInvokeFunction;
+import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.TistoryResponseDto;
 import me.nogari.nogari.api.response.categoriesDto;
 
@@ -35,6 +37,8 @@ public class ContentServiceImpl implements ContentService {
 	private final MemberRepository memberRepository;
 
 	private final TistoryRepository tistoryRepository;
+
+	private LambdaInvokeFunction lambdaInvokeFunction;
 
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList) {
@@ -166,5 +170,18 @@ public class ContentServiceImpl implements ContentService {
 		System.out.println(rslt);
 
 		return rslt;
+	}
+
+	@Override
+	public Object postNotionToTistory(PostNotionToTistoryDto postNotionToTistoryDto) {
+		// AWS와 통신하는 과정
+		lambdaInvokeFunction = new LambdaInvokeFunction(
+			postNotionToTistoryDto.getNotionToken(),
+			postNotionToTistoryDto.getBlockId(),
+			postNotionToTistoryDto.getType()
+		);
+
+		lambdaInvokeFunction.post();
+		return null;
 	}
 }
