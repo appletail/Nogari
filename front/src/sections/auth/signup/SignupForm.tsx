@@ -6,12 +6,13 @@ import { useNavigate } from 'react-router-dom'
 import { LoadingButton } from '@mui/lab'
 import { Stack, IconButton, InputAdornment } from '@mui/material'
 
+import { getCheckEmail, postRegister } from '@/apis/authApis'
 import Iconify from '@/components/iconify'
 
 // react-hook-form
 import InputText from '@/components/input-text/InputText'
 
-interface LoginValue {
+interface ILoginValue {
   email: string
   password: string
   passwordConfirm: string
@@ -25,21 +26,56 @@ const Regex = {
 
 function SignupForm() {
   const navigate = useNavigate()
+  const [emailDuplicate, setEmailDuplicate] = useState(true)
 
   // form 생성
-  const { watch, control, handleSubmit } = useForm<LoginValue>({
+  const {
+    watch,
+    control,
+    handleSubmit,
+    formState: { isValid },
+    getFieldState,
+  } = useForm<ILoginValue>({
     mode: 'all',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
 
   // replace : true 를 적용해서 뒤로가기가 안되게 적용하였습니다.
+
+  // 이메일 중복확인 fucntion
+  const emailHandler = async () => {
+    const email = watch('email')
+    const emailState = getFieldState('email')
+
+    if (email && !emailState.invalid) {
+      try {
+        const response = await getCheckEmail(email)
+        if (response.data.resultCode === 200) {
+          setEmailDuplicate(response.data.result)
+          alert(response.data.resultMessage)
+        }
+      } catch (error: any) {
+        console.log(error)
+      }
+    }
+  }
   // form 제출 handler
-  const submitHandler = (data: LoginValue) => {
-    console.log(data)
-    navigate('/test', { replace: true })
+  const submitHandler = async (data: ILoginValue) => {
+    // console.log(data)
+    try {
+      const response = await postRegister(data)
+      // console.log(response)
+      if (response.data.resultCode === 200) {
+        alert(response.data.resultMessage)
+      }
+    } catch (error: any) {
+      console.log(error)
+    }
+    // navigate('/test', { replace: true })
   }
 
+  // 비밀번호 확인
   const checkpassword = (val: string) => {
     if (watch('password') != val) {
       return '비밀번호가 일치하지 않습니다.'
@@ -59,6 +95,11 @@ function SignupForm() {
               pattern: {
                 value: Regex.email,
                 message: '이메일 형식을 입력해주세요',
+              },
+              onChange: emailHandler,
+              validate: {
+                emailvalidate: () =>
+                  !emailDuplicate || '이메일 중복확인을 해주세요',
               },
             }}
             textFieldProps={{
@@ -133,6 +174,7 @@ function SignupForm() {
 
           <LoadingButton
             fullWidth
+            disabled={isValid ? false : true}
             size="large"
             type="submit"
             variant="contained"

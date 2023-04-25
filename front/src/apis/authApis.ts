@@ -6,7 +6,7 @@ interface ILoginInput {
 }
 
 // 회원가입 이메일 중복확인 api
-export async function getCheckEmail({ email }: ILoginInput) {
+export async function getCheckEmail(email: string) {
   const response = await axBase.get(`/members/duplicate`, {
     params: {
       email,
