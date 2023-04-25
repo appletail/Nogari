@@ -6,17 +6,23 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 
+import aj.org.objectweb.asm.TypeReference;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import me.nogari.nogari.api.response.TistoryResponseDto;
 import me.nogari.nogari.api.response.categoriesDto;
 
@@ -37,10 +43,10 @@ public class ContentServiceImpl implements ContentService {
 	private final TistoryRepository tistoryRepository;
 
 	@Override
-	public List<String> getTistoryBlogName(List<String> blogNameList) {
+	public List<String> getTistoryBlogName(List<String> blogNameList, Member member) {
 
 		// 토큰에서 tistory accesstoken 받아오기
-		String accessToken = "";
+		String accessToken = member.getToken().getTistoryToken();
 
 		if(!"".equals(accessToken) && accessToken != null){
 			String blogInfoUrl = "https://www.tistory.com/apis/blog/info?"
@@ -82,10 +88,11 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	public HashMap<String, List<Object>> getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categoriesList){
+	// public HashMap<String, List<Object>> getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categoriesList, Member member){
+	public List<Object> getTistoryCates(List<String> blogNameList,List<Object> categoriesList, Member member){
 
 		// 토큰에서 tistory accesstoken 받아오기
-		String accessToken = "";
+		String accessToken = member.getToken().getTistoryToken();
 
 		if(!"".equals(accessToken) && accessToken != null){
 			String blogInfoUrl = "https://www.tistory.com/apis/category/list?"
@@ -122,7 +129,8 @@ public class ContentServiceImpl implements ContentService {
 						}
 
 						// System.out.println(cate);
-						categoriesList.put(blogName, cate);
+						// categoriesList.put(blogName, cate);
+						categoriesList.add(cate);
 					}
 				}
 				// System.out.println(categoriesList.toString());
@@ -136,11 +144,7 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	public List<Object> getTistoryList(String filter) {
-
-		// member...
-		// Member member = CustomUserDetails.getMember().orElseThrow(() ->
-		// 	new BadCredentialsException("잘못된 계정정보입니다."));
+	public List<Object> getTistoryList(String filter, Member member) {
 
 		// 티스토리 발행 이력
 		List<TistoryResponseDto> tistoryList = new ArrayList<>();
@@ -148,23 +152,22 @@ public class ContentServiceImpl implements ContentService {
 		// 멤버의 블로그이름 리스트
 		List<String> blogNameList = new ArrayList<>();
 
-		// 각 블로그이름을 키로, 카테고리 리스트를 값으로 갖는 해시맵
-		HashMap<String, List<Object>> categoriesList = new HashMap<>();
+		List<Object> categoriesList = new ArrayList<>();
 
 		tistoryRepository.sortTistoryByFilter().orElseThrow(() -> {
 			return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
 		});
 
-		blogNameList = getTistoryBlogName(blogNameList);
-		categoriesList = getTistoryCates(blogNameList, categoriesList);
+		blogNameList = getTistoryBlogName(blogNameList, member);
+		categoriesList = getTistoryCates(blogNameList, categoriesList, member);
 
 		List<Object> rslt = new ArrayList<>();
 		rslt.add(tistoryList);
 		rslt.add(blogNameList);
-		rslt.add(categoriesList);
 
-		System.out.println(rslt);
+		rslt.add(categoriesList.toString());
 
 		return rslt;
 	}
+
 }
