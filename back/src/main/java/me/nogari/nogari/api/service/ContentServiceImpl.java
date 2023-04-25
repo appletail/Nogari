@@ -6,28 +6,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonArray;
-
-import aj.org.objectweb.asm.TypeReference;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import me.nogari.nogari.api.response.TistoryResponseDto;
-import me.nogari.nogari.api.response.categoriesDto;
 
+import me.nogari.nogari.api.response.TistoryCateDto;
+import me.nogari.nogari.api.response.TistoryCateInterface;
+import me.nogari.nogari.api.response.TistoryResponseInterface;
 import me.nogari.nogari.entity.Member;
-import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 import org.json.JSONArray;
@@ -120,20 +109,24 @@ public class ContentServiceImpl implements ContentService {
 							.getJSONObject("item")
 							.getJSONArray("categories");
 
-						List<Object> cate = new ArrayList<>();
+						List<TistoryCateDto> cate = new ArrayList<>();
 
 						int cnt = 0;
 						while(cateInfoList.length() > cnt){
 							JSONObject category = (JSONObject)cateInfoList.get(cnt++);
-							cate.add(category);
+
+							cate.add(new TistoryCateDto(
+								category.getString("id").toString(),
+								category.getString("name").toString(),
+								category.getString("parent").toString(),
+								category.getString("label").toString(),
+								category.getString("entries").toString()
+							));
 						}
 
-						// System.out.println(cate);
-						// categoriesList.put(blogName, cate);
 						categoriesList.add(cate);
 					}
 				}
-				// System.out.println(categoriesList.toString());
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -147,14 +140,15 @@ public class ContentServiceImpl implements ContentService {
 	public List<Object> getTistoryList(String filter, Member member) {
 
 		// 티스토리 발행 이력
-		List<TistoryResponseDto> tistoryList = new ArrayList<>();
+		List<TistoryResponseInterface> tistoryList = new ArrayList<>();
 
 		// 멤버의 블로그이름 리스트
 		List<String> blogNameList = new ArrayList<>();
 
+		// 블로그별 카테고리 리스트
 		List<Object> categoriesList = new ArrayList<>();
 
-		tistoryRepository.sortTistoryByFilter().orElseThrow(() -> {
+		tistoryList = tistoryRepository.sortTistoryByFilter(member.getMemberId()).orElseThrow(() -> {
 			return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
 		});
 
@@ -165,7 +159,8 @@ public class ContentServiceImpl implements ContentService {
 		rslt.add(tistoryList);
 		rslt.add(blogNameList);
 
-		rslt.add(categoriesList.toString());
+		rslt.add(categoriesList);
+		// System.out.println(rslt);
 
 		return rslt;
 	}
