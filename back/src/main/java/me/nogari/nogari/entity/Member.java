@@ -2,6 +2,7 @@ package me.nogari.nogari.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -27,6 +28,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class Member {
 
 	@Id
@@ -60,7 +62,7 @@ public class Member {
 	@OneToMany(mappedBy = "member")
 	private List<Github> githubs = new ArrayList<>();
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "token_id", referencedColumnName = "token_id")
 	private Token token;
 
@@ -73,4 +75,7 @@ public class Member {
 	public void setRefreshToken(String refreshToken) {
 		this.refreshToken = refreshToken;
 	}
+
+
+
 }

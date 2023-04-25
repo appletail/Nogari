@@ -44,6 +44,7 @@ public class MemberController {
 				.resultMsg("회원가입 성공")
 				.build();
 		} catch (Exception e) {
+			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
