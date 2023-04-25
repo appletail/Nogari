@@ -47,6 +47,7 @@ function SignupForm() {
   const emailHandler = async () => {
     const email = watch('email')
     const emailState = getFieldState('email')
+    console.log(emailState)
 
     if (email && !emailState.invalid) {
       try {
@@ -65,9 +66,9 @@ function SignupForm() {
     // console.log(data)
     try {
       const response = await postRegister(data)
-      // console.log(response)
       if (response.data.resultCode === 200) {
         alert(response.data.resultMessage)
+        navigate('/')
       }
     } catch (error: any) {
       console.log(error)
