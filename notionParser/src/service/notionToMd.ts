@@ -1,6 +1,6 @@
 import { Client } from "@notionhq/client";
 import customNotionToMarkdown from "../utils/customNotionToMarkdown";
-import { writeFileSync } from "fs";
+// import { writeFileSync } from "fs";
 
 const notionToMd = async ({ notionToken, blockId }: InotionToMd) => {
   const notion = new Client({
@@ -12,7 +12,7 @@ const notionToMd = async ({ notionToken, blockId }: InotionToMd) => {
   const mdString = await custom_n2m.toMarkdownString(mdblocks);
 
   // file 형태로 내보내기
-  writeFileSync("test.md", mdString);
+  // writeFileSync("test.md", mdString);
 
   return mdString
 };
