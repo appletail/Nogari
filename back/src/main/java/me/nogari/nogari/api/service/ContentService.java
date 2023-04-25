@@ -7,6 +7,7 @@ import me.nogari.nogari.api.response.categoriesDto;
 import me.nogari.nogari.common.JWTDto;
 import me.nogari.nogari.entity.Member;
 
+
 public interface ContentService {
 
 	List<Object> getTistoryList(String filter, Member member);
@@ -16,5 +17,6 @@ public interface ContentService {
 	Object getTistoryCates(List<String> blogNameList, List<Object>categories, Member member);
 	// Object getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categories, Member member);
 
+	void githubConnectionTest();
 
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.response.TistoryResponseDto;
 
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryCateInterface;
@@ -165,4 +166,10 @@ public class ContentServiceImpl implements ContentService {
 		return rslt;
 	}
 
+<<<<<<< back/src/main/java/me/nogari/nogari/api/service/ContentServiceImpl.java
+	public void githubConnectionTest() {
+	return;
+	}
+=======
+>>>>>>> back/src/main/java/me/nogari/nogari/api/service/ContentServiceImpl.java
 }

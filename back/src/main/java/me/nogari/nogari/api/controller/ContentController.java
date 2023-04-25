@@ -1,13 +1,21 @@
 package me.nogari.nogari.api.controller;
 
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+
+
 import java.util.List;
 import java.util.Optional;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -17,9 +25,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
 import me.nogari.nogari.common.JWTDto;
 import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.entity.Member;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -65,5 +80,99 @@ public class ContentController {
 				.build();
 
 		}
+	}
+	@ResponseBody
+	@GetMapping("/git/clone")
+	@Operation(summary = "github repository clone")
+	public void gitCloneRepo() throws GitAPIException, IOException {
+		String ATK = "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";
+
+		//create git folder
+		File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
+		if(gitDir.exists()){
+			FileUtils.deleteDirectory(gitDir);
+		}
+
+		if(gitDir.mkdirs()){
+			System.out.println("dir create success");
+		}
+
+		//set username, access token
+		CredentialsProvider credentialsProvider
+				= new UsernamePasswordCredentialsProvider(
+				"dnflrhkddyd@naver.com"
+				, ATK); //access token
+
+		//clone
+		Git git = Git.cloneRepository()
+				.setURI("https://github.com/encoreKwang/PullRequestTest")
+				.setCredentialsProvider(credentialsProvider)
+				.setDirectory(gitDir)
+				.call();
+		git.close();
+
+//		contentService.githubConnectionTest();
+
+	}
+	@ResponseBody
+	@GetMapping("/git/add")
+	@Operation(summary = "github add")
+	public void gitAdd() throws GitAPIException, IOException {
+		//git repo path
+		String dirPath = "C:\\nogari-git-test\\git-clone-test";
+		File gitDir = new File(dirPath);
+
+		//create temp file
+		String fileName = UUID.randomUUID().toString();
+		File file = new File(dirPath+"\\"+fileName+".txt");
+		FileUtils.writeStringToFile(file, "testing it...", StandardCharsets.UTF_8);
+
+		//add
+		Git git = Git.open(gitDir);
+
+		AddCommand add = git.add();
+		add.addFilepattern(fileName+".txt").call();
+
+		git.close();
+	}
+	@ResponseBody
+	@GetMapping("/git/commit")
+	@Operation(summary = "github commit")
+	public void gitCommit() throws GitAPIException, IOException {
+		//git repo path
+		String dirPath = "C:\\nogari-git-test\\git-clone-test";
+		File gitDir = new File(dirPath);
+
+		//commit
+		Git git = Git.open(gitDir);
+		git.commit().setMessage("JGIT commit test").call();
+
+		git.close();
+	}
+	@ResponseBody
+	@GetMapping("/git/push")
+	@Operation(summary = "github push")
+	public void gitPush() throws GitAPIException, IOException {
+		String ATK = "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";
+
+		//git repo path
+		String dirPath = "C:\\nogari-git-test\\git-clone-test";
+		File gitDir = new File(dirPath);
+
+		//set username, access token
+		CredentialsProvider credentialsProvider
+				= new UsernamePasswordCredentialsProvider(
+				"dnflrhkddyd@naver.com"
+				, ATK); //access token
+
+		//push
+		Git git = Git.open(gitDir);
+		git.push()
+				.setCredentialsProvider(credentialsProvider)
+				.setRemote("origin")
+				.setRefSpecs(new RefSpec("master"))
+				.call();
+
+		git.close();
 	}
 }
