@@ -3,14 +3,14 @@ package me.nogari.nogari.api.service;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
 
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.entity.Member;
 
 @Slf4j
 @Service
@@ -40,7 +41,7 @@ public class OauthServiceImpl implements OauthService {
 
 
 	@Override
-	public String getKakaoAccessToken(String code) {
+	public String getKakaoAccessToken(String code, Member member) {
 
 		String access_Token = "";
 		String reqURL = "https://kauth.kakao.com/oauth/token";
@@ -78,12 +79,16 @@ public class OauthServiceImpl implements OauthService {
 
 			access_Token = element.getAsJsonObject().get("access_token").getAsString();
 
+			// Member의 Token에 카카오엑세스 토큰 저장
+			member.getToken().setTistoryToken(access_Token);
+
 			br.close();
 			bw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+		System.out.println(access_Token);
 		return access_Token;
 	}
 
@@ -101,13 +106,6 @@ public class OauthServiceImpl implements OauthService {
 		System.out.println(response.getBody().getWorkspace_name());
 
 		String ATK = response.getBody().getAccessToken();
-		try {
-			GitHub gitHub = new GitHubBuilder().withOAuthToken(ATK).build();
-			System.out.println("github 생성 성공 : " + gitHub);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("github 생성 실패");
-		}
 
 		return response.getBody();
 	}
