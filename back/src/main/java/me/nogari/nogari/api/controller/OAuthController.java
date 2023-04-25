@@ -50,7 +50,7 @@ public class OAuthController {
 	}
 
 	@ResponseBody
-	@GetMapping("/github")
+	@GetMapping("/git")
 	@Operation(summary = "깃허브 토큰 발급")
 	public BaseResponse<Object> getGithubAccessToken(@RequestParam String code){
 		// 깃허브 인가코드 받기

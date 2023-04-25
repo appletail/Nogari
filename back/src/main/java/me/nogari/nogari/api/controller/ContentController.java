@@ -58,10 +58,10 @@ public class ContentController {
 	@GetMapping("/git/clone")
 	@Operation(summary = "github repository clone")
 	public void gitCloneRepo() throws GitAPIException, IOException {
-		String ATK = "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";
+		String ATK = "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";
 
 		//create git folder
-		File gitDir = new File("C:\\jgit_test\\git_hub_clone_test");
+		File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
 		if(gitDir.exists()){
 			FileUtils.deleteDirectory(gitDir);
 		}
@@ -92,7 +92,7 @@ public class ContentController {
 	@Operation(summary = "github add")
 	public void gitAdd() throws GitAPIException, IOException {
 		//git repo path
-		String dirPath = "C:\\jgit_test\\git_hub_clone_test";
+		String dirPath = "C:\\nogari-git-test\\git-clone-test";
 		File gitDir = new File(dirPath);
 
 		//create temp file
@@ -113,7 +113,7 @@ public class ContentController {
 	@Operation(summary = "github commit")
 	public void gitCommit() throws GitAPIException, IOException {
 		//git repo path
-		String dirPath = "C:\\jgit_test\\git_hub_clone_test";
+		String dirPath = "C:\\nogari-git-test\\git-clone-test";
 		File gitDir = new File(dirPath);
 
 		//commit
@@ -126,10 +126,10 @@ public class ContentController {
 	@GetMapping("/git/push")
 	@Operation(summary = "github push")
 	public void gitPush() throws GitAPIException, IOException {
-		String ATK = "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";
+		String ATK = "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";
 
 		//git repo path
-		String dirPath = "C:\\jgit_test\\git_hub_clone_test";
+		String dirPath = "C:\\nogari-git-test\\git-clone-test";
 		File gitDir = new File(dirPath);
 
 		//set username, access token
