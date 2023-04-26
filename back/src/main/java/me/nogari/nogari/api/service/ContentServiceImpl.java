@@ -19,6 +19,7 @@ import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryCateInterface;
 import me.nogari.nogari.api.response.TistoryResponseInterface;
 import me.nogari.nogari.entity.Member;
+import me.nogari.nogari.entity.Tistory;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 import org.json.JSONArray;
@@ -171,6 +172,19 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	public Object postNotionToTistory(PostNotionToTistoryDto postNotionToTistoryDto) {
+		// db 저장
+		Tistory tistory = Tistory.builder()
+			.blogName(postNotionToTistoryDto.getBlogName())
+			.requestLink(postNotionToTistoryDto.getRequestLink())
+			.visibility(postNotionToTistoryDto.getVisibility())
+			.categoryName(postNotionToTistoryDto.getCategoryName())
+			.tagList(postNotionToTistoryDto.getTagList())
+			.status("발행완료")
+			.title(postNotionToTistoryDto.getTitle())
+			.build();
+
+		tistoryRepository.save(tistory);
+
 		// AWS와 통신하는 과정
 		lambdaInvokeFunction = new LambdaInvokeFunction(
 			postNotionToTistoryDto.getNotionToken(),
