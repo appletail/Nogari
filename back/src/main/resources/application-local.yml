@@ -19,10 +19,9 @@ spring:
     url: jdbc:mysql://k8c206.p.ssafy.io:3307/nogariDB?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
     username: nogari
     password: 1q2w3e4r!!
-  data:
-    redis:
-      host: localhost
-      port: 6379
+  redis:
+    host: 127.0.0.1
+    port: 6379
   session:
     store-type: redis
 
