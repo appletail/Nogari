@@ -1,7 +1,7 @@
 import React from 'react'
 import { Helmet } from 'react-helmet-async'
 
-import TableSample from '@/sections/home/table/TableSample'
+// import TableSample from '@/sections/home/table/TableSample'
 
 function Home() {
   return (
@@ -9,7 +9,7 @@ function Home() {
       <Helmet>
         <title>Nogari</title>
       </Helmet>
-      <TableSample />
+      {/* <TableSample /> */}
     </div>
   )
 }

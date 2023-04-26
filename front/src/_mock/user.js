@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
-import { sample } from 'lodash';
+import { faker } from '@faker-js/faker'
+import { sample } from 'lodash'
 
 // ----------------------------------------------------------------------
 
@@ -22,6 +22,6 @@ const users = [...Array(24)].map((_, index) => ({
     'Front End Developer',
     'Full Stack Developer',
   ]),
-}));
+}))
 
-export default users;
+export default users
