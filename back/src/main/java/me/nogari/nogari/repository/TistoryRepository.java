@@ -17,7 +17,7 @@ public interface TistoryRepository extends JpaRepository<Tistory, Long> {
 	@Modifying
 	@Query(
 		nativeQuery = true,
-		value = "select t.request_link, t.visibility, t.title, t.response_link, t.category_name, t.tag_list, t.modified_at, t.status "
+		value = "select t.request_link, t.visibility, t.title, t.response_link, t.category_name, t.tag_list, t.modified_at, t.status, t.blog_name "
 		+ "from Tistory t "
 		+ "where t.member_id = :memberId "
 		+ "order by t.tistory_id desc")

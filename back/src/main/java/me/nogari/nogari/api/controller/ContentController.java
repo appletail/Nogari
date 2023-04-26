@@ -57,9 +57,7 @@ public class ContentController {
 		// security session에 있는 유저 정보를 가져온다
 		Member member;
 		try{
-			// member = Optional.ofNullable(customUserDetails.getMember());
 			member = customUserDetails.getMember();
-			// System.out.println(member.getToken().getTistoryToken());
 		}catch (Exception e){
 			e.printStackTrace();
 			return BaseResponse.builder()
