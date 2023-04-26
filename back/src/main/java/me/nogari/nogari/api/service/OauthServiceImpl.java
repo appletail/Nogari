@@ -1,37 +1,34 @@
 package me.nogari.nogari.api.service;
 
-import com.google.gson.JsonParser;
-import com.google.gson.JsonElement;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.common.TokenRepository;
 import me.nogari.nogari.entity.Member;
+import me.nogari.nogari.entity.Token;
+import me.nogari.nogari.repository.MemberTokenRepository;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OauthServiceImpl implements OauthService {
 	private static final RestTemplate restTemplate = new RestTemplate();
-	@Value("${app.auth.kakao.restapi-key}") private String REST_API_KEY;
+	@Value("${app.auth.tistory.kakao}") private String KAKAO_RESTAPI;
+	@Value("${app.auth.tistory.client-id}") private String TISTORY_CLIENT_ID;
+	@Value("${app.auth.tistory.client-secret}") private String TISTORY_CLIENT_SECRETkEY;
 	@Value("${app.auth.kakao.redirect-uri}") private String REDIRECT_URI;
 	@Value("${app.auth.github.redirect-uri}") private String ACCESS_TOKEN_URL;
 	@Value("${app.auth.github.client-id}") private String CLIENT_ID;
@@ -39,57 +36,42 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.notion.oauth-client-id}") private String NOTION_CLIENT_ID;
 	@Value("${app.auth.notion.oauth-client-secret}") private String NOTION_CLIENT_SECRET;
 
+	private final MemberTokenRepository memberTokenRepository;
+
 
 	@Override
 	public String getKakaoAccessToken(String code, Member member) {
 
-		String access_Token = "";
-		String reqURL = "https://kauth.kakao.com/oauth/token";
+		String accessToken = "";
+		RestTemplate rt = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-		try {
-			URL url = new URL(reqURL);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "authorization_code");
+		params.add("client_id", KAKAO_RESTAPI);
+		// params.add("redirect_uri", REDIRECT_URI);
+		params.add("code", code);
 
-			//POST 요청을 위해 기본값이 false인 setDoOutput을 true로
-			conn.setRequestMethod("POST");
-			conn.setDoOutput(true);
+		HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
 
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-			StringBuilder sb = new StringBuilder();
-			sb.append("grant_type=authorization_code");
-			sb.append("&client_id=" + REST_API_KEY);
-			sb.append("&redirect_uri=" + REDIRECT_URI);
-			sb.append("&code=" + code);
-			bw.write(sb.toString());
-			bw.flush();
+		ResponseEntity<KakaoAccessTokenResponse> response = rt.exchange(
+			"https://kauth.kakao.com/oauth/token",
+			HttpMethod.POST,
+			kakaoTokenRequest,
+			KakaoAccessTokenResponse.class
+		);
 
-			int responseCode = conn.getResponseCode();
+		accessToken= response.getBody().getAccess_token();
 
-			//요청을 통해 얻은 JSON타입의 Response 메세지 읽어오기
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		Token tokenInfo = Token.builder()
+			.tokenId(member.getToken().getTokenId())
+			.tistoryToken(accessToken)
+			.build();
 
-			String line = "";
-			String result = "";
+		memberTokenRepository.save(tokenInfo);
 
-			while ((line = br.readLine()) != null) {
-				result += line;
-			}
-			JsonParser parser = new JsonParser();
-			JsonElement element = parser.parse(result);
-
-			access_Token = element.getAsJsonObject().get("access_token").getAsString();
-
-			// Member의 Token에 카카오엑세스 토큰 저장
-			member.getToken().setTistoryToken(access_Token);
-
-			br.close();
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		System.out.println(access_Token);
-		return access_Token;
+		return accessToken;
 	}
 
 	@Override

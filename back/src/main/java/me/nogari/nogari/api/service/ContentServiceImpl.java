@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -153,9 +154,16 @@ public class ContentServiceImpl implements ContentService {
 		// 블로그별 카테고리 리스트
 		List<Object> categoriesList = new ArrayList<>();
 
-		tistoryList = tistoryRepository.sortTistoryByFilter(member.getMemberId()).orElseThrow(() -> {
-			return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-		});
+		if(filter.equals("오래된순")){
+			tistoryList = tistoryRepository.sortTistoryByOldest(member.getMemberId()).orElseThrow(() -> {
+				return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
+			});
+		}else{
+			tistoryList = tistoryRepository.sortTistoryByNewest(member.getMemberId()).orElseThrow(() -> {
+				return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
+			});
+		}
+
 
 		blogNameList = getTistoryBlogName(blogNameList, member);
 		categoriesList = getTistoryCates(blogNameList, categoriesList, member);
