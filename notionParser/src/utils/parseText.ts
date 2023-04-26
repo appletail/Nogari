@@ -1,5 +1,5 @@
-import * as md from './md';
-import annotatePlainText from "./annotatePlainText";
+import * as md from './md.js';
+import annotatePlainText from "./annotatePlainText.js";
 
 const parseText = (block: any, type: any) => {
   let parsedData = ""
