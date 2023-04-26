@@ -171,7 +171,7 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	public Object postNotionToTistory(PostNotionToTistoryDto postNotionToTistoryDto) {
+	public Object postNotionToTistory(PostNotionToTistoryDto postNotionToTistoryDto, Member member) {
 		// db 저장
 		Tistory tistory = Tistory.builder()
 			.blogName(postNotionToTistoryDto.getBlogName())
@@ -181,6 +181,7 @@ public class ContentServiceImpl implements ContentService {
 			.tagList(postNotionToTistoryDto.getTagList())
 			.status("발행완료")
 			.title(postNotionToTistoryDto.getTitle())
+			.member(member)
 			.build();
 
 		tistoryRepository.save(tistory);

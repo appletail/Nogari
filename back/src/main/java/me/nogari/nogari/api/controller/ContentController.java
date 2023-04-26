@@ -183,10 +183,25 @@ public class ContentController {
 	@ResponseBody
 	@PostMapping("/post")
 	@Operation(summary = "노션 게시글 티스토리 발행")
-	public BaseResponse<Object> postNotionToTistory(@RequestBody PostNotionToTistoryDto postNotionToTistoryDto){
+	public BaseResponse<Object> postNotionToTistory(
+		@RequestBody PostNotionToTistoryDto postNotionToTistoryDto,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
+
+		// security session에 있는 유저 정보를 가져온다
+		Optional<Member> member;
+		try{
+			member = Optional.ofNullable(customUserDetails.getMember());
+		}catch (Exception e){
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("로그인된 사용자가 없습니다.")
+				.build();
+		}
+
 		try{
 			return BaseResponse.builder()
-				.result(contentService.postNotionToTistory(postNotionToTistoryDto))
+				.result(contentService.postNotionToTistory(postNotionToTistoryDto, member.get()))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 노션 게시글을 티스토리로 발행했습니다.")
 				.build();
