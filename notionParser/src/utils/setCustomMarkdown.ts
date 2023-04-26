@@ -1,7 +1,7 @@
 import { NotionToMarkdown } from "notion-to-md"
-import parseText from "./parseText";
-import * as md from './md';
-import colorToStyle from "./colorToStyle";
+import parseText from "./parseText.js";
+import * as md from './md.js';
+import colorToStyle from "./colorToStyle.js";
 
 
 const setCustomMarkdown = (n2m: NotionToMarkdown): NotionToMarkdown => {
