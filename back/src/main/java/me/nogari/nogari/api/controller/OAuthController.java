@@ -33,7 +33,7 @@ public class OAuthController {
 
 	@ResponseBody
 	@GetMapping("/kakao")
-	@Operation(summary = "카카오(티스토리) 토큰 발급")
+	@Operation(summary = "티스토리 토큰 발급")
 	public BaseResponse<Object> kakaoCallBack(@RequestParam String code,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
 
@@ -52,7 +52,7 @@ public class OAuthController {
 		// 카카오 인가코드 받기
 		// System.out.println("code: " + code);
 
-		// 카카오 서버에 엑세스토큰 (access token) 받기
+		// 엑세스토큰 (access token) 받기
 		try{
 			return BaseResponse.builder()
 				.result(oauthService.getKakaoAccessToken(code, member.get()))
@@ -61,6 +61,7 @@ public class OAuthController {
 				.build();
 
 		}catch (Exception e){
+			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
