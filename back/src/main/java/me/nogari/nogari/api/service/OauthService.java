@@ -10,7 +10,7 @@ public interface OauthService {
 
 	String getKakaoAccessToken(String code, Member member);
 
-	OAuthAccessTokenResponse getGithubAccessToken(String code);
+	OAuthAccessTokenResponse getGithubAccessToken(String code, Member member);
 
-	String getNotionAccessToken(String code);
+	String getNotionAccessToken(String code, Member member);
 }
