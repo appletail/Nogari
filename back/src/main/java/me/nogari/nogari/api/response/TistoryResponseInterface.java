@@ -21,5 +21,6 @@ public interface TistoryResponseInterface {
 	String getTag_list();
 	String getModified_at();
 	String getStatus();
+	String getBlog_name();
 
 }
