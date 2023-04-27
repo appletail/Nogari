@@ -41,5 +41,5 @@ interface styles {
 }
 interface InotionToMd {
   notionToken: string;
-  blockId: string;
+  page_url: string;
 }
