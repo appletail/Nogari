@@ -9,6 +9,7 @@ import {
   Stack,
   Paper,
   Avatar,
+  Grid,
   Button,
   Popover,
   Checkbox,
@@ -22,6 +23,7 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  TextField,
 } from '@mui/material'
 
 // lodash
@@ -180,8 +182,11 @@ function TistoryPage() {
         </Stack>
         <Card>
           <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
+            <TableContainer
+            // style={{ overflowX: 'initial' }}
+            // sx={{ minWidth: 800 }}
+            >
+              <Table stickyHeader>
                 <TistoryListHead
                   headLabel={TABLE_HEAD}
                   numSelected={selected.length}
@@ -194,7 +199,7 @@ function TistoryPage() {
 
                 <TableBody>
                   {filteredPosts
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row: any) => {
                       const {
                         id,
@@ -223,6 +228,7 @@ function TistoryPage() {
 
                           <TableCell align="left">
                             {visibility === 0 ? '비공개' : '공개'}
+                            {/* <TextField /> */}
                           </TableCell>
 
                           <TableCell align="left">{category_name}</TableCell>
