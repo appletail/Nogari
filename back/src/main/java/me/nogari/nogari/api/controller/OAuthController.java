@@ -33,9 +33,9 @@ public class OAuthController {
 	private OauthService oauthService;
 
 	@ResponseBody
-	@GetMapping("/kakao")
+	@GetMapping("/tistory")
 	@Operation(summary = "티스토리 토큰 발급")
-	public BaseResponse<Object> kakaoCallBack(@RequestParam String code,
+	public BaseResponse<Object> tistoryCallBack(@RequestParam String code,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
 
 		// security session에 있는 유저 정보를 가져온다
@@ -50,23 +50,23 @@ public class OAuthController {
 				.build();
 		}
 
-		// 카카오 인가코드 받기
+		// 인가코드 받기
 		// System.out.println("code: " + code);
 
 		// 엑세스토큰 (access token) 받기
 		try{
 			return BaseResponse.builder()
-				.result(oauthService.getKakaoAccessToken(code, member.get()))
+				.result(oauthService.getTistoryAccessToken(code, member.get()))
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 카카오 엑세스 토근 얻기 성공")
+				.resultMsg("정상적으로 티스토리 엑세스 토근 얻기 성공")
 				.build();
 
 		}catch (Exception e){
-			e.printStackTrace();
 			return BaseResponse.builder()
-				.result(null)
+				// .result(null)
+				.result(oauthService.getTistoryAccessToken(code, member.get()))
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("카카오 엑세스 토큰 얻기에 실패")
+				.resultMsg("티스토리 엑세스 토큰 얻기에 실패")
 				.build();
 
 		}

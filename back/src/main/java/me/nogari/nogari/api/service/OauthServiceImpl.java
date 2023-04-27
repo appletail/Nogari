@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
-import me.nogari.nogari.common.TokenRepository;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Token;
 import me.nogari.nogari.repository.MemberRepository;
@@ -30,7 +29,7 @@ public class OauthServiceImpl implements OauthService {
 	private static final RestTemplate restTemplate = new RestTemplate();
 	@Value("${app.auth.tistory.kakao}") private String KAKAO_RESTAPI;
 	@Value("${app.auth.tistory.client-id}") private String TISTORY_CLIENT_ID;
-	@Value("${app.auth.tistory.client-secret}") private String TISTORY_CLIENT_SECRETkEY;
+	@Value("${app.auth.tistory.client-secret}") private String TISTORY_CLIENT_SECRETKEY;
 	@Value("${app.auth.kakao.redirect-uri}") private String REDIRECT_URI;
 	@Value("${app.auth.github.redirect-uri}") private String ACCESS_TOKEN_URL;
 	@Value("${app.auth.github.client-id}") private String CLIENT_ID;
@@ -41,6 +40,54 @@ public class OauthServiceImpl implements OauthService {
 	private final MemberTokenRepository memberTokenRepository;
 	private final MemberRepository memberRepository;
 
+	@Override
+	public String getTistoryAccessToken(String code, Member member) {
+
+		String accessToken = "";
+		RestTemplate rt = new RestTemplate();
+		// HttpHeaders headers = new HttpHeaders();
+		// headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+		//
+		// MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		// params.add("client_id", "5a77675830875a386851cff97b00e984");
+		// params.add("client_secret", "5a77675830875a386851cff97b00e9846cd8d0533f00634ad591183ddaa9087a1c72c9fa");
+		// params.add("redirect_uri", "https://localhost:3000");
+		// params.add("code", code);
+		// params.add("grant_type", "authorization_code");
+		//
+		// HttpEntity<MultiValueMap<String, String>> tistoryTokenRequest = new HttpEntity<>(params, headers);
+
+		ResponseEntity<Object> response = rt.exchange(
+			"https://www.tistory.com/oauth/access_token?"
+				+ "client_id="
+				+ TISTORY_CLIENT_ID
+				+ "&"
+				+ "client_secret="
+				+ TISTORY_CLIENT_SECRETKEY
+				+ "&"
+				+ "redirect_uri=https://localhost:3000"
+				+ "&"
+				+ "code="+code
+				+ "&"
+				+ "grant_type=authorization_code",
+			HttpMethod.GET,
+			null,
+			Object.class
+		);
+		System.out.println("response: "+response);
+
+		accessToken = response.getBody().toString().split("=")[1];
+		accessToken = accessToken.split("}")[0];
+
+		// System.out.println(accessToken);
+
+		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
+		    () -> new IllegalArgumentException()
+		);
+		token.setTistoryToken(accessToken);
+
+		return accessToken;
+	}
 
 	@Override
 	@Transactional
@@ -71,7 +118,8 @@ public class OauthServiceImpl implements OauthService {
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
 			() -> new IllegalArgumentException()
 		);
-		token.setGithubToken(accessToken);
+
+		token.setTistoryToken(accessToken);
 
 		return accessToken;
 	}
