@@ -7,13 +7,16 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.client.GitHubClient;
+import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.util.List;
 import java.util.Optional;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-
-import me.nogari.nogari.common.JWTDto;
 import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.entity.Member;
 
@@ -44,7 +45,6 @@ import me.nogari.nogari.entity.Member;
 @RequiredArgsConstructor
 @RequestMapping("/contents")
 public class ContentController {
-
 	@Autowired
 	private ContentServiceImpl contentService;
 
@@ -176,6 +176,28 @@ public class ContentController {
 				.call();
 
 		git.close();
+	}
+
+	@ResponseBody
+	@GetMapping("/git/repoList")
+	@Operation(summary = "get github repo list")
+	public List<Repository> gitRepoList() throws GitAPIException, IOException {
+		// Create a GitHub client and set the access token
+		String ATK = "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";
+
+		GitHubClient client = new GitHubClient();
+		client.setOAuth2Token(ATK);
+
+		// RepositoryService 생성
+		RepositoryService repoService = new RepositoryService(client);
+
+		// 유저의 repositories 리스트 가져오기
+		List<Repository> repositories=repoService.getRepositories();
+		for (Repository repo : repositories) {
+			System.out.println(repo.getName());
+		}
+
+		return repoService.getRepositories();
 	}
 
 	@ResponseBody
