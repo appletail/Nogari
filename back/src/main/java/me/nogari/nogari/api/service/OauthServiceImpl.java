@@ -46,17 +46,6 @@ public class OauthServiceImpl implements OauthService {
 
 		String accessToken = "";
 		RestTemplate rt = new RestTemplate();
-		// HttpHeaders headers = new HttpHeaders();
-		// headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
-		//
-		// MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		// params.add("client_id", "5a77675830875a386851cff97b00e984");
-		// params.add("client_secret", "5a77675830875a386851cff97b00e9846cd8d0533f00634ad591183ddaa9087a1c72c9fa");
-		// params.add("redirect_uri", "https://localhost:3000");
-		// params.add("code", code);
-		// params.add("grant_type", "authorization_code");
-		//
-		// HttpEntity<MultiValueMap<String, String>> tistoryTokenRequest = new HttpEntity<>(params, headers);
 
 		ResponseEntity<Object> response = rt.exchange(
 			"https://www.tistory.com/oauth/access_token?"
