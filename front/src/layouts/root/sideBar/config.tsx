@@ -13,7 +13,7 @@ import { ReactComponent as Velog } from '@/assets/logos/velog.svg'
 export const navConfig = [
   {
     title: 'Tistory',
-    path: '/',
+    path: '/tistory',
     icon: <Tistory style={{ width: 26, height: 26 }} />,
   },
   {
