@@ -71,7 +71,6 @@ public class MemberServiceImpl implements MemberService {
 			Member member = Member.builder()
 				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
-				.notionToken(request.getNotionToken())
 				.token(token)
 				.build();
 
