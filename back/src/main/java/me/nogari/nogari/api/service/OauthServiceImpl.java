@@ -1,5 +1,7 @@
 package me.nogari.nogari.api.service;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,13 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
-import me.nogari.nogari.common.TokenRepository;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Token;
 import me.nogari.nogari.repository.MemberTokenRepository;
@@ -38,6 +40,42 @@ public class OauthServiceImpl implements OauthService {
 
 	private final MemberTokenRepository memberTokenRepository;
 
+	@Override
+	public String getTistoryAccessToken(String code, Member member) {
+
+		String accessToken = "";
+		RestTemplate rt = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("client_id", TISTORY_CLIENT_ID);
+		params.add("client_secret", TISTORY_CLIENT_SECRETkEY);
+		// params.add("redirect_uri", "http://localhost:3000");
+		params.add("code", code);
+		params.add("grant_type", "authorization_code");
+
+		HttpEntity<MultiValueMap<String, String>> tistoryTokenRequest = new HttpEntity<>(params, headers);
+
+		ResponseEntity<Object> response = rt.exchange(
+			"https://www.tistory.com/oauth/access_token?",
+			HttpMethod.GET,
+			tistoryTokenRequest,
+			Object.class
+		);
+
+		// accessToken= response.getBody().getAccess_token();
+		accessToken = response.toString();
+		System.out.println(response);
+		System.out.println(accessToken);
+
+		// Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
+		// 	() -> new IllegalArgumentException()
+		// );
+		// token.setTistoryToken(accessToken);
+
+		return accessToken;
+	}
 
 	@Override
 	public String getKakaoAccessToken(String code, Member member) {
@@ -64,12 +102,10 @@ public class OauthServiceImpl implements OauthService {
 
 		accessToken= response.getBody().getAccess_token();
 
-		Token tokenInfo = Token.builder()
-			.tokenId(member.getToken().getTokenId())
-			.tistoryToken(accessToken)
-			.build();
-
-		memberTokenRepository.save(tokenInfo);
+		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
+			() -> new IllegalArgumentException()
+		);
+		token.setTistoryToken(accessToken);
 
 		return accessToken;
 	}
