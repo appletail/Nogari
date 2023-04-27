@@ -14,14 +14,7 @@ Scrollbar.propTypes = {
   children: PropTypes.node,
 }
 
-function Scrollbar({
-  children,
-  sx,
-  ...other
-}: {
-  children: any
-  sx: SxProps<Theme>
-}) {
+function Scrollbar({ children, sx, ...other }: { children: any; sx: any }) {
   const userAgent =
     typeof navigator === 'undefined' ? 'SSR' : navigator.userAgent
 

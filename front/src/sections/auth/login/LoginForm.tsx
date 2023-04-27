@@ -6,12 +6,16 @@ import { useNavigate } from 'react-router-dom'
 import { LoadingButton } from '@mui/lab'
 import { Link, Stack, IconButton, InputAdornment } from '@mui/material'
 
+// api
+import axios from 'axios'
+
+import { postEmailLogin } from '@/apis/authApis'
 import Iconify from '@/components/iconify'
 
 // react-hook-form
 import InputText from '@/components/input-text/InputText'
 
-interface LoginValue {
+interface ILoginInput {
   email: string
   password: string
 }
@@ -20,14 +24,35 @@ function LoginForm() {
   const navigate = useNavigate()
 
   // form 생성
-  const { control, handleSubmit } = useForm<LoginValue>({})
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid },
+  } = useForm<ILoginInput>({})
   const [showPassword, setShowPassword] = useState(false)
 
   // replace : true 를 적용해서 뒤로가기가 안되게 적용하였습니다.
   // form 제출 handler
-  const submitHandler = (data: LoginValue) => {
-    console.log(data)
-    navigate('/test', { replace: true })
+  const submitHandler = async (data: ILoginInput) => {
+    // console.log(data);
+    try {
+      const response = await postEmailLogin(data)
+      // response 요청 성공시
+      if (response.data.resultCode === 200) {
+        sessionStorage.setItem(
+          'accessToken',
+          JSON.stringify(response.data.result.token.access_token)
+        )
+        sessionStorage.setItem(
+          'refreshToken',
+          JSON.stringify(response.data.result.token.refresh_token)
+        )
+        navigate('/test', { replace: true })
+      }
+    } catch (error: any) {
+      console.log(error)
+      alert(error.response.data)
+    }
   }
 
   return (
@@ -72,6 +97,7 @@ function LoginForm() {
 
           <LoadingButton
             fullWidth
+            disabled={isValid ? false : true}
             size="large"
             type="submit"
             variant="contained"

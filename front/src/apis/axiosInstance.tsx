@@ -13,7 +13,7 @@ export const interceptors = (instance: AxiosInstance) => {
   return instance
 }
 
-const BASE_URL = '' // 서버 기입 필요
+const BASE_URL = `${import.meta.env.VITE_SERVER_URL}` // 로컬 서버
 
 // 단순 get요청으로 인증값이 필요없는 경우
 const axiosApi = (url: string, options?: object) => {
@@ -30,3 +30,5 @@ const axiosAuthApi = (url: string, options?: object) => {
 
 export const axBase = axiosApi(BASE_URL)
 export const axAuth = axiosAuthApi(BASE_URL)
+
+// refresh token 으로 갱신 필요한 경우

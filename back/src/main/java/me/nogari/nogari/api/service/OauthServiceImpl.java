@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -18,6 +19,7 @@ import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Token;
+import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.MemberTokenRepository;
 
 @Slf4j
@@ -36,6 +38,7 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.notion.oauth-client-secret}") private String NOTION_CLIENT_SECRET;
 
 	private final MemberTokenRepository memberTokenRepository;
+	private final MemberRepository memberRepository;
 
 	@Override
 	public String getTistoryAccessToken(String code, Member member) {
@@ -87,6 +90,7 @@ public class OauthServiceImpl implements OauthService {
 	}
 
 	@Override
+	@Transactional
 	public String getKakaoAccessToken(String code, Member member) {
 
 		String accessToken = "";
@@ -114,13 +118,15 @@ public class OauthServiceImpl implements OauthService {
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
 			() -> new IllegalArgumentException()
 		);
+
 		token.setTistoryToken(accessToken);
 
 		return accessToken;
 	}
 
 	@Override
-	public OAuthAccessTokenResponse getGithubAccessToken(String code) {
+	@Transactional
+	public OAuthAccessTokenResponse getGithubAccessToken(String code, Member member) {
 		ResponseEntity<OAuthAccessTokenResponse> response = restTemplate.exchange("https://github.com/login/oauth/access_token",
 			HttpMethod.POST,
 			getGitHubParams(code),
@@ -134,6 +140,11 @@ public class OauthServiceImpl implements OauthService {
 
 		String ATK = response.getBody().getAccessToken();
 
+		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
+			() -> new IllegalArgumentException()
+		);
+		token.setGithubToken(ATK);
+		// memberTokenRepository.save(tokenInfo);
 		return response.getBody();
 	}
 
@@ -148,7 +159,8 @@ public class OauthServiceImpl implements OauthService {
 	}
 
 	@Override
-	public String getNotionAccessToken(String code) {
+	@Transactional
+	public String getNotionAccessToken(String code, Member member) {
 		HttpHeaders headers = new HttpHeaders();
 		//NOTION_CLIENT_ID, NOTION_CLIENT_SECRET를 base64 인코딩해서 요청 	헤더에 넣어야함
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -166,6 +178,14 @@ public class OauthServiceImpl implements OauthService {
 			request,
 			NotionAccessTokenResponse.class
 		);
+
+		String ATK = response.getBody().getAccess_token();
+
+		Member user = memberRepository.findById(member.getMemberId()).orElseThrow(
+			() -> new IllegalArgumentException()
+		);
+
+		user.setNotionToken(ATK);
 
 		return response.getBody().getAccess_token();
 	}

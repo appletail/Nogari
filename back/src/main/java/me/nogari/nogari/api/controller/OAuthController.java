@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.api.service.OauthService;
 import me.nogari.nogari.api.service.OauthServiceImpl;
 import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.entity.Member;
@@ -29,7 +30,7 @@ import me.nogari.nogari.entity.Member;
 public class OAuthController {
 
 	@Autowired
-	private OauthServiceImpl oauthService;
+	private OauthService oauthService;
 
 	@ResponseBody
 	@GetMapping("/tistory")
@@ -74,13 +75,15 @@ public class OAuthController {
 	@ResponseBody
 	@GetMapping("/git")
 	@Operation(summary = "깃허브 토큰 발급")
-	public BaseResponse<Object> getGithubAccessToken(@RequestParam String code){
+	public BaseResponse<Object> getGithubAccessToken(@RequestParam String code,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails){
 		// 깃허브 인가코드 받기
 		System.out.println("code: " + code);
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try{
-			OAuthAccessTokenResponse tokenResponse = oauthService.getGithubAccessToken(code);
+			Member member = customUserDetails.getMember();
+			OAuthAccessTokenResponse tokenResponse = oauthService.getGithubAccessToken(code, member);
 			String ATK= tokenResponse.getAccessToken();
 			System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
@@ -99,13 +102,15 @@ public class OAuthController {
 	@ResponseBody
 	@GetMapping("/notion")
 	@Operation(summary = "노션 토큰 발급")
-	public BaseResponse<Object> getNotionAccessToken(@RequestParam String code){
+	public BaseResponse<Object> getNotionAccessToken(@RequestParam String code,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails){
 		// 깃허브 인가코드 받기
 		System.out.println("notion code: " + code);
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try{
-			String ATK =oauthService.getNotionAccessToken(code);
+			Member member = customUserDetails.getMember();
+			String ATK =oauthService.getNotionAccessToken(code, member);
 			System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
 				.result(ATK)

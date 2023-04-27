@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
 // ----------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ const POST_TITLES = [
   'Gradient Ticket icon',
   'Here’s a Dyson motorcycle concept that doesn’t ‘suck’!',
   'How to Animate a SVG with border-image',
-];
+]
 
 const posts = [...Array(23)].map((_, index) => ({
   id: faker.datatype.uuid(),
@@ -42,6 +42,6 @@ const posts = [...Array(23)].map((_, index) => ({
     name: faker.name.fullName(),
     avatarUrl: `/assets/images/avatars/avatar_${index + 1}.jpg`,
   },
-}));
+}))
 
-export default posts;
+export default posts
