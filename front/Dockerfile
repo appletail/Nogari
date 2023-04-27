@@ -1,5 +1,5 @@
 # React Frontend Dockerfile
-FROM node:16.19 as build-stage
+FROM node:16.19.0-alpine as build-stage
 
 WORKDIR /app
 # ENV PATH /app/node_modules/.bin:$PATH
