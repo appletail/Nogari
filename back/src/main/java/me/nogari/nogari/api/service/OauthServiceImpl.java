@@ -41,6 +41,7 @@ public class OauthServiceImpl implements OauthService {
 	private final MemberRepository memberRepository;
 
 	@Override
+	@Transactional
 	public String getTistoryAccessToken(String code, Member member) {
 
 		String accessToken = "";
