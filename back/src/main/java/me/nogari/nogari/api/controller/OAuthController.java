@@ -58,7 +58,7 @@ public class OAuthController {
 			return BaseResponse.builder()
 				.result(oauthService.getTistoryAccessToken(code, member.get()))
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 티스토리 엑세스 토근 얻기 성공")
+				.resultMsg("정상적으로 티스토리 엑세스 토큰 얻기 성공")
 				.build();
 
 		}catch (Exception e){
@@ -89,7 +89,7 @@ public class OAuthController {
 			return BaseResponse.builder()
 				.result(ATK)
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 깃허브 엑세스 토근 얻기 성공")
+				.resultMsg("정상적으로 깃허브 엑세스 토큰 얻기 성공")
 				.build();
 		}catch (Exception e){
 			return BaseResponse.builder()
@@ -115,7 +115,7 @@ public class OAuthController {
 			return BaseResponse.builder()
 				.result(ATK)
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 노션 엑세스 토근 얻기 성공")
+				.resultMsg("정상적으로 노션 엑세스 토큰 얻기 성공")
 				.build();
 		}catch (Exception e){
 			return BaseResponse.builder()
