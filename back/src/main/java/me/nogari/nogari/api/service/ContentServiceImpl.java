@@ -164,7 +164,6 @@ public class ContentServiceImpl implements ContentService {
 			});
 		}
 
-
 		blogNameList = getTistoryBlogName(blogNameList, member);
 		categoriesList = getTistoryCates(blogNameList, categoriesList, member);
 
@@ -179,29 +178,36 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	public Object postNotionToTistory(PostNotionToTistoryDto postNotionToTistoryDto, Member member) {
-		// db 저장
-		Tistory tistory = Tistory.builder()
-			.blogName(postNotionToTistoryDto.getBlogName())
-			.requestLink(postNotionToTistoryDto.getRequestLink())
-			.visibility(postNotionToTistoryDto.getVisibility())
-			.categoryName(postNotionToTistoryDto.getCategoryName())
-			.tagList(postNotionToTistoryDto.getTagList())
-			.status("발행완료")
-			.title(postNotionToTistoryDto.getTitle())
-			.member(member)
-			.build();
+	public Object postNotionToTistory(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member) {
 
-		tistoryRepository.save(tistory);
+		for(PostNotionToTistoryDto tistoryPosting : PostNotionToTistoryDtoList){
 
-		// AWS와 통신하는 과정
-		lambdaInvokeFunction = new LambdaInvokeFunction(
-			postNotionToTistoryDto.getNotionToken(),
-			postNotionToTistoryDto.getBlockId(),
-			postNotionToTistoryDto.getType()
-		);
+			// AWS와 통신하는 과정
+			lambdaInvokeFunction = new LambdaInvokeFunction(
+				tistoryPosting.getNotionToken(),
+				tistoryPosting.getUrl(),
+				tistoryPosting.getType()
+			);
 
-		lambdaInvokeFunction.post();
+			lambdaInvokeFunction.post();
+
+			// 발행상태 확인 필요
+
+			// db 저장
+			Tistory tistory = Tistory.builder()
+				.blogName(tistoryPosting.getBlogName())
+				.requestLink(tistoryPosting.getRequestLink())
+				.visibility(tistoryPosting.getVisibility())
+				.categoryName(tistoryPosting.getCategoryName())
+				.tagList(tistoryPosting.getTagList())
+				.status("발행완료")
+				.title(tistoryPosting.getTitle())
+				.member(member)
+				.build();
+
+			tistoryRepository.save(tistory);
+		}
+
 		return null;
 	}
 }

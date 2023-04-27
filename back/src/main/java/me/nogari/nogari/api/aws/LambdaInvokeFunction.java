@@ -13,12 +13,12 @@ import java.nio.charset.StandardCharsets;
 public class LambdaInvokeFunction {
 	private String functionName = "notion-parser";
 	private String notionToken;
-	private String blockId;
+	private String url;
 	private String type;
 
-	public LambdaInvokeFunction(String notionToken, String blockId, String type){
+	public LambdaInvokeFunction(String notionToken, String url, String type){
 		this.notionToken = notionToken;
-		this.blockId = blockId;
+		this.url = url;
 		this.type = type;
 	}
 
@@ -30,8 +30,8 @@ public class LambdaInvokeFunction {
 				+ "    \"notionToken\": \""
 				+ notionToken
 				+ "\",\n"
-				+ "    \"blockId\": \""
-				+ blockId
+				+ "    \"url\": \""
+				+ url
 				+ "\"\n"
 				+ "  },\n"
 				+ "  \"type\": \""

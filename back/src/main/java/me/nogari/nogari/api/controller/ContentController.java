@@ -182,7 +182,7 @@ public class ContentController {
 	@PostMapping("/post")
 	@Operation(summary = "노션 게시글 티스토리 발행")
 	public BaseResponse<Object> postNotionToTistory(
-		@RequestBody PostNotionToTistoryDto postNotionToTistoryDto,
+		@RequestBody List<PostNotionToTistoryDto> postNotionToTistoryDtoList,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
 
 		// security session에 있는 유저 정보를 가져온다
@@ -199,7 +199,7 @@ public class ContentController {
 
 		try{
 			return BaseResponse.builder()
-				.result(contentService.postNotionToTistory(postNotionToTistoryDto, member.get()))
+				.result(contentService.postNotionToTistory(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 노션 게시글을 티스토리로 발행했습니다.")
 				.build();

@@ -15,5 +15,5 @@ public interface ContentService {
 	Object getTistoryCates(List<String> blogNameList, List<Object>categories, Member member);
 	// Object getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categories, Member member);
 
-	Object postNotionToTistory(PostNotionToTistoryDto postNotionToTistoryDto, Member member);
+	Object postNotionToTistory(List<PostNotionToTistoryDto> postNotionToTistoryDto, Member member);
 }
