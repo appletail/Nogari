@@ -2,9 +2,11 @@ import { NotionToMarkdown } from "notion-to-md"
 import parseText from "./parseText.js";
 import * as md from './md.js';
 import colorToStyle from "./colorToStyle.js";
+import { getBlockChildren } from "./notion.js";
+import { Client } from "@notionhq/client";
 
 
-const setCustomMarkdown = (n2m: NotionToMarkdown): NotionToMarkdown => {
+const setCustomMarkdown = (n2m: NotionToMarkdown, notionClient: Client): NotionToMarkdown => {
 
   n2m.setCustomTransformer("heading_1", async (block: any): Promise<any> => {
     const color = block.heading_1.color
@@ -68,6 +70,36 @@ const setCustomMarkdown = (n2m: NotionToMarkdown): NotionToMarkdown => {
 
     return (color !== "default" && color !== undefined) ? `<span style="${colorToStyle(color)}">${parsedData}</span>` : parsedData
   });
+  n2m.setCustomTransformer("callout", async (block: any): Promise<any> => {
+    const color = block.callout.color
+
+    let parsedData = parseText(block, "callout")
+
+    const { id, has_children } = block;
+    let callout_string = "";
+
+    if (!has_children) {
+      parsedData = md.callout(parsedData, block["callout"].icon);
+      return parsedData
+
+    }
+
+    const callout_children_object = await getBlockChildren(notionClient, id, 100);
+
+    // // parse children blocks to md object
+    const callout_children = await n2m.blocksToMarkdown(
+      callout_children_object
+    );
+
+    callout_string += `${parsedData}\n`;
+    callout_children.map((child) => {
+      callout_string += `${child.parent}\n\n`;
+    });
+    parsedData = md.callout(callout_string.trim(), block["callout"].icon);
+
+    return parsedData
+  });
+
 
   return n2m
 }

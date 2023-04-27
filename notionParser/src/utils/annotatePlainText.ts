@@ -20,11 +20,11 @@ function annotatePlainText(text: string, annotations: Annotations): string {
     if (annotations.italic) text = md.italic(text);
     if (annotations.strikethrough) text = md.strikethrough(text);
     if (annotations.underline) text = md.underline(text);
+    if (annotations.color && annotations.color !== 'default')
+      text = `<span style="${colorToStyle(annotations.color)}">${text}</span>`;
+
   }
 
-  if (annotations.color && annotations.color !== 'default') {
-    text = `<span style="${colorToStyle(annotations.color)}">${text}</span>`
-  }
 
   return leading_space + text + trailing_space;
 }
