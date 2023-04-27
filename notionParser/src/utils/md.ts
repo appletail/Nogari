@@ -1,5 +1,6 @@
-import markdownTable = require("markdown-table")
+import markdownTable from "markdown-table";
 import { CalloutIcon } from "notion-to-md/build/types";
+import colorToStyle from "./colorToStyle.js";
 
 export const inlineCode = (text: string) => {
   return `\`${text}\``;
@@ -43,21 +44,21 @@ ${text}
 $$`;
 };
 
-export const heading1 = (text: string) => {
-  return `# ${text}`;
+export const heading1 = (text: string, color: color) => {
+  return color !== 'default' ? `# <span style="${colorToStyle(color)}">${text}</span>` : `# ${text}`;
 };
 
-export const heading2 = (text: string) => {
-  return `## ${text}`;
+export const heading2 = (text: string, color: color) => {
+  return color !== 'default' ? `## <span style="${colorToStyle(color)}">${text}</span>` : `## ${text}`;
 };
 
-export const heading3 = (text: string) => {
-  return `### ${text}`;
+export const heading3 = (text: string, color: color) => {
+  return color !== 'default' ? `### <span style="${colorToStyle(color)}">${text}</span>` : `### ${text}`;
 };
 
-export const quote = (text: string) => {
+export const quote = (text: string, color: color) => {
   // the replace is done to handle multiple lines
-  return `> ${text.replace(/\n/g, "  \n> ")}`;
+  return color !== 'default' ? `> <span style="${colorToStyle(color)}">${text.replace(/\n/g, "  \n> ")}</span>` : `> ${text.replace(/\n/g, "  \n> ")}`;
 };
 
 export const callout = (text: string, icon?: CalloutIcon) => {
@@ -70,13 +71,13 @@ export const callout = (text: string, icon?: CalloutIcon) => {
   return `> ${emoji ? emoji + " " : ""}${text.replace(/\n/g, "  \n> ")}`;
 };
 
-export const bullet = (text: string, count?: number) => {
+export const bullet = (text: string, color: color, count?: number) => {
   let renderText = text.trim();
-  return count ? `${count}. ${renderText}` : `- ${renderText}`;
+  return color !== 'default' ? count ? `${count}. <span style="${colorToStyle(color)}">${renderText}</span>` : `- <span style="${colorToStyle(color)}">${renderText}</span>` : count ? `${count}. ${renderText}` : `- ${renderText}`;
 };
 
-export const todo = (text: string, checked: boolean) => {
-  return checked ? `- [x] ${text}` : `- [ ] ${text}`;
+export const todo = (text: string, color: color, checked: boolean) => {
+  return color !== 'default' ? checked ? `- <span style="${colorToStyle(color)}">[x] ${text}</span>` : `- <span style="${colorToStyle(color)}">[ ] ${text}</span>` : checked ? `- [x] ${text}` : `- [ ] ${text}`;
 };
 
 export const image = (alt: string, href: string) => {

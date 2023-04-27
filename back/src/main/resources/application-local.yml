@@ -16,13 +16,12 @@ spring:
     open-in-view: false
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://k8c206.p.ssafy.io:3307/nogariDB?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
-    username: nogari
-    password: 1q2w3e4r!!
-  data:
-    redis:
-      host: k8c206.p.ssafy.io
-      port: 6379
+    url: jdbc:mysql://localhost:3306/nogariDB?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root #임시
+    password: ssafy
+  redis:
+    host: k8c206.p.ssafy.io
+    port: 6379
   session:
     store-type: redis
 
@@ -49,8 +48,8 @@ server:
 app:
   auth:
     kakao:
-      #      redirect-uri: http://localhost:8080/api/vi/oauth    # Token 받을 Uri 지정
-      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
+       redirect-uri: http://localhost:8080/api/vi/oauth/tistory    # Token 받을 Uri 지정
+#      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
     github:
       redirect-uri: https://github.com/login/oauth/access_token    # access token 발급 요청 uri
 

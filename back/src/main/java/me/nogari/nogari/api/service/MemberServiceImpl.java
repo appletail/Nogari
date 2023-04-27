@@ -18,7 +18,9 @@ import me.nogari.nogari.common.TokenRepository;
 import me.nogari.nogari.common.security.JwtProvider;
 import me.nogari.nogari.entity.Authority;
 import me.nogari.nogari.entity.Member;
+import me.nogari.nogari.entity.Token;
 import me.nogari.nogari.repository.MemberRepository;
+import me.nogari.nogari.repository.MemberTokenRepository;
 
 @Service
 @Transactional
@@ -28,6 +30,8 @@ public class MemberServiceImpl implements MemberService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;
 	private final TokenRepository tokenRepository;
+
+	private final MemberTokenRepository memberTokenRepository;
 
 	@Override
 	public SignResponseDto login(LoginRequestDto request) {
@@ -58,10 +62,16 @@ public class MemberServiceImpl implements MemberService {
 	@Transactional
 	public boolean signup(SignRequestDto request) throws Exception {
 		try {
+			Token token = Token.builder()
+				.githubToken("")
+				.tistoryToken("")
+				.build();
+			memberTokenRepository.save(token);
+
 			Member member = Member.builder()
 				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
-				.notionToken(request.getNotionToken())
+				.token(token)
 				.build();
 
 			member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));

@@ -1,4 +1,5 @@
 type color =
+  "default"
   | "gray"
   | "brown"
   | "orange"
@@ -37,4 +38,8 @@ interface styles {
   purple_background: string;
   pink_background: string;
   red_background: string;
+}
+interface InotionToMd {
+  notionToken: string;
+  page_url: string;
 }

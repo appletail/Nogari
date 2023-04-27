@@ -1,3 +1,4 @@
+# Spring Backend Dockerfile
 FROM maven:3.8.6-jdk-11 as MAVEN_BUILD
 
 WORKDIR /build
@@ -18,4 +19,5 @@ COPY --from=MAVEN_BUILD /build/target/${JAR_FILE} ./app.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar", \
+"--spring.config.location=/config/application.yml"]

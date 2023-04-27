@@ -1,39 +1,105 @@
 import { NotionToMarkdown } from "notion-to-md"
-import annotatePlainText from "./annotatePlainText";
-import colorToStyle from "./colorToStyle"
-import * as md from './md';
+import parseText from "./parseText.js";
+import * as md from './md.js';
+import colorToStyle from "./colorToStyle.js";
+import { getBlockChildren } from "./notion.js";
+import { Client } from "@notionhq/client";
 
-const setCustomMarkdown = (n2m: NotionToMarkdown): NotionToMarkdown => {
+
+const setCustomMarkdown = (n2m: NotionToMarkdown, notionClient: Client): NotionToMarkdown => {
 
   n2m.setCustomTransformer("heading_1", async (block: any): Promise<any> => {
     const color = block.heading_1.color
-    console.log(block.heading_1)
+    const parsedData = parseText(block, "heading_1")
 
-    let parsedData = ""
-    let blockContent = block.heading_1.text || block.heading_1.rich_text || [];
-    blockContent.map((content: any) => {
-      if (content.type === 'equation') {
-        parsedData += md.inlineEquation(content.equation.expression);
-        return;
-      }
+    if (color !== "default") return md.heading1(parsedData, color)
 
-      const annotations = content.annotations;
-      let plain_text = content.plain_text;
-
-      plain_text = annotatePlainText(plain_text, annotations);
-
-      if (content["href"])
-        plain_text = md.link(plain_text, content["href"]);
-
-      parsedData += plain_text;
-    });
-
-
-    if (color !== "default") {
-      return `# <span style="${colorToStyle(color)}">${parsedData}</span>`
-    }
     return false; // use default behavior
   });
+  n2m.setCustomTransformer("heading_2", async (block: any): Promise<any> => {
+    const color = block.heading_2.color
+    const parsedData = parseText(block, "heading_2")
+
+    if (color !== "default") return md.heading2(parsedData, color)
+
+    return false; // use default behavior
+  });
+  n2m.setCustomTransformer("heading_3", async (block: any): Promise<any> => {
+    const color = block.heading_3.color
+    const parsedData = parseText(block, "heading_3")
+
+    if (color !== "default") return md.heading3(parsedData, color)
+
+    return false; // use default behavior
+  });
+  n2m.setCustomTransformer("quote", async (block: any): Promise<any> => {
+    const color = block.quote.color
+    const parsedData = parseText(block, "quote")
+
+    if (color !== "default") return md.quote(parsedData, color)
+
+    return false; // use default behavior
+  });
+  n2m.setCustomTransformer("bulleted_list_item", async (block: any): Promise<any> => {
+    const color = block.bulleted_list_item.color
+    const parsedData = parseText(block, "bulleted_list_item")
+
+    if (color !== "default") return md.bullet(parsedData, color)
+
+    return false; // use default behavior
+  });
+  n2m.setCustomTransformer("numbered_list_item", async (block: any): Promise<any> => {
+    const color = block.numbered_list_item.color
+    const parsedData = parseText(block, "numbered_list_item")
+
+    if (color !== "default") return md.bullet(parsedData, color, block.numbered_list_item.number)
+
+    return false; // use default behavior
+  });
+  n2m.setCustomTransformer("to_do", async (block: any): Promise<any> => {
+    const color = block.to_do.color
+    const parsedData = parseText(block, "to_do")
+
+    if (color !== "default") return md.todo(parsedData, color, block.to_do.checked)
+
+    return false; // use default behavior
+  });
+  n2m.setCustomTransformer("paragraph", async (block: any): Promise<any> => {
+    const color = block.paragraph.color
+    const parsedData = parseText(block, "paragraph")
+
+    return (color !== "default" && color !== undefined) ? `<span style="${colorToStyle(color)}">${parsedData}</span>` : parsedData
+  });
+  n2m.setCustomTransformer("callout", async (block: any): Promise<any> => {
+    const color = block.callout.color
+
+    let parsedData = parseText(block, "callout")
+
+    const { id, has_children } = block;
+    let callout_string = "";
+
+    if (!has_children) {
+      parsedData = md.callout(parsedData, block["callout"].icon);
+      return parsedData
+
+    }
+
+    const callout_children_object = await getBlockChildren(notionClient, id, 100);
+
+    // // parse children blocks to md object
+    const callout_children = await n2m.blocksToMarkdown(
+      callout_children_object
+    );
+
+    callout_string += `${parsedData}\n`;
+    callout_children.map((child) => {
+      callout_string += `${child.parent}\n\n`;
+    });
+    parsedData = md.callout(callout_string.trim(), block["callout"].icon);
+
+    return parsedData
+  });
+
 
   return n2m
 }

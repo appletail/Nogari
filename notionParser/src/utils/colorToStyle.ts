@@ -20,7 +20,11 @@ const styles: styles = {
 }
 
 const colorToStyle = (color: color): string => {
-  return styles[color]
+  if (color !== 'default') {
+    return styles[color]
+  } else {
+    return 'color: #37352F'
+  }
 }
 
 export default colorToStyle
