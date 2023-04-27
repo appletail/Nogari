@@ -7,8 +7,8 @@ import { Client } from "@notionhq/client";
 import katexHeader from "../utils/styleHead.js";
 
 
-const notionToHTML = async (notionToken: Client, blockId: string) => {
-  const mdString = await notionToMd(notionToken, blockId)
+const notionToHTML = async (notionToken: Client, page_url: string) => {
+  const mdString = await notionToMd(notionToken, page_url)
   const markDownIt = new MarkdownIt({
     html: true
   }).use(texmath, {

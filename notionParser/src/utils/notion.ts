@@ -1,6 +1,9 @@
 import { Client } from "@notionhq/client";
 import { ListBlockChildrenResponse } from "@notionhq/client/build/src/api-endpoints";
 import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
+import { URL } from 'url';
+
+
 export const getBlockChildren = async (
   notionClient: Client,
   block_id: string,
@@ -49,3 +52,18 @@ export const modifyNumberedListObject = (
     }
   }
 };
+
+
+export const get_id = (url: string): string => {
+  const parsed = new URL(url);
+  if (parsed.hostname !== 'notion.so' && parsed.hostname !== 'www.notion.so') {
+    throw new Error('Not a valid Notion URL.');
+  }
+  const path = parsed.pathname;
+  if (path.length < 32) {
+    throw new Error('The path in the URL seems to be incorrect.');
+  }
+  const raw_id = path.slice(-32);
+
+  return raw_id
+}
