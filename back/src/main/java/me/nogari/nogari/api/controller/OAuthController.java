@@ -50,7 +50,7 @@ public class OAuthController {
 		}
 
 		// 인가코드 받기
-		System.out.println("code: " + code);
+		// System.out.println("code: " + code);
 
 		// 엑세스토큰 (access token) 받기
 		try{
