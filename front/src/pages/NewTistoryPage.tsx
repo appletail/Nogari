@@ -128,6 +128,11 @@ function NewTistoryPage() {
   )
 }
 
+const visibilityOptions = [
+  { value: 0, label: '비공개' },
+  { value: 3, label: '공개' },
+]
+
 const columns: GridColDef[] = [
   {
     field: 'blog_name',
@@ -149,7 +154,7 @@ const columns: GridColDef[] = [
     headerName: '공개여부',
     editable: true,
     type: 'singleSelect',
-    valueOptions: ['공개', '비공개'],
+    valueOptions: visibilityOptions,
     disableColumnMenu: true,
   },
   {
