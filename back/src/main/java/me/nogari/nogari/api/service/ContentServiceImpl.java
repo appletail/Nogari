@@ -7,15 +7,25 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.jgit.util.IO;
+import org.json.simple.parser.JSONParser;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.aws.LambdaCallFunction;
 import me.nogari.nogari.api.aws.LambdaInvokeFunction;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 
+import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryCateInterface;
 import me.nogari.nogari.api.response.TistoryResponseInterface;
@@ -25,6 +35,11 @@ import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Transactional
@@ -35,7 +50,7 @@ public class ContentServiceImpl implements ContentService {
 
 	private final TistoryRepository tistoryRepository;
 
-	private LambdaInvokeFunction lambdaInvokeFunction;
+	private LambdaCallFunction lambdaCallFunction;
 
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList, Member member) {
@@ -51,10 +66,6 @@ public class ContentServiceImpl implements ContentService {
 			try{
 				URL url = new URL(blogInfoUrl);
 				HttpURLConnection blogInfo = (HttpURLConnection) url.openConnection();
-
-				// int responseCode = blogInfo.getResponseCode();
-				// System.out.println("getBlogInfo responsecode = " + responseCode);
-
 				BufferedReader blogInfoIn =  new BufferedReader(new InputStreamReader(blogInfo.getInputStream()));
 
 				String line;
@@ -63,8 +74,6 @@ public class ContentServiceImpl implements ContentService {
 						.getJSONObject("tistory")
 						.getJSONObject("item")
 						.getJSONArray("blogs");
-
-					// System.out.println(blogInfoList.toString());
 
 					int cnt = 0;
 					while(blogInfoList.length() > cnt){
@@ -104,8 +113,6 @@ public class ContentServiceImpl implements ContentService {
 					HttpURLConnection blogInfo = (HttpURLConnection) url.openConnection();
 
 					int responseCode = blogInfo.getResponseCode();
-					// System.out.println("getBlogInfo responsecode = " + responseCode);
-
 					BufferedReader blogInfoIn =  new BufferedReader(new InputStreamReader(blogInfo.getInputStream()));
 
 					String line;
@@ -181,33 +188,78 @@ public class ContentServiceImpl implements ContentService {
 	public Object postNotionToTistory(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member) {
 
 		for(PostNotionToTistoryDto tistoryPosting : PostNotionToTistoryDtoList){
+			String title = ""; // Tistory에 게시될 게시글 제목
+			String content = ""; // Tistory에 게시될 게시글 내용
 
-			// AWS와 통신하는 과정
-			lambdaInvokeFunction = new LambdaInvokeFunction(
-				tistoryPosting.getNotionToken(),
-				tistoryPosting.getUrl(),
-				tistoryPosting.getType()
-			);
-
-			lambdaInvokeFunction.post();
-
-			// 발행상태 확인 필요
-
-			// db 저장
+			// [발행요청] DB 저장
 			Tistory tistory = Tistory.builder()
 				.blogName(tistoryPosting.getBlogName())
 				.requestLink(tistoryPosting.getRequestLink())
 				.visibility(tistoryPosting.getVisibility())
 				.categoryName(tistoryPosting.getCategoryName())
 				.tagList(tistoryPosting.getTagList())
-				.status("발행완료")
+				.status("발행요청")
 				.title(tistoryPosting.getTitle())
 				.member(member)
 				.build();
-
 			tistoryRepository.save(tistory);
-		}
 
+			// [변환진행] AWS Lambda와 통신하는 과정
+			try{
+				lambdaCallFunction = new LambdaCallFunction(
+					tistoryPosting.getNotionToken(),
+					tistoryPosting.getUrl(),
+					tistoryPosting.getType()
+				);
+				content = lambdaCallFunction.post();
+
+				try {
+					ObjectMapper objectMapper = new ObjectMapper();
+					Map<String, Object> data = objectMapper.readValue(content, Map.class);
+					title = (String)data.get("title");
+					content = (String)data.get("content");
+				} catch(Exception e){
+					e.printStackTrace();
+				}
+			} catch(IOException e){
+				e.printStackTrace();
+			}
+
+			// [발행진행] Tistory API를 이용하여 Tistory 포스팅을 진행한다.
+			member.getToken().getTistoryToken();
+
+			RestTemplate rt = new RestTemplate();
+			HttpHeaders headers = new HttpHeaders();
+
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("access_token", member.getToken().getTistoryToken());
+			params.add("output", "");
+			params.add("blogName", tistoryPosting.getBlogName()); // 블로그 이름
+			params.add("title", title); // 글 제목
+			params.add("content", content); // 글 내용
+			params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
+			params.add("category", tistoryPosting.getCategoryName()); // 카테고리 아이디
+			params.add("published", ""); // 발행 시간
+			params.add("slogan", ""); // 문자 주소
+			params.add("tag", tistoryPosting.getTagList()); // 태그 리스트(','로 구분)
+			params.add("acceptComment", "1"); // 댓글 허용 :기본값(댓글 허용)
+			params.add("password", ""); // 보호글 비밀번호
+
+			HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
+
+			ResponseEntity<String> response = rt.exchange(
+				"https://www.tistory.com/apis/post/write",
+				HttpMethod.POST,
+				TistoryPostRequest,
+				String.class
+			);
+
+			String responseString = response.getBody().toString();
+			System.out.println(responseString);
+
+			// [발행검증]
+			tistory.setStatus("발행완료");
+		}
 		return null;
 	}
 }

@@ -218,19 +218,18 @@ public class ContentController {
 				.resultMsg("로그인된 사용자가 없습니다.")
 				.build();
 		}
-
 		try{
 			return BaseResponse.builder()
 				.result(contentService.postNotionToTistory(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 노션 게시글을 티스토리로 발행했습니다.")
+				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
 				.build();
 		}catch (Exception e){
 			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다. (지금은 서비스에 AWS Lambda 호출밖에 없어용)")
+				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다.")
 				.build();
 		}
 	}
