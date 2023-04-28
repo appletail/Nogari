@@ -22,6 +22,9 @@ export default ({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    define: {
+      VITE_SERVER_URL: process.env.VITE_SERVER_URL,
+    },
   })
 }
 // https://vitejs.dev/config/
