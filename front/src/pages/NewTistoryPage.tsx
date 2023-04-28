@@ -33,12 +33,7 @@ import {
   GridCellModesModel,
   GridCellModes,
 } from '@mui/x-data-grid'
-import {
-  randomCreatedDate,
-  randomTraderName,
-  randomUpdatedDate,
-  randomUrl,
-} from '@mui/x-data-grid-generator'
+
 import { sample, sampleSize } from 'lodash'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
@@ -134,14 +129,28 @@ function NewTistoryPage() {
 }
 
 const columns: GridColDef[] = [
-  { field: 'blog_name', headerName: '블로그 선택', width: 180, editable: true },
-  { field: 'request_link', headerName: '요청페이지 링크', editable: true },
+  {
+    field: 'blog_name',
+    headerName: '블로그 선택',
+    width: 180,
+    editable: true,
+    disableColumnMenu: true,
+    hideSortIcons: true,
+  },
+  {
+    field: 'request_link',
+    headerName: '요청페이지 링크',
+    editable: true,
+    disableColumnMenu: true,
+    hideSortIcons: true,
+  },
   {
     field: 'visibility',
     headerName: '공개여부',
     editable: true,
     type: 'singleSelect',
     valueOptions: ['공개', '비공개'],
+    disableColumnMenu: true,
   },
   {
     field: 'category_name',
@@ -149,11 +158,14 @@ const columns: GridColDef[] = [
     type: 'singleSelect',
     valueOptions: ['cate1', 'cate2', 'cate3'],
     editable: true,
+    disableColumnMenu: true,
   },
   {
     field: 'tags',
     headerName: '태그',
     editable: true,
+    disableColumnMenu: true,
+    hideSortIcons: true,
   },
   {
     field: 'modified_at',
@@ -162,6 +174,7 @@ const columns: GridColDef[] = [
     width: 180,
     editable: true,
     hideable: false,
+    disableColumnMenu: true,
   },
   {
     field: 'status',
@@ -171,10 +184,13 @@ const columns: GridColDef[] = [
     editable: true,
     hideable: false,
     valueOptions: ['발행요청', '발행완료', '수정요청'],
+    disableColumnMenu: true,
   },
   {
     field: 'title',
     headerName: '제목',
+    disableColumnMenu: true,
+    hideSortIcons: true,
   },
 ]
 
