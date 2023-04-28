@@ -45,9 +45,7 @@ public class LambdaInvokeFunction {
 			AWSLambda awsLambda = AWSLambdaClientBuilder.standard()
 				.withCredentials(new ProfileCredentialsProvider())
 				.withRegion(Regions.AP_NORTHEAST_2).build();
-
 			invokeResult = awsLambda.invoke(invokeRequest);
-
 			String ans = new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
 			System.out.println(ans);
 		} catch (ServiceException e) {
