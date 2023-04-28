@@ -110,11 +110,12 @@ function NewTistoryPage() {
         </Stack>
         <Card>
           <Scrollbar>
-            <div style={{ height: 300, width: '100%' }}>
+            <div style={{ height: 'auto', width: '100%' }}>
               <DataGrid
                 cellModesModel={cellModesModel}
                 columns={columns}
                 experimentalFeatures={{}}
+                pageSizeOptions={[100]}
                 processRowUpdate={processRowUpdate}
                 rows={rows}
                 onCellClick={handleCellClick}
@@ -145,6 +146,7 @@ const columns: GridColDef[] = [
   {
     field: 'request_link',
     headerName: '요청페이지 링크',
+    width: 220,
     editable: true,
     disableColumnMenu: true,
     hideSortIcons: true,
@@ -176,7 +178,7 @@ const columns: GridColDef[] = [
     field: 'modified_at',
     headerName: '발행일자',
     type: 'date',
-    width: 180,
+    width: 120,
     editable: true,
     hideable: false,
     disableColumnMenu: true,
@@ -185,7 +187,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: '발행상태',
     type: 'singleSelect',
-    width: 220,
+    width: 100,
     editable: true,
     hideable: false,
     valueOptions: ['발행요청', '발행완료', '수정요청'],
@@ -196,6 +198,7 @@ const columns: GridColDef[] = [
     headerName: '제목',
     disableColumnMenu: true,
     hideSortIcons: true,
+    editable: false,
   },
 ]
 
