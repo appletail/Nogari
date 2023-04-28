@@ -1,9 +1,7 @@
-import { Client } from "@notionhq/client";
-import customNotionToMarkdown from "../utils/customNotionToMarkdown.js";
 // import { writeFileSync } from "fs";
+import { NotionToMarkdown } from "notion-to-md";
 
-const notionToMd = async (notionToken: Client, page_url: string) => {
-  const custom_n2m = customNotionToMarkdown(notionToken);
+const notionToMd = async (custom_n2m: NotionToMarkdown, page_url: string) => {
   const mdblocks = await custom_n2m.pageToMarkdown(page_url);
   const mdString = await custom_n2m.toMarkdownString(mdblocks);
 

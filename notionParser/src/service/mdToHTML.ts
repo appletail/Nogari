@@ -1,14 +1,12 @@
-import notionToMd from "./notionToMd.js";
 // import { writeFileSync } from "fs";
 import MarkdownIt from 'markdown-it';
 import texmath from 'markdown-it-texmath';
 import katex from 'katex';
-import { Client } from "@notionhq/client";
 import katexHeader from "../utils/styleHead.js";
 
 
-const notionToHTML = async (notionToken: Client, page_url: string) => {
-  const mdString = await notionToMd(notionToken, page_url)
+const mdToHTML = async (mdString: string) => {
+
   const markDownIt = new MarkdownIt({
     html: true
   }).use(texmath, {
@@ -25,4 +23,4 @@ const notionToHTML = async (notionToken: Client, page_url: string) => {
   return html_text
 }
 
-export default notionToHTML
+export default mdToHTML

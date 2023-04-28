@@ -1,22 +1,23 @@
 package me.nogari.nogari.api.controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.apache.commons.io.FileUtils;
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.client.GitHubClient;
+import org.eclipse.egit.github.core.service.RepositoryService;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.egit.github.core.Repository;
-import org.eclipse.egit.github.core.client.GitHubClient;
-import org.eclipse.egit.github.core.service.RepositoryService;
-
-import java.util.List;
-import java.util.Optional;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,14 +33,8 @@ import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.entity.Member;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -52,13 +47,13 @@ public class ContentController {
 	@GetMapping("/sort")
 	@Operation(summary = "티스토리 발행 내역 리스트 조회")
 	public BaseResponse<Object> getTistoryListByFilter(@RequestParam String filter,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		// security session에 있는 유저 정보를 가져온다
 		Member member;
-		try{
+		try {
 			member = customUserDetails.getMember();
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
@@ -67,13 +62,13 @@ public class ContentController {
 				.build();
 		}
 
-		try{
+		try {
 			return BaseResponse.builder()
 				.result(contentService.getTistoryList(filter, member))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 티스토리 발행 내역 조회 성공")
 				.build();
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
@@ -83,6 +78,7 @@ public class ContentController {
 
 		}
 	}
+
 	@ResponseBody
 	@GetMapping("/git/clone")
 	@Operation(summary = "github repository clone")
@@ -91,31 +87,32 @@ public class ContentController {
 
 		//create git folder
 		File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
-		if(gitDir.exists()){
+		if (gitDir.exists()) {
 			FileUtils.deleteDirectory(gitDir);
 		}
 
-		if(gitDir.mkdirs()){
+		if (gitDir.mkdirs()) {
 			System.out.println("dir create success");
 		}
 
 		//set username, access token
 		CredentialsProvider credentialsProvider
-				= new UsernamePasswordCredentialsProvider(
-				"dnflrhkddyd@naver.com"
-				, ATK); //access token
+			= new UsernamePasswordCredentialsProvider(
+			"dnflrhkddyd@naver.com"
+			, ATK); //access token
 
 		//clone
 		Git git = Git.cloneRepository()
-				.setURI("https://github.com/encoreKwang/PullRequestTest")
-				.setCredentialsProvider(credentialsProvider)
-				.setDirectory(gitDir)
-				.call();
+			.setURI("https://github.com/encoreKwang/PullRequestTest")
+			.setCredentialsProvider(credentialsProvider)
+			.setDirectory(gitDir)
+			.call();
 		git.close();
 
-//		contentService.githubConnectionTest();
+		//		contentService.githubConnectionTest();
 
 	}
+
 	@ResponseBody
 	@GetMapping("/git/add")
 	@Operation(summary = "github add")
@@ -126,17 +123,18 @@ public class ContentController {
 
 		//create temp file
 		String fileName = UUID.randomUUID().toString();
-		File file = new File(dirPath+"\\"+fileName+".txt");
+		File file = new File(dirPath + "\\" + fileName + ".txt");
 		FileUtils.writeStringToFile(file, "testing it...", StandardCharsets.UTF_8);
 
 		//add
 		Git git = Git.open(gitDir);
 
 		AddCommand add = git.add();
-		add.addFilepattern(fileName+".txt").call();
+		add.addFilepattern(fileName + ".txt").call();
 
 		git.close();
 	}
+
 	@ResponseBody
 	@GetMapping("/git/commit")
 	@Operation(summary = "github commit")
@@ -151,6 +149,7 @@ public class ContentController {
 
 		git.close();
 	}
+
 	@ResponseBody
 	@GetMapping("/git/push")
 	@Operation(summary = "github push")
@@ -163,17 +162,17 @@ public class ContentController {
 
 		//set username, access token
 		CredentialsProvider credentialsProvider
-				= new UsernamePasswordCredentialsProvider(
-				"dnflrhkddyd@naver.com"
-				, ATK); //access token
+			= new UsernamePasswordCredentialsProvider(
+			"dnflrhkddyd@naver.com"
+			, ATK); //access token
 
 		//push
 		Git git = Git.open(gitDir);
 		git.push()
-				.setCredentialsProvider(credentialsProvider)
-				.setRemote("origin")
-				.setRefSpecs(new RefSpec("master"))
-				.call();
+			.setCredentialsProvider(credentialsProvider)
+			.setRemote("origin")
+			.setRefSpecs(new RefSpec("master"))
+			.call();
 
 		git.close();
 	}
@@ -192,7 +191,7 @@ public class ContentController {
 		RepositoryService repoService = new RepositoryService(client);
 
 		// 유저의 repositories 리스트 가져오기
-		List<Repository> repositories=repoService.getRepositories();
+		List<Repository> repositories = repoService.getRepositories();
 		for (Repository repo : repositories) {
 			System.out.println(repo.getName());
 		}
@@ -205,26 +204,26 @@ public class ContentController {
 	@Operation(summary = "노션 게시글 티스토리 발행")
 	public BaseResponse<Object> postNotionToTistory(
 		@RequestBody List<PostNotionToTistoryDto> postNotionToTistoryDtoList,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		// security session에 있는 유저 정보를 가져온다
 		Optional<Member> member;
-		try{
+		try {
 			member = Optional.ofNullable(customUserDetails.getMember());
-		}catch (Exception e){
+		} catch (Exception e) {
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
 				.resultMsg("로그인된 사용자가 없습니다.")
 				.build();
 		}
-		try{
+		try {
 			return BaseResponse.builder()
 				.result(contentService.postNotionToTistory(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
 				.build();
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
@@ -232,5 +231,15 @@ public class ContentController {
 				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다.")
 				.build();
 		}
+	}
+
+	@GetMapping("/tistory")
+	public BaseResponse<Object> getTistoryContents(@RequestParam Long lastTistoryId, @RequestParam int pageSize) {
+
+		return BaseResponse.builder()
+			.result(contentService.getTistoryContents(lastTistoryId, pageSize))
+			.resultCode(HttpStatus.OK.value())
+			.resultMsg("무한스크롤 조회 성공")
+			.build();
 	}
 }
