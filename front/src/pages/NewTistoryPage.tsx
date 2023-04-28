@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Helmet } from 'react-helmet-async'
 
 import { faker } from '@faker-js/faker'
@@ -25,7 +25,14 @@ import {
   TablePagination,
   TextField,
 } from '@mui/material'
-import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  GridColDef,
+  GridRowsProp,
+  GridCellParams,
+  GridCellModesModel,
+  GridCellModes,
+} from '@mui/x-data-grid'
 import {
   randomCreatedDate,
   randomTraderName,
@@ -38,6 +45,8 @@ import Scrollbar from '@/components/scrollbar/Scrollbar'
 
 function NewTistoryPage() {
   const [rows, setRows] = useState(predefinedRows)
+  const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
+
   const processRowUpdate = (newRow: any, oldRow: any) => {
     setRows((prevRows) => {
       const newRows = [...prevRows].map((row) => {
@@ -52,6 +61,40 @@ function NewTistoryPage() {
   const onClickHandler = () => {
     console.log(rows)
   }
+
+  const handleCellClick = useCallback((params: GridCellParams) => {
+    setCellModesModel((prevModel: any) => {
+      return {
+        // Revert the mode of the other cells from other rows
+        ...Object.keys(prevModel).reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: Object.keys(prevModel[id]).reduce(
+              (acc2, field) => ({
+                ...acc2,
+                [field]: { mode: GridCellModes.View },
+              }),
+              {}
+            ),
+          }),
+          {}
+        ),
+        [params.id]: {
+          // Revert the mode of other cells in the same row
+          ...Object.keys(prevModel[params.id] || {}).reduce(
+            (acc, field) => ({ ...acc, [field]: { mode: GridCellModes.View } }),
+            {}
+          ),
+          [params.field]: { mode: GridCellModes.Edit },
+        },
+      }
+    })
+  }, [])
+
+  const handleCellModesModelChange = useCallback((newModel: any) => {
+    setCellModesModel(newModel)
+  }, [])
+
   return (
     <>
       <Helmet>
@@ -74,9 +117,13 @@ function NewTistoryPage() {
           <Scrollbar>
             <div style={{ height: 300, width: '100%' }}>
               <DataGrid
+                cellModesModel={cellModesModel}
                 columns={columns}
+                experimentalFeatures={{}}
                 processRowUpdate={processRowUpdate}
                 rows={rows}
+                onCellClick={handleCellClick}
+                onCellModesModelChange={handleCellModesModelChange}
               />
             </div>
           </Scrollbar>
