@@ -1,8 +1,8 @@
 import { NotionToMarkdown } from "notion-to-md"
-import parseText from "./parseText.js";
-import * as md from './md.js';
+import parseText from "./notion-to-md/parseText.js";
+import * as md from './notion-to-md/md.js';
 import colorToStyle from "./colorToStyle.js";
-import { getBlockChildren } from "./notion.js";
+import { getBlockChildren } from "./notion-to-md/notion.js";
 import { Client } from "@notionhq/client";
 
 

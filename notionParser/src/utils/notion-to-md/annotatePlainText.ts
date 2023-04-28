@@ -1,6 +1,6 @@
 import { Annotations } from "notion-to-md/build/types";
 import * as md from './md.js';
-import colorToStyle from "./colorToStyle.js";
+import colorToStyle from "../colorToStyle.js";
 
 
 function annotatePlainText(text: string, annotations: Annotations): string {

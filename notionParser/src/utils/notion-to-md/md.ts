@@ -1,6 +1,6 @@
 import markdownTable from "markdown-table";
 import { CalloutIcon } from "notion-to-md/build/types";
-import colorToStyle from "./colorToStyle.js";
+import colorToStyle from "../colorToStyle.js";
 
 export const inlineCode = (text: string) => {
   return `\`${text}\``;
