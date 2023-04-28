@@ -13,7 +13,7 @@ export const interceptors = (instance: AxiosInstance) => {
   return instance
 }
 
-const BASE_URL = `${import.meta.env.VITE_SERVER_URL}` // 로컬 서버
+const BASE_URL = `${process.env.VITE_SERVER_URL}` // 로컬 서버
 
 // 단순 get요청으로 인증값이 필요없는 경우
 const axiosApi = (url: string, options?: object) => {
