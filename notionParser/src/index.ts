@@ -1,10 +1,10 @@
 import { Client } from '@notionhq/client';
 import notionToHTML from './service/notionToHTML.js'
 import notionToMd from './service/notionToMd.js'
-import { get_id } from './utils/notion.js';
+import { get_id } from './utils/notion-to-md/notion.js';
 
-export const handler = async (event: { notion: InotionToMd, type: string, tistory?: { access_token: string, blogName: string } }) => {
-  const { notion, type } = event
+export const handler = async (event: any) => {
+  const { notion, type } = JSON.parse(event.body)
   const { notionToken, page_url } = notion
 
   const page_id = get_id(page_url)
