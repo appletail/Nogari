@@ -43,3 +43,23 @@ interface InotionToMd {
   notionToken: string;
   page_url: string;
 }
+
+interface Ievent {
+  body: string
+}
+
+interface Itistory {
+  access_token: string
+  blogName: string
+}
+
+interface IeventBody {
+  notion: InotionToMd
+  type: string
+  tistory?: Itistory
+}
+
+interface Iresponse {
+  title: string
+  content: string | Promise<string>
+}
