@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+// import { writeFileSync } from "fs";
 import MarkdownIt from 'markdown-it';
 import texmath from 'markdown-it-texmath';
 import katex from 'katex';
@@ -18,7 +18,7 @@ const mdToHTML = async (mdString: string) => {
   const html_text = katexHeader + markDownIt.render(mdString);
 
   // file 형태로 내보내기
-  writeFileSync("test.html", html_text);
+  // writeFileSync("test.html", html_text);
 
   return html_text
 }
