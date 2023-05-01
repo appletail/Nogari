@@ -63,8 +63,6 @@ public class MemberServiceImpl implements MemberService {
 	public boolean signup(SignRequestDto request) throws Exception {
 		try {
 			Token token = Token.builder()
-				.githubToken("")
-				.tistoryToken("")
 				.build();
 			memberTokenRepository.save(token);
 
