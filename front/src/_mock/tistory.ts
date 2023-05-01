@@ -1,6 +1,5 @@
-import { faker } from '@faker-js/faker';
-
-// ----------------------------------------------------------------------
+import { faker } from '@faker-js/faker'
+import { sample, sampleSize } from 'lodash'
 
 const POST_TITLES = [
   'Whiteboard Templates By Industry Leaders',
@@ -27,21 +26,65 @@ const POST_TITLES = [
   'Gradient Ticket icon',
   'Here’s a Dyson motorcycle concept that doesn’t ‘suck’!',
   'How to Animate a SVG with border-image',
-];
+]
 
-const posts = [...Array(23)].map((_, index) => ({
+const TAGS = [
+  'python',
+  'react',
+  'java',
+  'javascript',
+  'ssafy',
+  '조퇴',
+  '설렁탕',
+  '딘딘',
+  '알고리즘',
+  'algorithm',
+  'n2t',
+  'notion',
+  'md',
+  'markdown',
+  '퍼레이드',
+  'jennifer',
+  'brad',
+  'eddy',
+  'daniel',
+  'sally',
+  'spring',
+  '김영한',
+  '자율프로젝트',
+  '특화프로젝트',
+  '공통프로젝트',
+  '개발자',
+  'pm',
+  'FE',
+  '백엔드',
+  '데브옵스',
+]
+
+const CATEGORY = ['cate1', 'cate2', 'cate3', 'cate4', 'cate5']
+const BLOG_NAMES = [
+  '딘딘의 재롱잔치',
+  '팬더의 공학일기',
+  '통계학 세상',
+  '뉴비코의 코딩일기',
+  '개발자 뭄뭄',
+  '기억보단 기록을',
+  '노션 투 티스토리',
+  '미미가 양꼬치',
+  '사랑해요 제로딘딘',
+]
+
+const tistoryPosts = [...Array(23)].map((_, index) => ({
   id: faker.datatype.uuid(),
-  cover: `/assets/images/covers/cover_${index + 1}.jpg`,
+  visibility: sample([0, 3]),
+  status: sample(['발행완료', '발행요청', '수정요청', '발행오류']),
   title: POST_TITLES[index + 1],
-  createdAt: faker.date.past(),
-  view: faker.datatype.number(),
-  comment: faker.datatype.number(),
-  share: faker.datatype.number(),
-  favorite: faker.datatype.number(),
-  author: {
-    name: faker.name.fullName(),
-    avatarUrl: `/assets/images/avatars/avatar_${index + 1}.jpg`,
-  },
-}));
+  category_name: sample(CATEGORY),
+  modified_at: faker.date.past(),
+  blog_name: sample(BLOG_NAMES),
+  request_link: faker.internet.domainName(),
+  response_link: faker.internet.domainName(),
+  tags: sampleSize(TAGS, sample([2, 4, 5, 6, 8])).toString(),
+}))
 
-export default posts;
+export default tistoryPosts

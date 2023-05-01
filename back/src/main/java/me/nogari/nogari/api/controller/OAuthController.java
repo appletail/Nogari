@@ -1,7 +1,11 @@
 package me.nogari.nogari.api.controller;
 
+import java.io.IOException;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,7 +18,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.api.service.OauthService;
 import me.nogari.nogari.api.service.OauthServiceImpl;
+import me.nogari.nogari.common.security.CustomUserDetails;
+import me.nogari.nogari.entity.Member;
 
 @RestController
 @AllArgsConstructor
@@ -23,48 +30,66 @@ import me.nogari.nogari.api.service.OauthServiceImpl;
 public class OAuthController {
 
 	@Autowired
-	private OauthServiceImpl oauthService;
+	private OauthService oauthService;
 
 	@ResponseBody
-	@GetMapping("/kakao")
-	@Operation(summary = "카카오(티스토리) 토큰 발급")
-	public BaseResponse<Object> kakaoCallBack(@RequestParam String code){
-		// 카카오 인가코드 받기
-		// System.out.println("code: " + code);
+	@GetMapping("/tistory")
+	@Operation(summary = "티스토리 토큰 발급")
+	public BaseResponse<Object> tistoryCallBack(@RequestParam String code,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
 
-		// 카카오 서버에 엑세스토큰 (access token) 받기
+		// security session에 있는 유저 정보를 가져온다
+		Optional<Member> member;
 		try{
-			return BaseResponse.builder()
-				.result(oauthService.getKakaoAccessToken(code))
-				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 카카오 엑세스 토근 얻기 성공")
-				.build();
+			member = Optional.ofNullable(customUserDetails.getMember());
 		}catch (Exception e){
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("카카오 엑세스 토큰 얻기에 실패")
+				.resultMsg("로그인된 사용자가 없습니다.")
+				.build();
+		}
+
+		// 인가코드 받기
+		// System.out.println("code: " + code);
+
+		// 엑세스토큰 (access token) 받기
+		try{
+			return BaseResponse.builder()
+				.result(oauthService.getTistoryAccessToken(code, member.get()))
+				.resultCode(HttpStatus.OK.value())
+				.resultMsg("정상적으로 티스토리 엑세스 토큰 얻기 성공")
+				.build();
+
+		}catch (Exception e){
+			return BaseResponse.builder()
+				// .result(null)
+				.result(oauthService.getTistoryAccessToken(code, member.get()))
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("티스토리 엑세스 토큰 얻기에 실패")
 				.build();
 
 		}
 	}
 
 	@ResponseBody
-	@GetMapping("/github")
+	@GetMapping("/git")
 	@Operation(summary = "깃허브 토큰 발급")
-	public BaseResponse<Object> getGithubAccessToken(@RequestParam String code){
+	public BaseResponse<Object> getGithubAccessToken(@RequestParam String code,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails){
 		// 깃허브 인가코드 받기
 		System.out.println("code: " + code);
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try{
-			OAuthAccessTokenResponse tokenResponse = oauthService.getGithubAccessToken(code);
+			Member member = customUserDetails.getMember();
+			OAuthAccessTokenResponse tokenResponse = oauthService.getGithubAccessToken(code, member);
 			String ATK= tokenResponse.getAccessToken();
 			System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
 				.result(ATK)
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 깃허브 엑세스 토근 얻기 성공")
+				.resultMsg("정상적으로 깃허브 엑세스 토큰 얻기 성공")
 				.build();
 		}catch (Exception e){
 			return BaseResponse.builder()
@@ -77,18 +102,20 @@ public class OAuthController {
 	@ResponseBody
 	@GetMapping("/notion")
 	@Operation(summary = "노션 토큰 발급")
-	public BaseResponse<Object> getNotionAccessToken(@RequestParam String code){
+	public BaseResponse<Object> getNotionAccessToken(@RequestParam String code,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails){
 		// 깃허브 인가코드 받기
 		System.out.println("notion code: " + code);
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try{
-			String ATK =oauthService.getNotionAccessToken(code);
+			Member member = customUserDetails.getMember();
+			String ATK =oauthService.getNotionAccessToken(code, member);
 			System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
 				.result(ATK)
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("정상적으로 노션 엑세스 토근 얻기 성공")
+				.resultMsg("정상적으로 노션 엑세스 토큰 얻기 성공")
 				.build();
 		}catch (Exception e){
 			return BaseResponse.builder()

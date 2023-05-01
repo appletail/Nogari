@@ -1,4 +1,5 @@
 type color =
+  "default"
   | "gray"
   | "brown"
   | "orange"
@@ -37,4 +38,28 @@ interface styles {
   purple_background: string;
   pink_background: string;
   red_background: string;
+}
+interface InotionToMd {
+  notionToken: string;
+  page_url: string;
+}
+
+interface Ievent {
+  body: string
+}
+
+interface Itistory {
+  access_token: string
+  blogName: string
+}
+
+interface IeventBody {
+  notion: InotionToMd
+  type: string
+  tistory?: Itistory
+}
+
+interface Iresponse {
+  title: string
+  content: string | Promise<string>
 }

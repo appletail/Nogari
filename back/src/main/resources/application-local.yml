@@ -14,15 +14,9 @@ spring:
       hibernate:
         format_sql: true # JPA의 구현체인 Hibernate가 동작하면서 발생한 SQL의 가독성을 높여준다.
     open-in-view: false
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/nogariDB?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
-    username: root #임시
-    password: ssafy
-  data:
-    redis:
-      host: localhost
-      port: 6379
+  redis:
+    host: k8c206.p.ssafy.io
+    port: 6379
   session:
     store-type: redis
 
@@ -49,8 +43,8 @@ server:
 app:
   auth:
     kakao:
-      #      redirect-uri: http://localhost:8080/api/vi/oauth    # Token 받을 Uri 지정
-      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
+       redirect-uri: http://localhost:8080/api/vi/oauth/tistory    # Token 받을 Uri 지정
+#      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
     github:
       redirect-uri: https://github.com/login/oauth/access_token    # access token 발급 요청 uri
 
@@ -60,7 +54,3 @@ logging:
     com: INFO
     root: INFO
 
-# jwt.secret.key의 값은 256bit 이상이어야 합니다.
-jwt:
-  secret:
-    key: x!A%D*G-KaPdSgVkYp3s5v8y/B?E(H+M

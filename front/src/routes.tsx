@@ -4,7 +4,9 @@ import RegisterLayout from './layouts/register/RegisterLayout'
 import RootLayout from './layouts/root/RootLayout'
 import Home from './pages/Home'
 import LoginPage from './pages/LoginPage'
+import NewTistoryPage from './pages/NewTistoryPage'
 import SignupPage from './pages/SignupPage'
+import TistoryPage from './pages/TistoryPage'
 
 const routers = createBrowserRouter([
   {
@@ -13,6 +15,10 @@ const routers = createBrowserRouter([
       {
         path: '/test',
         element: <Home />,
+      },
+      {
+        path: '/tistory',
+        element: <NewTistoryPage />,
       },
     ],
   },
