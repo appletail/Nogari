@@ -107,6 +107,7 @@ const setCustomMarkdown = (
   });
   n2m.setCustomTransformer("image", async (block: any): Promise<any> => {
     let blockContent = block.image;
+    let error_message: string = 'tistory 관련 알 수 없는 오류가 발생했습니다.'
     const image_caption_plain = blockContent.caption
       .map((item: RichTextItemResponse) => item.plain_text)
       .join("");
@@ -137,11 +138,12 @@ const setCustomMarkdown = (
             })
               .then((res) => {
                 return res.data.tistory.url
-              }).catch((err) => console.log(err))
+              }).catch((err) => { error_message = err.response.data.tistory.error_message })
           })
-          .catch((err) => console.log(err))
+          .catch((err) => { error_message = err.response.data.tistory.error_message })
 
         // get tistory url
+        if (!url) throw new Error(error_message)
         return md.image(image_caption_plain, url);
       } else {
         return md.image(image_caption_plain, blockContent.file.url);
