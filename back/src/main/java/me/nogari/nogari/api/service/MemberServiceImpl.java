@@ -2,7 +2,9 @@ package me.nogari.nogari.api.service;
 
 import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,6 @@ public class MemberServiceImpl implements MemberService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;
 	private final TokenRepository tokenRepository;
-
 	private final MemberTokenRepository memberTokenRepository;
 
 	@Override
@@ -56,6 +57,21 @@ public class MemberServiceImpl implements MemberService {
 				.build())
 			.build();
 
+	}
+
+	private final RedisTemplate redisTemplate;
+
+	@Override
+	public boolean logout(Long memberId, JWTDto jwtDto) {
+		// Redis에서 해당 memberId로 저장된 Refresh Token 이 있는지 여부를 확인 후에 있을 경우 삭제를 한다.
+		if (redisTemplate.hasKey("refreshToken:" + String.valueOf(memberId))) {
+			// Refresh Token을 삭제
+			redisTemplate.delete("refreshToken:" + String.valueOf(memberId));
+		}
+		// 해당 Access Token 유효시간을 가지고 와서 BlackList에 저장하기
+		Long expiration = jwtProvider.getExpiration(jwtDto.getAccess_token());
+		redisTemplate.opsForValue().set(jwtDto.getAccess_token(), "logout", expiration, TimeUnit.MILLISECONDS);
+		return true;
 	}
 
 	@Override
@@ -106,7 +122,7 @@ public class MemberServiceImpl implements MemberService {
 			JWT.builder()
 				.id(member.getMemberId())
 				.refresh_token(UUID.randomUUID().toString())
-				.expiration(120) // refresh 만료기간 2주
+				.expiration(300) // refresh 만료기간 2주
 				.build()
 		);
 		return jwt.getRefresh_token();

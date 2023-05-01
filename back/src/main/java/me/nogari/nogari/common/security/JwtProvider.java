@@ -33,7 +33,7 @@ public class JwtProvider {
 	private Key secretKey;
 
 	// 만료시간 : 3Hour
-	private final long exp = 1000L * 60;
+	private final long exp = 1000L * 60 * 3;
 
 	private final JpaUserDetailsService userDetailsService;
 
@@ -74,6 +74,20 @@ public class JwtProvider {
 			e.printStackTrace();
 		}
 		return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+	}
+
+	// 토큰 만료까지 남은시간 획득
+	public Long getExpiration(String accessToken) {
+		// accessToken 남은 유효시간
+		Date expiration = Jwts.parserBuilder()
+			.setSigningKey(secretKey)
+			.build()
+			.parseClaimsJws(accessToken)
+			.getBody()
+			.getExpiration();
+		// 현재 시간
+		Long now = new Date().getTime();
+		return (expiration.getTime() - now);
 	}
 
 	// Authorization Header를 통해 인증을 한다.

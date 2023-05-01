@@ -1,13 +1,11 @@
 package me.nogari.nogari.common.security;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import me.nogari.nogari.config.CorsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +21,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.config.CorsConfig;
 
 @Configuration
 @RequiredArgsConstructor
@@ -37,6 +34,7 @@ public class SecurityConfig {
 
 	@Autowired
 	private CorsConfig corsConfig;
+
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.addFilter(corsConfig.corsFilter())
@@ -45,21 +43,21 @@ public class SecurityConfig {
 			// 쿠키 기반이 아닌 JWT 기반이므로 사용하지 않음
 			.csrf().disable()
 			// CORS 설정
-//			.cors(c -> {
-//					CorsConfigurationSource source = request -> {
-//						// Cors 허용 패턴
-//						CorsConfiguration config = new CorsConfiguration();
-//						config.setAllowedOrigins(
-//							List.of("*")
-//						);
-//						config.setAllowedMethods(
-//							List.of("*")
-//						);
-//						return config;
-//					};
-//					c.configurationSource(source);
-//				}
-//			)
+			//			.cors(c -> {
+			//					CorsConfigurationSource source = request -> {
+			//						// Cors 허용 패턴
+			//						CorsConfiguration config = new CorsConfiguration();
+			//						config.setAllowedOrigins(
+			//							List.of("*")
+			//						);
+			//						config.setAllowedMethods(
+			//							List.of("*")
+			//						);
+			//						return config;
+			//					};
+			//					c.configurationSource(source);
+			//				}
+			//			)
 			// Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
 			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			.and()
@@ -68,6 +66,8 @@ public class SecurityConfig {
 			.antMatchers("/members/signup", "/members/login", "/members/duplicate", "/members/refresh").permitAll()
 			.antMatchers("/admin/**").hasRole("ADMIN")
 			.antMatchers("/user/**").hasRole("USER")
+			.antMatchers("/members/logout").hasRole("USER")
+			.antMatchers("/contents/tistory").hasRole("USER")
 			.antMatchers("/oauth/**").permitAll()
 			.antMatchers("/contents/**").permitAll()
 			.antMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
