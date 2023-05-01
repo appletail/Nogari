@@ -200,7 +200,8 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	public Object postNotionToTistory(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member) {
-		
+		String notionToken = member.getNotionToken();
+
 		for(PostNotionToTistoryDto tistoryPosting : PostNotionToTistoryDtoList){
 			String title = ""; // Tistory에 게시될 게시글 제목
 			String content = ""; // Tistory에 게시될 게시글 내용
@@ -221,7 +222,7 @@ public class ContentServiceImpl implements ContentService {
 			// [변환진행] AWS Lambda와 통신하는 과정
 			try{
 				lambdaCallFunction = new LambdaCallFunction(
-					tistoryPosting.getNotionToken(),
+					notionToken,
 					tistoryPosting.getUrl(),
 					tistoryPosting.getType()
 				);
@@ -240,8 +241,6 @@ public class ContentServiceImpl implements ContentService {
 			}
 
 			// [발행진행] Tistory API를 이용하여 Tistory 포스팅을 진행한다.
-			member.getToken().getTistoryToken();
-
 			RestTemplate rt = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 
@@ -267,9 +266,7 @@ public class ContentServiceImpl implements ContentService {
 				TistoryPostRequest,
 				String.class
 			);
-
 			String responseString = response.getBody().toString();
-			System.out.println(responseString);
 
 			// [발행검증]
 			tistory.setStatus("발행완료");

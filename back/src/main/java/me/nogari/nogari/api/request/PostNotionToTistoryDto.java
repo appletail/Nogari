@@ -10,12 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostNotionToTistoryDto {
-	// aws lambda 연결 위해
-	private String notionToken;
+	// AWS Lambda
 	private String url;
 	private String type;
 
-	// tistory 글 발행 위해
+	// Tistory
 	private String blogName;
 	private String requestLink;
 	private Byte visibility;
