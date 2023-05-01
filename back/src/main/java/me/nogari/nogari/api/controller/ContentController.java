@@ -86,7 +86,8 @@ public class ContentController {
 		String ATK = "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";
 
 		//create git folder
-		File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
+		// File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
+		File gitDir = new File("/home/ubuntu/dir1");
 		if (gitDir.exists()) {
 			FileUtils.deleteDirectory(gitDir);
 		}
