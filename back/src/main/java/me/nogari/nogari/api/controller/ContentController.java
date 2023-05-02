@@ -82,14 +82,18 @@ public class ContentController {
 	@ResponseBody
 	@GetMapping("/git/clone")
 	@Operation(summary = "github repository clone")
-	public void gitCloneRepo() throws GitAPIException, IOException {
+	public void gitCloneRepo(){
 		String ATK = "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";
 
 		//create git folder
 		// File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
 		File gitDir = new File("/home/ubuntu/dir1");
 		if (gitDir.exists()) {
-			FileUtils.deleteDirectory(gitDir);
+			try {
+				FileUtils.deleteDirectory(gitDir);
+			}catch (Exception e){
+				System.out.println("deleteDirectory ERROR");
+			}
 		}
 
 		if (gitDir.mkdirs()) {
@@ -102,13 +106,19 @@ public class ContentController {
 			"dnflrhkddyd@naver.com"
 			, ATK); //access token
 
-		//clone
-		Git git = Git.cloneRepository()
-			.setURI("https://github.com/encoreKwang/PullRequestTest")
-			.setCredentialsProvider(credentialsProvider)
-			.setDirectory(gitDir)
-			.call();
-		git.close();
+
+		try {
+			//clone
+			Git git = Git.cloneRepository()
+				.setURI("https://github.com/encoreKwang/PullRequestTest")
+				.setCredentialsProvider(credentialsProvider)
+				.setDirectory(gitDir)
+				.call();
+			git.close();
+
+		} catch (Exception e){
+			System.out.println("git clone REPO ERROR");
+		}
 
 		//		contentService.githubConnectionTest();
 
