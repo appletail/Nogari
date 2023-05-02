@@ -12,7 +12,7 @@ import { NavContent, NavConnectedSite } from './styles'
 import account from '@/_mock/account'
 
 // hooks
-import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
+import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
 import SettingSection from '@/components/setting-section'

@@ -1,8 +1,10 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom'
+
 // @mui
-import { styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles'
+
 // components
-import { ReactComponent as Logo } from "@/assets/logo/nogari.svg";
+import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
 
 // ----------------------------------------------------------------------
 
@@ -16,7 +18,7 @@ const StyledHeader = styled('header')(({ theme }) => ({
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(5, 5, 0),
   },
-}));
+}))
 
 // ----------------------------------------------------------------------
 
@@ -28,7 +30,7 @@ function RegisterLayout() {
       </StyledHeader>
       <Outlet />
     </>
-  );
+  )
 }
 
 export default RegisterLayout
