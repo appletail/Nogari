@@ -15,7 +15,10 @@ function NotionOAuth() {
       url: '/oauth/notion',
       data: { code },
     })
-      .then(() => sessionStorage.setItem('notion', 'true'))
+      .then((res) => {
+        if (res.data.resultCode === 200)
+          sessionStorage.setItem('notion', 'true')
+      })
       .then(() => navigate('/tistory'))
       .catch((err) => console.log(err))
   }, [])

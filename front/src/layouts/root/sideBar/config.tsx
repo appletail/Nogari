@@ -17,7 +17,7 @@ export const navConfig = [
   },
   {
     title: 'Github',
-    path: '/',
+    path: '/test',
     icon: <Github style={{ width: 26, height: 26 }} />,
   },
 ]
@@ -49,7 +49,7 @@ export const connectedConfig = (
     },
     {
       title: 'tistory',
-      path: 'https://www.tistory.com/oauth/authorize?client_id=5a77675830875a386851cff97b00e984&redirect_uri=https://localhost:3000&response_type=code',
+      path: 'https://www.tistory.com/oauth/authorize?client_id=5a77675830875a386851cff97b00e984&redirect_uri=https://localhost:3000/oauth/tistory&response_type=code',
       icon: <Tistory style={{ width: 35, height: 35 }} />,
       isLogin: tistory,
     },

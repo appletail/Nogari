@@ -15,8 +15,11 @@ function GithubOAuth() {
       url: '/oauth/git',
       data: { code },
     })
-      .then(() => sessionStorage.setItem('github', 'true'))
-      .then(() => navigate('/github'))
+      .then((res) => {
+        if (res.data.resultCode === 200)
+          sessionStorage.setItem('github', 'true')
+      })
+      .then(() => navigate('/test'))
       .catch((err) => console.log(err))
   }, [])
   return <div>GithubOAuth</div>

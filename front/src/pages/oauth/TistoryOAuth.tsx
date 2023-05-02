@@ -15,7 +15,10 @@ function TistoryOAuth() {
       url: '/oauth/tistory',
       data: { code },
     })
-      .then(() => sessionStorage.setItem('tistory', 'true'))
+      .then((res) => {
+        if (res.data.resultCode === 200)
+          sessionStorage.setItem('tistory', 'true')
+      })
       .then(() => navigate('/tistory'))
       .catch((err) => console.log(err))
   }, [])

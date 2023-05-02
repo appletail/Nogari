@@ -44,9 +44,14 @@ export default function Nav() {
     const notion = sessionStorage.getItem('notion')
     const tistory = sessionStorage.getItem('tistory')
     const github = sessionStorage.getItem('github')
-    if (notion) setIsLogins({ ...isLogins, notion: true })
-    if (tistory) setIsLogins({ ...isLogins, tistory: true })
-    if (github) setIsLogins({ ...isLogins, github: true })
+
+    const isLogin = {
+      notion: notion ? true : false,
+      tistory: tistory ? true : false,
+      github: github ? true : false,
+    }
+
+    setIsLogins(isLogin)
   }, [])
 
   const renderContent = (
