@@ -2,9 +2,7 @@ package me.nogari.nogari.api.service;
 
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +14,7 @@ import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.SignResponseDto;
 import me.nogari.nogari.common.JWT;
 import me.nogari.nogari.common.JWTDto;
+import me.nogari.nogari.common.RedisUtil;
 import me.nogari.nogari.common.TokenRepository;
 import me.nogari.nogari.common.security.JwtProvider;
 import me.nogari.nogari.entity.Authority;
@@ -33,6 +32,7 @@ public class MemberServiceImpl implements MemberService {
 	private final JwtProvider jwtProvider;
 	private final TokenRepository tokenRepository;
 	private final MemberTokenRepository memberTokenRepository;
+	private final RedisUtil redisUtil;
 
 	@Override
 	public SignResponseDto login(LoginRequestDto request) {
@@ -59,18 +59,16 @@ public class MemberServiceImpl implements MemberService {
 
 	}
 
-	private final RedisTemplate redisTemplate;
-
 	@Override
 	public boolean logout(Long memberId, JWTDto jwtDto) {
 		// Redis에서 해당 memberId로 저장된 Refresh Token 이 있는지 여부를 확인 후에 있을 경우 삭제를 한다.
-		if (redisTemplate.hasKey("refreshToken:" + String.valueOf(memberId))) {
+		if (redisUtil.hasKey("refreshToken:" + String.valueOf(memberId))) {
 			// Refresh Token을 삭제
-			redisTemplate.delete("refreshToken:" + String.valueOf(memberId));
+			redisUtil.delete("refreshToken:" + String.valueOf(memberId));
 		}
 		// 해당 Access Token 유효시간을 가지고 와서 BlackList에 저장하기
 		Long expiration = jwtProvider.getExpiration(jwtDto.getAccess_token());
-		redisTemplate.opsForValue().set(jwtDto.getAccess_token(), "logout", expiration, TimeUnit.MILLISECONDS);
+		redisUtil.setBlackList(jwtDto.getAccess_token(), "access_token", expiration);
 		return true;
 	}
 
@@ -115,14 +113,14 @@ public class MemberServiceImpl implements MemberService {
 	 * Refresh 토큰을 생성한다.
 	 * Redis 내부에는
 	 * refreshToken:memberId : tokenValue
-	 * 형태로 저장한다.
+	 * 형태로 저장.
 	 */
 	public String createRefreshToken(Member member) {
 		JWT jwt = tokenRepository.save(
 			JWT.builder()
 				.id(member.getMemberId())
 				.refresh_token(UUID.randomUUID().toString())
-				.expiration(300) // refresh 만료기간 2주
+				.expiration(180) // refresh 만료기간 2주
 				.build()
 		);
 		return jwt.getRefresh_token();
@@ -135,7 +133,7 @@ public class MemberServiceImpl implements MemberService {
 		if (jwt.getRefresh_token() == null) {
 			return null;
 		} else {
-			// 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장..?
+			// 리프레시 토큰 만료일자가 얼마 남지 않았을 때 만료시간 연장
 			if (jwt.getExpiration() < 10) {
 				jwt.setExpiration(1000);
 				tokenRepository.save(jwt);

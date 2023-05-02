@@ -23,6 +23,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.common.RedisUtil;
 import me.nogari.nogari.config.CorsConfig;
 
 @Configuration
@@ -31,7 +32,7 @@ import me.nogari.nogari.config.CorsConfig;
 public class SecurityConfig {
 
 	private final JwtProvider jwtProvider;
-
+	private final RedisUtil redisUtil;
 	@Autowired
 	private CorsConfig corsConfig;
 
@@ -74,7 +75,8 @@ public class SecurityConfig {
 			.anyRequest().denyAll()
 			.and()
 			// JWT 인증 필터 적용
-			.addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisUtil),
+				UsernamePasswordAuthenticationFilter.class)
 			// 에러 핸들링
 			.exceptionHandling()
 			.accessDeniedHandler(new AccessDeniedHandler() {

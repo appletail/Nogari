@@ -82,7 +82,7 @@ public class MemberController {
 			.build();
 	}
 
-	@GetMapping("/refresh")
+	@PostMapping("/refresh")
 	public BaseResponse<Object> refresh(@RequestBody JWTDto jwt) throws Exception {
 
 		return BaseResponse.builder()
