@@ -4,9 +4,15 @@ import * as md from './notion-to-md/md.js';
 import colorToStyle from "./colorToStyle.js";
 import { getBlockChildren } from "./notion-to-md/notion.js";
 import { Client } from "@notionhq/client";
+import { RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints.js";
+import axios from "axios";
 
 
-const setCustomMarkdown = (n2m: NotionToMarkdown, notionClient: Client): NotionToMarkdown => {
+const setCustomMarkdown = (
+  n2m: NotionToMarkdown,
+  notionClient: Client,
+  tistory: Itistory | undefined
+): NotionToMarkdown => {
 
   n2m.setCustomTransformer("heading_1", async (block: any): Promise<any> => {
     const color = block.heading_1.color
@@ -98,6 +104,51 @@ const setCustomMarkdown = (n2m: NotionToMarkdown, notionClient: Client): NotionT
     parsedData = md.callout(callout_string.trim(), block["callout"].icon);
 
     return parsedData
+  });
+  n2m.setCustomTransformer("image", async (block: any): Promise<any> => {
+    let blockContent = block.image;
+    let error_message: string = 'tistory 관련 알 수 없는 오류가 발생했습니다.'
+    const image_caption_plain = blockContent.caption
+      .map((item: RichTextItemResponse) => item.plain_text)
+      .join("");
+    const image_type = blockContent.type;
+    if (image_type === "external")
+      return md.image(image_caption_plain, blockContent.external.url);
+    if (image_type === "file") {
+      if (tistory) {
+        // getFile
+        const url = await axios({
+          url: blockContent.file.url,
+          responseType: 'arraybuffer'
+        })
+          .then((res) => {
+            const formData = new FormData();
+            formData.append('output', 'json')
+            formData.append('access_token', tistory.access_token)
+            formData.append('blogName', tistory.blogName)
+            formData.append('uploadedfile', new Blob([res.data], { type: 'image/jpeg' }), 'image.jpg');
+
+            return formData
+          })
+          .then(async (data) => {
+            return await axios({
+              method: 'post',
+              url: 'https://www.tistory.com/apis/post/attach?',
+              data
+            })
+              .then((res) => {
+                return res.data.tistory.url
+              }).catch((err) => { error_message = err.response.data.tistory.error_message })
+          })
+          .catch((err) => { error_message = err.response.data.tistory.error_message })
+
+        // get tistory url
+        if (!url) throw new Error(error_message)
+        return md.image(image_caption_plain, url);
+      } else {
+        return md.image(image_caption_plain, blockContent.file.url);
+      }
+    }
   });
 
 

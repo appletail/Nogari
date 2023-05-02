@@ -1,51 +1,51 @@
-import React from "react";
-import { Helmet } from "react-helmet-async";
+import React from 'react'
+import { Helmet } from 'react-helmet-async'
 
 // @mui
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom'
 
-import { Link, Container, Typography, Divider } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Link, Container, Typography, Divider } from '@mui/material'
+import { styled } from '@mui/material/styles'
 
 // components
 
-import { ReactComponent as Logo } from "@/assets/logo/nogari.svg";
-import Iconify from "@/components/iconify/Iconify";
-import { LoginForm } from "@/sections/auth/login";
+import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
+import Iconify from '@/components/iconify/Iconify'
+import { LoginForm } from '@/sections/auth/login'
 
 // ----------------------------------------------------------------------
 
-const StyledRoot = styled("div")(({ theme }) => ({
-  [theme.breakpoints.up("md")]: {
-    display: "flex",
+const StyledRoot = styled('div')(({ theme }) => ({
+  [theme.breakpoints.up('md')]: {
+    display: 'flex',
   },
-}));
+}))
 
-const StyledSection = styled("div")(({ theme }) => ({
-  width: "100%",
+const StyledSection = styled('div')(({ theme }) => ({
+  width: '100%',
   maxWidth: 480,
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
   boxShadow: theme.customShadows?.card,
   backgroundColor: theme.palette.background.default,
-}));
+}))
 
-const StyledContent = styled("div")(({ theme }) => ({
+const StyledContent = styled('div')(({ theme }) => ({
   maxWidth: 480,
-  margin: "auto",
-  minHeight: "100vh",
-  display: "flex",
-  justifyContent: "center",
-  flexDirection: "column",
+  margin: 'auto',
+  minHeight: '100vh',
+  display: 'flex',
+  justifyContent: 'center',
+  flexDirection: 'column',
   padding: theme.spacing(12, 0),
-}));
+}))
 
 // ----------------------------------------------------------------------
 // API 영역
 
 function LoginPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   return (
     <>
       <Helmet>
@@ -66,14 +66,14 @@ function LoginPage() {
             </Typography>
 
             <Typography sx={{ mb: 5 }} variant="body2">
-              아직 계정이 없으신가요? {""}
-              <Link variant="subtitle2" onClick={() => navigate("/signup")}>
+              아직 계정이 없으신가요? {''}
+              <Link variant="subtitle2" onClick={() => navigate('/signup')}>
                 회원가입 하기
               </Link>
             </Typography>
 
             <Divider sx={{ my: 3 }}>
-              <Typography sx={{ color: "text.secondary" }} variant="body2">
+              <Typography sx={{ color: 'text.secondary' }} variant="body2">
                 OR
               </Typography>
             </Divider>
@@ -83,7 +83,7 @@ function LoginPage() {
         </Container>
       </StyledRoot>
     </>
-  );
+  )
 }
 
-export default LoginPage;
+export default LoginPage

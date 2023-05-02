@@ -6,7 +6,6 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { ReactComponent as Github } from '@/assets/logos/github-mark.svg'
 import { ReactComponent as Notion } from '@/assets/logos/Notion-logo.svg'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
-import { ReactComponent as Velog } from '@/assets/logos/velog.svg'
 
 // ----------------------------------------------------------------------
 
@@ -21,19 +20,9 @@ export const navConfig = [
     path: '/',
     icon: <Github style={{ width: 26, height: 26 }} />,
   },
-  {
-    title: 'Velog',
-    path: '/',
-    icon: <Velog style={{ width: 26, height: 26, fill: '#20C997' }} />,
-  },
 ]
 
 export const settingConfig = [
-  {
-    title: 'settings',
-    path: '/settings',
-    icon: <SettingsOutlinedIcon sx={{ width: 1, height: 1 }} />,
-  },
   {
     title: 'Notice',
     path: '/notice',
@@ -46,29 +35,29 @@ export const settingConfig = [
   },
 ]
 
-export const connectedConfig = [
-  {
-    title: 'notion',
-    path: '/notion',
-    icon: <Notion style={{ width: 35, height: 35 }} />,
-    isLogin: false,
-  },
-  {
-    title: 'github',
-    path: '/github',
-    icon: <Github style={{ width: 35, height: 35 }} />,
-    isLogin: false,
-  },
-  {
-    title: 'kakao',
-    path: '/kakao',
-    icon: <Tistory style={{ width: 35, height: 35 }} />,
-    isLogin: false,
-  },
-  {
-    title: 'velog',
-    path: '/velog',
-    icon: <Velog style={{ width: 35, height: 35, fill: '#20C997' }} />,
-    isLogin: false,
-  },
-]
+export const connectedConfig = (
+  notion: boolean,
+  tistory: boolean,
+  github: boolean
+) => {
+  return [
+    {
+      title: 'notion',
+      path: 'https://api.notion.com/v1/oauth/authorize?client_id=09796e64-c53d-4b97-8973-5bf3e30001ab&response_type=code&owner=user&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Foauth%2Fnotion',
+      icon: <Notion style={{ width: 35, height: 35 }} />,
+      isLogin: notion,
+    },
+    {
+      title: 'tistory',
+      path: 'https://www.tistory.com/oauth/authorize?client_id=5a77675830875a386851cff97b00e984&redirect_uri=https://localhost:3000&response_type=code',
+      icon: <Tistory style={{ width: 35, height: 35 }} />,
+      isLogin: tistory,
+    },
+    {
+      title: 'github',
+      path: 'https://github.com/login/oauth/authorize?scope=repo,user&client_id=7e06fc5ef20cdc465a15',
+      icon: <Github style={{ width: 35, height: 35 }} />,
+      isLogin: github,
+    },
+  ]
+}

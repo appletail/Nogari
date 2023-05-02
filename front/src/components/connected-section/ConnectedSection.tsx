@@ -1,5 +1,5 @@
 // @mui
-import { Box } from '@mui/material'
+import { Box, Link } from '@mui/material'
 
 import { StyledConnectedItem, StyledConnectedItemIcon } from './styles'
 
@@ -32,13 +32,15 @@ export default function Section({
 // ----------------------------------------------------------------------
 
 function SettingItem({ item }: { item: ConnectedConfig }) {
-  const { icon, isLogin } = item
+  const { icon, isLogin, path } = item
 
   return (
-    <StyledConnectedItem>
-      <StyledConnectedItemIcon sx={{ opacity: isLogin ? '1' : '0.2' }}>
-        {icon && icon}
-      </StyledConnectedItemIcon>
-    </StyledConnectedItem>
+    <Link href={path}>
+      <StyledConnectedItem>
+        <StyledConnectedItemIcon sx={{ opacity: isLogin ? '1' : '0.2' }}>
+          {icon && icon}
+        </StyledConnectedItemIcon>
+      </StyledConnectedItem>
+    </Link>
   )
 }
