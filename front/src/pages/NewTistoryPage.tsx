@@ -26,12 +26,7 @@ import {
   TextField,
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid'
-import {
-  randomCreatedDate,
-  randomTraderName,
-  randomUpdatedDate,
-  randomUrl,
-} from '@mui/x-data-grid-generator'
+
 import { sample, sampleSize } from 'lodash'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
@@ -71,8 +66,17 @@ function NewTistoryPage() {
           <Button onClick={onClickHandler}>Get data</Button>
         </Stack>
         <Card>
-          <Scrollbar>
-            <div style={{ height: 300, width: '100%' }}>
+          <Scrollbar
+            sx={{
+              height: 1,
+              '& .simplebar-content': {
+                height: 1,
+                display: 'flex',
+                flexDirection: 'row',
+              },
+            }}
+          >
+            <div style={{ height: 'auto', width: '100%' }}>
               <DataGrid
                 columns={columns}
                 processRowUpdate={processRowUpdate}
@@ -120,7 +124,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: '발행상태',
     type: 'singleSelect',
-    width: 220,
+    width: 100,
     editable: true,
     hideable: false,
     valueOptions: ['발행요청', '발행완료', '수정요청'],

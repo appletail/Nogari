@@ -7,6 +7,7 @@ import SimpleBar from 'simplebar-react'
 export const StyledRootScrollbar = styled('div')(() => ({
   flexGrow: 1,
   height: '100%',
+  width: '100%',
   overflow: 'hidden',
 }))
 
