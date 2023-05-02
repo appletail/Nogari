@@ -95,9 +95,13 @@ public class ContentController {
 				System.out.println("deleteDirectory ERROR");
 			}
 		}
+		System.out.println("Current working directory: " + System.getProperty("user.dir"));
+
 
 		if (gitDir.mkdirs()) {
 			System.out.println("dir create success");
+		}else {
+			System.out.println("dir create failed: " + gitDir.getAbsolutePath());
 		}
 
 		//set username, access token
@@ -115,8 +119,10 @@ public class ContentController {
 				.setDirectory(gitDir)
 				.call();
 			git.close();
+			System.out.println("Git clone completed: " + gitDir.getAbsolutePath());
 
 		} catch (Exception e){
+			e.printStackTrace();
 			System.out.println("git clone REPO ERROR");
 		}
 
