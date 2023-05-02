@@ -75,11 +75,20 @@ public class MemberController {
 
 	@GetMapping("/duplicate")
 	public BaseResponse<Object> checkEmailDuplicate(@RequestParam String email) {
+		boolean status = memberService.checkEmailDuplicate(email);
+		if (status) {
+			return BaseResponse.builder()
+				.result(status)
+				.resultCode(HttpStatus.OK.value())
+				.resultMsg("사용할 수 없는 이메일입니다.")
+				.build();
+		}
 		return BaseResponse.builder()
-			.result(memberService.checkEmailDuplicate(email))
+			.result(status)
 			.resultCode(HttpStatus.OK.value())
-			.resultMsg("이메일 중복이면 True")
+			.resultMsg("사용할 수 있는 이메일입니다.")
 			.build();
+
 	}
 
 	@PostMapping("/refresh")
