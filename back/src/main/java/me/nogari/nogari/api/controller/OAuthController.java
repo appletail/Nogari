@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -16,6 +18,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import me.nogari.nogari.api.request.CodeRequestDto;
+import me.nogari.nogari.api.request.SignRequestDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
 import me.nogari.nogari.api.service.OauthService;
@@ -33,11 +37,11 @@ public class OAuthController {
 	private OauthService oauthService;
 
 	@ResponseBody
-	@GetMapping("/tistory")
+	@PostMapping("/tistory")
 	@Operation(summary = "티스토리 토큰 발급")
-	public BaseResponse<Object> tistoryCallBack(@RequestParam String code,
+	public BaseResponse<Object> tistoryCallBack(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails ){
-
+		String code = codeDto.getCode();
 		// security session에 있는 유저 정보를 가져온다
 		Optional<Member> member;
 		try{
@@ -73,10 +77,11 @@ public class OAuthController {
 	}
 
 	@ResponseBody
-	@GetMapping("/git")
+	@PostMapping("/git")
 	@Operation(summary = "깃허브 토큰 발급")
-	public BaseResponse<Object> getGithubAccessToken(@RequestParam String code,
+	public BaseResponse<Object> getGithubAccessToken(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails){
+		String code = codeDto.getCode();
 		// 깃허브 인가코드 받기
 		System.out.println("code: " + code);
 
@@ -100,10 +105,11 @@ public class OAuthController {
 		}
 	}
 	@ResponseBody
-	@GetMapping("/notion")
+	@PostMapping("/notion")
 	@Operation(summary = "노션 토큰 발급")
-	public BaseResponse<Object> getNotionAccessToken(@RequestParam String code,
+	public BaseResponse<Object> getNotionAccessToken(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails){
+		String code = codeDto.getCode();
 		// 깃허브 인가코드 받기
 		System.out.println("notion code: " + code);
 
