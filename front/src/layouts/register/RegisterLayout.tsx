@@ -20,13 +20,20 @@ const StyledHeader = styled('header')(({ theme }) => ({
   },
 }))
 
+const StyleLogoBox = styled('div')(({ theme }) => ({
+  width: '40px',
+  height: '40px',
+}))
+
 // ----------------------------------------------------------------------
 
 function RegisterLayout() {
   return (
     <>
       <StyledHeader>
-        <Logo />
+        <StyleLogoBox>
+          <Logo />
+        </StyleLogoBox>
       </StyledHeader>
       <Outlet />
     </>
