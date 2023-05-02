@@ -35,6 +35,7 @@ import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
 import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.entity.Member;
+import me.nogari.nogari.entity.Token;
 
 @RestController
 @RequiredArgsConstructor
@@ -82,9 +83,14 @@ public class ContentController {
 	@ResponseBody
 	@GetMapping("/git/clone")
 	@Operation(summary = "github repository clone")
-	public void gitCloneRepo(){
-		String ATK = "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";
+	public void gitCloneRepo(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+		//매개변수로 레포지토리 name 받아야할듯
 
+		//String ATK = "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";
+
+		Member member = customUserDetails.getMember();
+		Token memberToken = member.getToken();
+		String ATK = memberToken.getGithubToken();
 		//create git folder
 		// File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
 		File gitDir = new File("/home/ubuntu/dir1");
