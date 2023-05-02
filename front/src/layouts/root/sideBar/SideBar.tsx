@@ -1,4 +1,6 @@
 // @mui
+import { useEffect, useState } from 'react'
+
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 
@@ -32,6 +34,21 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
+  const [isLogins, setIsLogins] = useState({
+    notion: false,
+    tistory: false,
+    github: false,
+  })
+
+  useEffect(() => {
+    const notion = sessionStorage.getItem('notion')
+    const tistory = sessionStorage.getItem('tistory')
+    const github = sessionStorage.getItem('github')
+    if (notion) setIsLogins({ ...isLogins, notion: true })
+    if (tistory) setIsLogins({ ...isLogins, tistory: true })
+    if (github) setIsLogins({ ...isLogins, github: true })
+  }, [])
+
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
@@ -61,7 +78,13 @@ export default function Nav() {
           <div style={{ padding: '0 22px' }}>
             <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
             <NavConnectedSite>
-              <ConnectedSection data={connectedConfig} />
+              <ConnectedSection
+                data={connectedConfig(
+                  isLogins.notion,
+                  isLogins.tistory,
+                  isLogins.github
+                )}
+              />
             </NavConnectedSite>
           </div>
           <div
