@@ -32,3 +32,11 @@ export const axBase = axiosApi(BASE_URL)
 export const axAuth = axiosAuthApi(BASE_URL)
 
 // refresh token 으로 갱신 필요한 경우
+function getRefreshToken() {
+  const response = axAuth.post('/members/refresh', {
+    params: sessionStorage.getItem('accessToken'),
+    access_token: sessionStorage.getItem('accessToken'),
+    refresh_token: sessionStorage.getItem('refreshToken'),
+  })
+  return response
+}

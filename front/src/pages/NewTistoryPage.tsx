@@ -26,12 +26,7 @@ import {
   TextField,
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid'
-import {
-  randomCreatedDate,
-  randomTraderName,
-  randomUpdatedDate,
-  randomUrl,
-} from '@mui/x-data-grid-generator'
+
 import { sample, sampleSize } from 'lodash'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
