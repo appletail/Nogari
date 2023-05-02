@@ -34,6 +34,16 @@ public class MemberController {
 			.build();
 	}
 
+	@PostMapping("/logout")
+	public BaseResponse<Object> logout(@RequestParam Long memberId, @RequestBody JWTDto jwtDto) {
+
+		return BaseResponse.builder()
+			.result(memberService.logout(memberId, jwtDto))
+			.resultCode(HttpStatus.OK.value())
+			.resultMsg("로그아웃 성공")
+			.build();
+	}
+
 	@PostMapping("/signup")
 	public BaseResponse<Object> signup(@RequestBody SignRequestDto request) throws Exception {
 
@@ -72,7 +82,7 @@ public class MemberController {
 			.build();
 	}
 
-	@GetMapping("/refresh")
+	@PostMapping("/refresh")
 	public BaseResponse<Object> refresh(@RequestBody JWTDto jwt) throws Exception {
 
 		return BaseResponse.builder()
