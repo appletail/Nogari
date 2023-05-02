@@ -82,7 +82,6 @@ public class OAuthController {
 	public BaseResponse<Object> getGithubAccessToken(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails){
 		String code = codeDto.getCode();
-		// 깃허브 인가코드 받기
 		System.out.println("code: " + code);
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
@@ -110,10 +109,8 @@ public class OAuthController {
 	public BaseResponse<Object> getNotionAccessToken(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails){
 		String code = codeDto.getCode();
-		// 깃허브 인가코드 받기
 		System.out.println("notion code: " + code);
 
-		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try{
 			Member member = customUserDetails.getMember();
 			String ATK =oauthService.getNotionAccessToken(code, member);
