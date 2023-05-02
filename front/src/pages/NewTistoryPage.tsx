@@ -110,7 +110,7 @@ function NewTistoryPage() {
         </Stack>
         <Card>
           <Scrollbar>
-            <div style={{ height: 'auto', width: '100%' }}>
+            <div style={{ height: 'auto' }}>
               <DataGrid
                 cellModesModel={cellModesModel}
                 columns={columns}

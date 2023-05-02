@@ -9,7 +9,6 @@ import GithubOAuth from './pages/oauth/GithubOAuth'
 import NotionOAuth from './pages/oauth/NotionOAuth'
 import TistoryOAuth from './pages/oauth/TistoryOAuth'
 import SignupPage from './pages/SignupPage'
-import TistoryPage from './pages/TistoryPage'
 
 const routers = createBrowserRouter([
   {
