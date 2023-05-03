@@ -31,4 +31,5 @@ public interface TistoryRepository extends JpaRepository<Tistory, Long> {
 			+ "order by t.modified_at asc")
 	Optional<List<TistoryResponseInterface>> sortTistoryByOldest(@Param(("memberId")) Long memberId);
 
+	Tistory findByResponseLink(String responseLink);
 }
