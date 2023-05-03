@@ -336,7 +336,7 @@ public class ContentServiceImpl implements ContentService {
 		);
 
 		String responseString = response.toString(); // Tistory API의 응답
-		String[] responseList = new String[2]; // responseLink와 postId를 함께 담아서 보낼 배열
+		String[] responseList = new String[3]; // responseLink와 postId를 함께 담아서 보낼 배열
 		String responseLink = ""; // Tistory에 게시된 게시글 링크
 		String responsePostId = ""; // Tistory에 게시된 게시글 번호
 		Document doc = Jsoup.parse(responseString);
@@ -345,6 +345,7 @@ public class ContentServiceImpl implements ContentService {
 
 		responseList[0] = responseLink;
 		responseList[1] = responsePostId;
+		responseList[2] = title;
 		return responseList;
 	}
 
@@ -405,7 +406,7 @@ public class ContentServiceImpl implements ContentService {
 			);
 
 			String responseString = response.toString(); // Tistory API의 응답
-			String[] responseList = new String[2]; // responseLink와 postId를 함께 담아서 보낼 배열
+			String[] responseList = new String[3]; // responseLink와 postId를 함께 담아서 보낼 배열
 			String responseLink = ""; // Tistory에 게시된 게시글 링크
 			String postId = ""; // Tistory에 게시된 게시글 번호
 			Document doc = Jsoup.parse(responseString);
@@ -414,6 +415,7 @@ public class ContentServiceImpl implements ContentService {
 
 			responseList[0] = responseLink;
 			responseList[1] = postId;
+			responseList[2] = title;
 			return responseList;
 	}
 
@@ -504,16 +506,19 @@ public class ContentServiceImpl implements ContentService {
 				f.get();
 				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
 				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
 				tistoryList.get(index++).setStatus("발행완료");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
 				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
 				tistoryList.get(index++).setStatus("발행실패");
 			} catch (ExecutionException e){
 				e.printStackTrace();
 				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
 				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
 				tistoryList.get(index++).setStatus("발행실패");
 			} catch (IndexOutOfBoundsException e){
 				tistoryList.get(index++).setStatus("수정실패");
