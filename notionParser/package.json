@@ -22,6 +22,7 @@
     "typescript": "^5.0.4"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.115",
     "@types/katex": "^0.16.0",
     "@types/markdown-it": "^12.2.3",
     "@types/markdown-table": "^2.0.0",
