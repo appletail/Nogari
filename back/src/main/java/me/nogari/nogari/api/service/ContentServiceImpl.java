@@ -3,8 +3,10 @@ package me.nogari.nogari.api.service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -277,7 +282,7 @@ public class ContentServiceImpl implements ContentService {
 		return null;
 	}
 
-	public void awsLambdaAndTistoryPost(Long tistoryId, String notionToken, PostNotionToTistoryDto tistoryPosting, Member member) {
+	public String awsLambdaAndTistoryPost(Long tistoryId, String notionToken, PostNotionToTistoryDto tistoryPosting, Member member) {
 			String title = ""; // Tistory에 게시될 게시글 제목
 			String content = ""; // Tistory에 게시될 게시글 내용
 
@@ -322,12 +327,19 @@ public class ContentServiceImpl implements ContentService {
 
 			HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
 
+			// STEP2-3. Tistory API에 요청을 보내고, 응답 결과 중 Response URL을 DB에 반영한다.
 			ResponseEntity<String> response = rt.exchange(
 				"https://www.tistory.com/apis/post/write",
 				HttpMethod.POST,
 				TistoryPostRequest,
 				String.class
 			);
+
+			String responseString = response.toString(); // Tistory API의 응답
+			String responseLink = ""; // Tistory에 게시된 게시글 링크
+			Document doc = Jsoup.parse(responseString);
+			responseLink = doc.select("url").text();
+			return responseLink;
 	}
 
 	// [Multi Thread] : 사용자가 3개의 발행 요청시, 작업이 동시에 수행되어 총 16초가 소요된다.
@@ -341,6 +353,7 @@ public class ContentServiceImpl implements ContentService {
 		// Future 객체는 다른 스레드들의 연산 결과를 반환받기 위해 사용하는 지연 완료 객체 (Pending Completion Object)이다.
 		List<Future<?>> futureList = new ArrayList<>();
 		List<Tistory> tistoryList = new ArrayList<>();
+		List<String> responseLinkList = new ArrayList<>();
 
 		String notionToken = member.getNotionToken();
 
@@ -361,7 +374,7 @@ public class ContentServiceImpl implements ContentService {
 
 			// STEP2. AWS Lambda 호출 및 각 스레드별 FutureList 추가
 			Future<?> future = executorService.submit(() -> {
-				awsLambdaAndTistoryPost(tistory.getTistoryId(), notionToken, tistoryPosting, member);
+				responseLinkList.add(awsLambdaAndTistoryPost(tistory.getTistoryId(), notionToken, tistoryPosting, member));
 			});
 			futureList.add(future);
 		}
@@ -385,9 +398,11 @@ public class ContentServiceImpl implements ContentService {
 		for (Future<?> f : futureList) {
 			try {
 				f.get();
+				tistoryList.get(index).setResponseLink(responseLinkList.get(index));
 				tistoryList.get(index++).setStatus("발행완료");
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
+				tistoryList.get(index).setResponseLink(responseLinkList.get(index));
 				tistoryList.get(index++).setStatus("발행실패");
 			}
 		}
