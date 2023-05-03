@@ -1,5 +1,6 @@
 package me.nogari.nogari.api.service;
 
+import java.io.IOException;
 import java.util.List;
 
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
@@ -21,4 +22,6 @@ public interface ContentService {
 	Object postNotionToTistoryMultiThread(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member);
 
 	List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize);
+
+	void upload() throws IOException;
 }
