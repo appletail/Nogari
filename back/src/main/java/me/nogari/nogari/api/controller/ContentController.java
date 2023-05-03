@@ -220,7 +220,7 @@ public class ContentController {
 		}
 		try {
 			return BaseResponse.builder()
-				.result(contentService.postNotionToTistory(postNotionToTistoryDtoList, member.get()))
+				.result(contentService.postNotionToTistoryMultiThread(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
 				.build();

@@ -5,18 +5,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.eclipse.jgit.util.IO;
-import org.json.simple.parser.JSONParser;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import org.json.JSONArray;
@@ -26,9 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.aws.LambdaCallFunction;
-import me.nogari.nogari.api.aws.LambdaInvokeFunction;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
-import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
 import me.nogari.nogari.api.response.TistoryResponseInterface;
@@ -37,8 +37,6 @@ import me.nogari.nogari.entity.Tistory;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -51,6 +49,10 @@ import me.nogari.nogari.repository.TistoryRepositoryCust;
 @Transactional
 @RequiredArgsConstructor
 public class ContentServiceImpl implements ContentService {
+
+	// 초기 스레드 수 : 0, 코어 스레드 수 : 0, 최대 스레드 수 : Integer.MAX_VALUE
+	// 추가된 스레드가 60초동안 아무 작업을 수행하지 않으면 ThreadPool에서 제거한다.
+	private ExecutorService executorService;
 
 	private final MemberRepository memberRepository;
 
@@ -198,6 +200,7 @@ public class ContentServiceImpl implements ContentService {
 		return rslt;
 	}
 
+	// [Single Thread] : 사용자가 3개의 발행 요청시, 작업이 순차적으로 수행되어 총 48초(16초 * 3)가 소요된다.
 	@Override
 	public Object postNotionToTistory(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member) {
 		String notionToken = member.getNotionToken();
@@ -270,6 +273,123 @@ public class ContentServiceImpl implements ContentService {
 
 			// [발행검증]
 			tistory.setStatus("발행완료");
+		}
+		return null;
+	}
+
+	public void awsLambdaAndTistoryPost(Long tistoryId, String notionToken, PostNotionToTistoryDto tistoryPosting, Member member) {
+			String title = ""; // Tistory에 게시될 게시글 제목
+			String content = ""; // Tistory에 게시될 게시글 내용
+
+			// STEP2-1. AWS Lambda와 통신하는 과정
+			try{
+				lambdaCallFunction = new LambdaCallFunction(
+					notionToken,
+					tistoryPosting.getUrl(),
+					tistoryPosting.getType()
+				);
+				content = lambdaCallFunction.post();
+
+				try {
+					ObjectMapper objectMapper = new ObjectMapper();
+					Map<String, Object> data = objectMapper.readValue(content, Map.class);
+					title = (String)data.get("title");
+					content = (String)data.get("content");
+				} catch(Exception e){
+					e.printStackTrace();
+				}
+			} catch(IOException e){
+				e.printStackTrace();
+			}
+
+			// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행한다.
+			RestTemplate rt = new RestTemplate();
+			HttpHeaders headers = new HttpHeaders();
+
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("access_token", member.getToken().getTistoryToken());
+			params.add("output", "");
+			params.add("blogName", tistoryPosting.getBlogName()); // 블로그 이름
+			params.add("title", title); // 글 제목
+			params.add("content", content); // 글 내용
+			params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
+			params.add("category", tistoryPosting.getCategoryName()); // 카테고리 아이디
+			params.add("published", ""); // 발행 시간
+			params.add("slogan", ""); // 문자 주소
+			params.add("tag", tistoryPosting.getTagList()); // 태그 리스트(','로 구분)
+			params.add("acceptComment", "1"); // 댓글 허용 :기본값(댓글 허용)
+			params.add("password", ""); // 보호글 비밀번호
+
+			HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
+
+			ResponseEntity<String> response = rt.exchange(
+				"https://www.tistory.com/apis/post/write",
+				HttpMethod.POST,
+				TistoryPostRequest,
+				String.class
+			);
+	}
+
+	// [Multi Thread] : 사용자가 3개의 발행 요청시, 작업이 동시에 수행되어 총 16초가 소요된다.
+	@Override
+	public Object postNotionToTistoryMultiThread(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member) {
+		// 초기 스레드 수 : 0, 코어 스레드 수 : 0, 최대 스레드 수 : Integer.MAX_VALUE
+		// 추가된 스레드가 60초동안 아무 작업을 수행하지 않으면 ThreadPool에서 제거한다.
+		executorService = Executors.newCachedThreadPool();
+
+		// 각 Thread별 실행결과를 반환받는 Future 리스트
+		// Future 객체는 다른 스레드들의 연산 결과를 반환받기 위해 사용하는 지연 완료 객체 (Pending Completion Object)이다.
+		List<Future<?>> futureList = new ArrayList<>();
+		List<Tistory> tistoryList = new ArrayList<>();
+
+		String notionToken = member.getNotionToken();
+
+		for(PostNotionToTistoryDto tistoryPosting : PostNotionToTistoryDtoList){
+			// STEP1. [발행요청] Tistory 객체 DB 저장
+			Tistory tistory = Tistory.builder()
+				.blogName(tistoryPosting.getBlogName())
+				.requestLink(tistoryPosting.getRequestLink())
+				.visibility(tistoryPosting.getVisibility())
+				.categoryName(tistoryPosting.getCategoryName())
+				.tagList(tistoryPosting.getTagList())
+				.status("발행요청")
+				.title(tistoryPosting.getTitle())
+				.member(member)
+				.build();
+			tistoryRepository.save(tistory);
+			tistoryList.add(tistory);
+
+			// STEP2. AWS Lambda 호출 및 각 스레드별 FutureList 추가
+			Future<?> future = executorService.submit(() -> {
+				awsLambdaAndTistoryPost(tistory.getTistoryId(), notionToken, tistoryPosting, member);
+			});
+			futureList.add(future);
+		}
+		System.out.println(executorService);
+
+		// STEP3. ExecutorService 종료 및 모든 스레드의 실행이 종료될 때까지 대기
+		try {
+			// ThreadPool에 대한 추가적인 Task 제출을 막는다.
+			executorService.shutdown();
+
+			// Nano Second 단위로, 현재 실행중인 Task들의 결과가 모두 반환될때까지 대기한다.
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		// STEP4. [발행완료|발행실패] Tistory 발행 상태 DB 갱신
+		// 각 발행 요청 스레드별 연산 결과를 모두 반환 받을때까지 대기하기 위해, future.get()을 사용한다.
+		// 서브 스레드별 연산 결과를 모두 반환 받을때까지 메인 스레드의 실행 흐름을 잠시 Block한다.
+		int index = 0;
+		for (Future<?> f : futureList) {
+			try {
+				f.get();
+				tistoryList.get(index++).setStatus("발행완료");
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+				tistoryList.get(index++).setStatus("발행실패");
+			}
 		}
 		return null;
 	}
