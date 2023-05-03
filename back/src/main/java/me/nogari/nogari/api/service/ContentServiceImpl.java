@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
+import java.net.URLEncoder;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -23,6 +25,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -48,11 +53,14 @@ import me.nogari.nogari.repository.TistoryRepository;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonParseException;
+
 import me.nogari.nogari.repository.TistoryRepositoryCust;
 
 
@@ -237,7 +245,9 @@ public class ContentServiceImpl implements ContentService {
 			try{
 				lambdaCallFunction = new LambdaCallFunction(
 					notionToken,
-					tistoryPosting.getUrl(),
+					member.getToken().getTistoryToken(),
+					tistoryPosting.getBlogName(),
+					tistoryPosting.getRequestLink(),
 					tistoryPosting.getType()
 				);
 				content = lambdaCallFunction.post();
@@ -288,7 +298,69 @@ public class ContentServiceImpl implements ContentService {
 		return null;
 	}
 
-	public void awsLambdaAndTistoryPost(Long tistoryId, String notionToken, PostNotionToTistoryDto tistoryPosting, Member member) {
+	public String[] awsLambdaAndTistoryModify(Long postId, String notionToken, PostNotionToTistoryDto tistoryPosting, Member member) throws Exception{
+		String title = ""; // Tistory에 게시될 게시글 제목
+		String content = ""; // Tistory에 게시될 게시글 내용
+
+		// STEP2-1. AWS Lambda와 통신하는 과정
+		lambdaCallFunction = new LambdaCallFunction(
+			notionToken,
+			member.getToken().getTistoryToken(),
+			tistoryPosting.getBlogName(),
+			tistoryPosting.getRequestLink(),
+			tistoryPosting.getType()
+		);
+		content = lambdaCallFunction.post();
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		Map<String, Object> data = objectMapper.readValue(content, Map.class);
+		title = (String)data.get("title");
+		content = (String)data.get("content");
+
+		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행한다.
+		RestTemplate rt = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("access_token", member.getToken().getTistoryToken());
+		params.add("output", "");
+		params.add("blogName", tistoryPosting.getBlogName()); // 블로그 이름
+		params.add("postId", Long.toString(postId));
+		params.add("title", title); // 글 제목
+		params.add("content", content); // 글 내용
+		params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
+		params.add("category", tistoryPosting.getCategoryName()); // 카테고리 아이디
+		params.add("published", ""); // 발행 시간
+		params.add("slogan", ""); // 문자 주소
+		params.add("tag", tistoryPosting.getTagList()); // 태그 리스트(','로 구분)
+		params.add("acceptComment", "1"); // 댓글 허용 :기본값(댓글 허용)
+		params.add("password", ""); // 보호글 비밀번호
+
+		HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
+
+		// STEP2-3. Tistory API에 요청을 보내고, 응답 결과 중 Response URL을 DB에 반영한다.
+		ResponseEntity<String> response = rt.exchange(
+			"https://www.tistory.com/apis/post/modify",
+			HttpMethod.POST,
+			TistoryPostRequest,
+			String.class
+		);
+
+		String responseString = response.toString(); // Tistory API의 응답
+		String[] responseList = new String[3]; // responseLink와 postId를 함께 담아서 보낼 배열
+		String responseLink = ""; // Tistory에 게시된 게시글 링크
+		String responsePostId = ""; // Tistory에 게시된 게시글 번호
+		Document doc = Jsoup.parse(responseString);
+		responseLink = doc.select("url").text();
+		responsePostId = doc.select("postId").text();
+
+		responseList[0] = responseLink;
+		responseList[1] = responsePostId;
+		responseList[2] = title;
+		return responseList;
+	}
+
+	public String[] awsLambdaAndTistoryPost(String notionToken, PostNotionToTistoryDto tistoryPosting, Member member) {
 			String title = ""; // Tistory에 게시될 게시글 제목
 			String content = ""; // Tistory에 게시될 게시글 내용
 
@@ -296,7 +368,9 @@ public class ContentServiceImpl implements ContentService {
 			try{
 				lambdaCallFunction = new LambdaCallFunction(
 					notionToken,
-					tistoryPosting.getUrl(),
+					member.getToken().getTistoryToken(),
+					tistoryPosting.getBlogName(),
+					tistoryPosting.getRequestLink(),
 					tistoryPosting.getType()
 				);
 				content = lambdaCallFunction.post();
@@ -308,6 +382,7 @@ public class ContentServiceImpl implements ContentService {
 					content = (String)data.get("content");
 				} catch(Exception e){
 					e.printStackTrace();
+					return null;
 				}
 			} catch(IOException e){
 				e.printStackTrace();
@@ -333,12 +408,26 @@ public class ContentServiceImpl implements ContentService {
 
 			HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
 
+			// STEP2-3. Tistory API에 요청을 보내고, 응답 결과 중 Response URL을 DB에 반영한다.
 			ResponseEntity<String> response = rt.exchange(
 				"https://www.tistory.com/apis/post/write",
 				HttpMethod.POST,
 				TistoryPostRequest,
 				String.class
 			);
+
+			String responseString = response.toString(); // Tistory API의 응답
+			String[] responseList = new String[3]; // responseLink와 postId를 함께 담아서 보낼 배열
+			String responseLink = ""; // Tistory에 게시된 게시글 링크
+			String postId = ""; // Tistory에 게시된 게시글 번호
+			Document doc = Jsoup.parse(responseString);
+			responseLink = doc.select("url").text();
+			postId = doc.select("postId").text();
+
+			responseList[0] = responseLink;
+			responseList[1] = postId;
+			responseList[2] = title;
+			return responseList;
 	}
 
 	// [Multi Thread] : 사용자가 3개의 발행 요청시, 작업이 동시에 수행되어 총 16초가 소요된다.
@@ -352,29 +441,59 @@ public class ContentServiceImpl implements ContentService {
 		// Future 객체는 다른 스레드들의 연산 결과를 반환받기 위해 사용하는 지연 완료 객체 (Pending Completion Object)이다.
 		List<Future<?>> futureList = new ArrayList<>();
 		List<Tistory> tistoryList = new ArrayList<>();
+		List<String[]> responseLinkList = new ArrayList<>();
 
 		String notionToken = member.getNotionToken();
 
 		for(PostNotionToTistoryDto tistoryPosting : PostNotionToTistoryDtoList){
-			// STEP1. [발행요청] Tistory 객체 DB 저장
-			Tistory tistory = Tistory.builder()
-				.blogName(tistoryPosting.getBlogName())
-				.requestLink(tistoryPosting.getRequestLink())
-				.visibility(tistoryPosting.getVisibility())
-				.categoryName(tistoryPosting.getCategoryName())
-				.tagList(tistoryPosting.getTagList())
-				.status("발행요청")
-				.title(tistoryPosting.getTitle())
-				.member(member)
-				.build();
-			tistoryRepository.save(tistory);
-			tistoryList.add(tistory);
+			if(tistoryPosting.getStatus().equals("발행요청")){
+				// STEP1. [발행요청] Tistory 객체 DB 저장
+				Tistory tistory = Tistory.builder()
+					.blogName(tistoryPosting.getBlogName())
+					.requestLink(tistoryPosting.getRequestLink())
+					.visibility(tistoryPosting.getVisibility())
+					.categoryName(tistoryPosting.getCategoryName())
+					.tagList(tistoryPosting.getTagList())
+					.status("발행요청")
+					.title(tistoryPosting.getTitle())
+					.member(member)
+					.build();
+				tistoryRepository.save(tistory);
+				tistoryList.add(tistory);
 
-			// STEP2. AWS Lambda 호출 및 각 스레드별 FutureList 추가
-			Future<?> future = executorService.submit(() -> {
-				awsLambdaAndTistoryPost(tistory.getTistoryId(), notionToken, tistoryPosting, member);
-			});
-			futureList.add(future);
+				// STEP2. [awsLambdaAndTistoryPost] AWS Lambda 호출 및 각 스레드별 FutureList 추가
+				Future<?> future = executorService.submit(() -> {
+					responseLinkList.add(awsLambdaAndTistoryPost(notionToken, tistoryPosting, member));
+				});
+				futureList.add(future);
+			}
+			else if(tistoryPosting.getStatus().equals("수정요청")){
+				// Tistory DTO에 ResponseLink가 제공되는 경우만 수정을 진행한다.
+				if(!tistoryPosting.getResponseLink().equals("")){
+					// STEP1. [수정요청] Tistory 객체 조회
+					Tistory tistory = tistoryRepository.findByResponseLink(tistoryPosting.getResponseLink());
+					tistory.setRequestLink(tistoryPosting.getRequestLink());
+					tistory.setStatus("수정요청");
+					tistoryList.add(tistory);
+
+					// STEP2. [awsLambdaAndTistoryModify] AWS Lambda 호출 및 각 스레드별 FutureList 추가
+					Future<?> future = executorService.submit(() -> {
+						try{
+							responseLinkList.add(awsLambdaAndTistoryModify(tistory.getPostId(), notionToken, tistoryPosting, member));
+						} catch(HttpClientErrorException e){
+							// 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
+							tistory.setStatus("수정실패");
+						} catch(JsonParseException e){
+							// 입력값이 정상적으로 입력되지 않은 경우
+							tistory.setStatus("수정실패");
+						} catch(Exception e){
+							e.printStackTrace();
+							tistory.setStatus("수정실패");
+						}
+					});
+					futureList.add(future);
+				}
+			}
 		}
 		System.out.println(executorService);
 
@@ -396,10 +515,24 @@ public class ContentServiceImpl implements ContentService {
 		for (Future<?> f : futureList) {
 			try {
 				f.get();
+				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
+				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
 				tistoryList.get(index++).setStatus("발행완료");
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (InterruptedException e) {
 				e.printStackTrace();
+				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
+				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
 				tistoryList.get(index++).setStatus("발행실패");
+			} catch (ExecutionException e){
+				e.printStackTrace();
+				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
+				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
+				tistoryList.get(index++).setStatus("발행실패");
+			} catch (IndexOutOfBoundsException e){
+				tistoryList.get(index++).setStatus("수정실패");
 			}
 		}
 		return null;

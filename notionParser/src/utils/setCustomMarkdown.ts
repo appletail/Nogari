@@ -138,9 +138,9 @@ const setCustomMarkdown = (
             })
               .then((res) => {
                 return res.data.tistory.url
-              }).catch((err) => { error_message = err.response.data.tistory.error_message })
+              }).catch((err) => { error_message = 'tistory: ' + err.response.data.tistory.error_message })
           })
-          .catch((err) => { error_message = err.response.data.tistory.error_message })
+          .catch((err) => { error_message = 'tistory: ' + err.response.data.tistory.error_message })
 
         // get tistory url
         if (!url) throw new Error(error_message)
