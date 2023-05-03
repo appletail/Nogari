@@ -5,8 +5,8 @@ import { styled } from '@mui/material/styles'
 
 import SideBar from './sideBar/SideBar'
 
+import LoadingSpinner from '@/components/loading'
 import { loadingInterceptors } from '@/components/loading/LoadingInterceptors'
-import LoadingSpinner from '@/components/loading/LoadingSpinner'
 
 function RootLayout() {
   const [loading, setLoading] = useState(false)
