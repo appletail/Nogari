@@ -1,6 +1,7 @@
 import { whiteList } from './LoadingWhitelist'
 
 import { axAuth, axBase } from '@/apis/axiosInstance'
+
 export const loadingInterceptors = (
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
