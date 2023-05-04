@@ -23,6 +23,7 @@ public class SwaggerConfig {
 			.description("SSAFY 자율 프로젝트 Nogari의 API 명세서입니다.");
 		return new OpenAPI()
 			.addServersItem(new Server().url("http://localhost:8080/api/v1"))
+			.addServersItem(new Server().url("https://www.nogari.me/api/v1"))
 			.components(new Components())
 			.info(info);
 	}
