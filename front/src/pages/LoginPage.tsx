@@ -9,7 +9,6 @@ import { styled } from '@mui/material/styles'
 
 // components
 
-import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
 import Iconify from '@/components/iconify/Iconify'
 import { LoginForm } from '@/sections/auth/login'
 

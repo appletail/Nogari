@@ -16,12 +16,16 @@ public class LambdaCallFunction {
 	private String notionToken; // 회원 Notion Token
 	private String url; // 변환할 Notion 페이지 링크
 	private String type; // 변환할 형태(.md, .html, .tistory)
+	private String tistoryToken;
+	private String blogName;
 	private String responseString; // AWS Lambda Response
 
-	public LambdaCallFunction(String notionToken, String url, String type) throws IOException {
+	public LambdaCallFunction(String notionToken, String tistoryToken, String blogName, String url, String type) throws IOException {
 		this.notionToken = notionToken;
 		this.url = url;
 		this.type = type;
+		this.tistoryToken = tistoryToken;
+		this.blogName = blogName;
 	}
 
 	public String post() {
@@ -30,7 +34,11 @@ public class LambdaCallFunction {
 			+ "    \"notionToken\": \"" + notionToken + "\",\n"
 			+ "    \"page_url\": \""+ url + "\"\n"
 			+ "  },\n"
-			+ "  \"type\": \"" + type + "\"\n"
+			+ "  \"type\": \"" + type + "\",\n"
+			+ "  \"tistory\": {\n"
+			+ "    \"access_token\": \""+ this.tistoryToken +"\",\n"
+			+ "    \"blogName\": \""+ this.blogName +"\"\n"
+			+ "  }\n"
 			+ "}"
 		);
 
@@ -49,7 +57,10 @@ public class LambdaCallFunction {
 			 CloseableHttpResponse response = httpClient.execute(httpPost)
 		) {
 			HttpEntity entity = response.getEntity();
-			responseString = EntityUtils.toString(entity, "UTF-8");;
+			System.out.println(response);
+			System.out.println(response.getStatusLine());
+			responseString = EntityUtils.toString(entity, "UTF-8");
+			System.out.println(responseString);
 		} catch(Exception e){
 			e.printStackTrace();
 		}

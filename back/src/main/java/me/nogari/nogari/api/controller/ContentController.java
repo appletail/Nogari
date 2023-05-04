@@ -3,6 +3,10 @@ package me.nogari.nogari.api.controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +23,7 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +41,7 @@ import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
 import me.nogari.nogari.common.security.CustomUserDetails;
 import me.nogari.nogari.entity.Member;
+import me.nogari.nogari.entity.Token;
 
 @RestController
 @RequiredArgsConstructor
@@ -82,12 +89,22 @@ public class ContentController {
 	@ResponseBody
 	@GetMapping("/git/clone")
 	@Operation(summary = "github repository clone")
-	public void gitCloneRepo(){
-		String ATK = "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";
+	public void gitCloneRepo(@RequestParam  String repositoryName,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails){
+		//매개변수로 레포지토리 name, github email 받아야할듯
+		//github id
+		//
+
+
+		//String ATK = "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";
+
+		Member member = customUserDetails.getMember();
+		Token memberToken = member.getToken();
+		String ATK = memberToken.getGithubToken();
 
 		//create git folder
 		// File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
-		File gitDir = new File("/home/ubuntu/dir1");
+		File gitDir = new File("/home/" + repositoryName);
 		if (gitDir.exists()) {
 			try {
 				FileUtils.deleteDirectory(gitDir);
@@ -150,6 +167,13 @@ public class ContentController {
 		add.addFilepattern(fileName + ".txt").call();
 
 		git.close();
+	}
+
+	@ResponseBody
+	@GetMapping("/git/upload")
+	@Operation(summary = "github upload")
+	public void gitUpload() throws GitAPIException, IOException {
+		contentService.upload();
 	}
 
 	@ResponseBody
@@ -236,7 +260,7 @@ public class ContentController {
 		}
 		try {
 			return BaseResponse.builder()
-				.result(contentService.postNotionToTistory(postNotionToTistoryDtoList, member.get()))
+				.result(contentService.postNotionToTistoryMultiThread(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
 				.build();

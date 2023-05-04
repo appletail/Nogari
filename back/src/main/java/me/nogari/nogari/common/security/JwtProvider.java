@@ -76,6 +76,20 @@ public class JwtProvider {
 		return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
 	}
 
+	// 토큰 만료까지 남은시간 획득
+	public Long getExpiration(String accessToken) {
+		// accessToken 남은 유효시간
+		Date expiration = Jwts.parserBuilder()
+			.setSigningKey(secretKey)
+			.build()
+			.parseClaimsJws(accessToken)
+			.getBody()
+			.getExpiration();
+		// 현재 시간
+		Long now = new Date().getTime();
+		return (expiration.getTime() - now);
+	}
+
 	// Authorization Header를 통해 인증을 한다.
 	public String resolveToken(HttpServletRequest request) {
 		return request.getHeader("Authorization");
