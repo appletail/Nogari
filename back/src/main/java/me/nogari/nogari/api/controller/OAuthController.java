@@ -66,9 +66,10 @@ public class OAuthController {
 				.build();
 
 		}catch (Exception e){
+			e.printStackTrace();
 			return BaseResponse.builder()
-				// .result(null)
-				.result(oauthService.getTistoryAccessToken(code, member.get()))
+				.result(null)
+				// .result(oauthService.getTistoryAccessToken(code, member.get()))
 				.resultCode(HttpStatus.BAD_REQUEST.value())
 				.resultMsg("티스토리 엑세스 토큰 얻기에 실패")
 				.build();

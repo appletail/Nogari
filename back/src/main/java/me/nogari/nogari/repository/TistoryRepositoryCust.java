@@ -24,7 +24,7 @@ public class TistoryRepositoryCust {
 			.select(tistory)
 			.from(tistory)
 			.where(
-				ltTistoryId(lastTistoryId)    // 마지막 id보다 작은 것들 중
+				ltTistoryId(lastTistoryId)   // 마지막 id보다 작은 것들 중
 			)
 			.orderBy(tistory.createdDate.desc())
 			.limit(pageSize)            // 조회할 size

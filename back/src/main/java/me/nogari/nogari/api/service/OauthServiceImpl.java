@@ -55,7 +55,7 @@ public class OauthServiceImpl implements OauthService {
 				+ "client_secret="
 				+ TISTORY_CLIENT_SECRETKEY
 				+ "&"
-				+ "redirect_uri=https://localhost:3000"
+				+ "redirect_uri=http://localhost:3000/oauth/tistory"
 				+ "&"
 				+ "code="+code
 				+ "&"

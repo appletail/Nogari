@@ -12,7 +12,6 @@ import me.nogari.nogari.entity.Tistory;
 @Builder
 public class TistoryContentResponseDto {
 	private Long tistoryId;
-	private Long postId;
 	private String blogName;
 	private String title;
 	private String categoryName;
@@ -21,10 +20,11 @@ public class TistoryContentResponseDto {
 	private String requestLink;
 	private String responseLink;
 	private String tagList;
+	private String modifiedDate;
 
 	public TistoryContentResponseDto(Tistory tistory) {
 		this.tistoryId = tistory.getTistoryId();
-		this.postId = tistory.getPostId();
+		this.modifiedDate = tistory.getModifiedDate();
 		this.blogName = tistory.getBlogName();
 		this.title = tistory.getTitle();
 		this.categoryName = tistory.getCategoryName();
