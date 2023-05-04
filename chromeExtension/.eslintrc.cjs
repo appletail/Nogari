@@ -50,6 +50,7 @@ module.exports = {
         multiline: 'last',
       },
     ],
+    'import/no-unresolved': 'off',
     'import/order': [
       'warn',
       {
