@@ -1,30 +1,10 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 
 import { faker } from '@faker-js/faker'
-
-import {
-  Card,
-  Table,
-  Stack,
-  Paper,
-  Avatar,
-  Grid,
-  Button,
-  Popover,
-  Checkbox,
-  TableRow,
-  MenuItem,
-  Link,
-  TableBody,
-  TableCell,
-  Container,
-  Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  TextField,
-} from '@mui/material'
+import LoginIcon from '@mui/icons-material/Login'
+import { Card, Stack, Button, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
@@ -36,9 +16,19 @@ import {
 
 import { sample, sampleSize } from 'lodash'
 
+import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
+
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
+// ------------------------------------------------------------------
+const StyledContainer = styled('div')(({ theme }) => ({
+  marginTop: '100px',
+  marginLeft: '40px',
+  marginRight: '40px',
+}))
+
 function NewTistoryPage() {
+  // 행이 수정될 때 사용하는 함수
   const [rows, setRows] = useState(predefinedRows)
   const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
@@ -57,10 +47,10 @@ function NewTistoryPage() {
     console.log(rows)
   }
 
+  // 더블클릭 > 클릭 시 수정으로 변경
   const handleCellClick = useCallback((params: GridCellParams) => {
     setCellModesModel((prevModel: any) => {
       return {
-        // Revert the mode of the other cells from other rows
         ...Object.keys(prevModel).reduce(
           (acc, id) => ({
             ...acc,
@@ -75,7 +65,6 @@ function NewTistoryPage() {
           {}
         ),
         [params.id]: {
-          // Revert the mode of other cells in the same row
           ...Object.keys(prevModel[params.id] || {}).reduce(
             (acc, field) => ({ ...acc, [field]: { mode: GridCellModes.View } }),
             {}
@@ -90,22 +79,32 @@ function NewTistoryPage() {
     setCellModesModel(newModel)
   }, [])
 
+  // tistory 연결 여부에 따라 Button 다르게 보이는 부분 설정
+  const [tistoryLoggedIn, setTistoryLoggedIn] = useState(false)
+
   return (
     <>
       <Helmet>
-        <title> Tistory Page </title>
+        <title> Tistory </title>
       </Helmet>
 
-      <Container>
+      <StyledContainer>
         <Stack
           alignItems="center"
           direction="row"
-          justifyContent="space-between"
+          // justifyContent="space-between"
           mb={5}
         >
-          <Typography gutterBottom variant="h4">
-            Tistory
-          </Typography>
+          <Stack alignItems="center" direction="row" spacing={1}>
+            <Tistory style={{ width: 24, height: 24 }} />
+            <Typography gutterBottom variant="h4">
+              Tistory
+            </Typography>
+          </Stack>
+
+          <Button color="primary" startIcon={<LoginIcon />} variant="contained">
+            로그인
+          </Button>
           <Button onClick={onClickHandler}>Get data</Button>
         </Stack>
         <Card>
@@ -124,7 +123,7 @@ function NewTistoryPage() {
             </div>
           </Scrollbar>
         </Card>
-      </Container>
+      </StyledContainer>
     </>
   )
 }

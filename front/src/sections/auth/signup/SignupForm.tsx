@@ -47,11 +47,11 @@ function SignupForm() {
   const emailHandler = async () => {
     const email = watch('email')
     const emailState = getFieldState('email')
-    console.log(emailState)
 
     if (email && !emailState.invalid) {
       try {
         const response = await getCheckEmail(email)
+        // console.log(response)
         if (response.data.resultCode === 200) {
           setEmailDuplicate(response.data.result)
           alert(response.data.resultMessage)

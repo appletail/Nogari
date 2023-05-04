@@ -1,15 +1,25 @@
 import axios, { AxiosInstance } from 'axios'
 
+// refresh token 으로 갱신 필요한 경우
+function getRefreshToken() {
+  const response = axAuth.post('/members/refresh', {
+    access_token: sessionStorage.getItem('accessToken'),
+    refresh_token: sessionStorage.getItem('refreshToken'),
+  })
+  return response
+}
+
 export const interceptors = (instance: AxiosInstance) => {
-  instance.interceptors.request.use(
-    (config) => {
-      // access token 헤더 삽입 코드
-      const token = localStorage.getItem('accessToken')
-      config.headers.Authorization = `Bearer ${token}`
-      return config
+  instance.interceptors.response.use(
+    (response) => {
+      return response
     },
-    (error) => Promise.reject(error.response)
+    async (error) => {
+      console.log('error')
+      console.log(error)
+    }
   )
+
   return instance
 }
 
@@ -23,12 +33,16 @@ const axiosApi = (url: string, options?: object) => {
 
 // post, delete등 api요청 시 인증값이 필요한 경우
 const axiosAuthApi = (url: string, options?: object) => {
-  const instance = axios.create({ baseURL: url, ...options })
+  const instance = axios.create({
+    baseURL: url,
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
+    },
+    ...options,
+  })
   interceptors(instance)
   return instance
 }
 
 export const axBase = axiosApi(BASE_URL)
 export const axAuth = axiosAuthApi(BASE_URL)
-
-// refresh token 으로 갱신 필요한 경우

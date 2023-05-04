@@ -43,19 +43,19 @@ export const connectedConfig = (
   return [
     {
       title: 'notion',
-      path: 'https://api.notion.com/v1/oauth/authorize?client_id=09796e64-c53d-4b97-8973-5bf3e30001ab&response_type=code&owner=user&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Foauth%2Fnotion',
+      path: `${import.meta.env.VITE_NOTION_OAUTH_URL}`,
       icon: <Notion style={{ width: 35, height: 35 }} />,
       isLogin: notion,
     },
     {
       title: 'tistory',
-      path: 'https://www.tistory.com/oauth/authorize?client_id=5a77675830875a386851cff97b00e984&redirect_uri=https://localhost:3000&response_type=code',
+      path: `${import.meta.env.VITE_TISTORY_OAUTH_URL}`,
       icon: <Tistory style={{ width: 35, height: 35 }} />,
       isLogin: tistory,
     },
     {
       title: 'github',
-      path: 'https://github.com/login/oauth/authorize?scope=repo,user&client_id=7e06fc5ef20cdc465a15',
+      path: `${import.meta.env.VITE_GITHUB_OAUTH_URL}`,
       icon: <Github style={{ width: 35, height: 35 }} />,
       isLogin: github,
     },
