@@ -10,10 +10,12 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -557,12 +560,18 @@ public class ContentServiceImpl implements ContentService {
 	public void upload() throws IOException {
 		RestTemplate rt = new RestTemplate();
 		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+
+		//파일명 중복 방지를 위한 현재 날짜, 시간
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+		Date nowDate = new Date();
+		String fileDate = simpleDateFormat.format(nowDate);
+		System.out.println(fileDate);
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Accept", "application/vnd.github+json");
 		headers.add("Authorization", "Bearer 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");
 		headers.add("X-GitHub-Api-Version", "2022-11-28");
 		headers.setContentType(MediaType.APPLICATION_JSON);
-
 
 		String dirPath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
 			File gitDir = new File(dirPath);
@@ -570,20 +579,21 @@ public class ContentServiceImpl implements ContentService {
 			byte[] fileBytes = Files.readAllBytes(gitDir.toPath());
 			String fileContent = Base64.getEncoder().encodeToString(fileBytes);
 
-
 		Map<String, String> body = new LinkedHashMap<>();
 		body.put("message", "my commit message test");
 		body.put("content", fileContent);
+		body.put("sha", "96c36401ae22840df366b6c428cde9c9a2dcb147");
 
+		//committer 주석 처리
 		// Map<String, String> address = new LinkedHashMap<>();
 		// address.put("name", "encoreKwang");
 		// address.put("email", "dnflrhkddyd@naver.com");
-
 		// body.add("committer", address);
 
 		HttpEntity<Map<String, String>> uploadRequest = new HttpEntity<>(body, headers);
 		// String filePath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
-		String filePath = "/nogari/titletmp.txt";
+		String filePath = "/nogari/titletmp_TEST_" + fileDate + ".txt";
+		// String filePath = "/nogari2/titletmp2.txt";
 
 		ResponseEntity<String> response = rt.exchange(
 			"https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
@@ -595,42 +605,4 @@ public class ContentServiceImpl implements ContentService {
 		String body1 = response.getBody();
 		System.out.println(body1);
 	}
-		////////////////////////////////////////3
-	// 	RestTemplate restTemplate = new RestTemplate();
-	// 	restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-	// 	String dirPath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
-	// 	File gitDir = new File(dirPath);
-	// 	// 업로드할 파일의 내용을 읽어옵니다.
-	// 	byte[] fileBytes = Files.readAllBytes(gitDir.toPath());
-	// 	String fileContent = Base64.getEncoder().encodeToString(fileBytes);
-	//
-	// 	// 업로드할 파일의 경로를 지정합니다.
-	// 	String filePath = "/path/to/upload.txt";
-	//
-	// 	// GitHub API 요청 URL을 생성합니다.
-	// 	URI url = URI.create("https://api.github.com/repos/encoreKwang/PullRequestTest/contents/");
-	// 	// url = UriComponentsBuilder.fromUri(url)
-	// 	// 	.buildAndExpand("encoreKwang", "PullRequestTest", filePath)
-	// 	// 	.toUri();
-	//
-	// 	// GitHub API 요청 본문을 생성합니다.
-	// 	Map<String, String> request = new HashMap<>();
-	// 	request.put("message", "upload file test");
-	// 	request.put("content", fileContent);
-	//
-	// 	// GitHub API를 호출하여 파일을 업로드합니다.
-	// 	HttpHeaders headers = new HttpHeaders();
-	// 	headers.setBearerAuth("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");
-	// 	headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-	// 	headers.setContentType(MediaType.APPLICATION_JSON);
-	// 	HttpEntity<Map<String, String>> entity = new HttpEntity<>(request, headers);
-	// 	ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.PUT, entity, JsonNode.class);
-	//
-	// 	// GitHub API 응답 결과를 확인합니다.
-	// 	if (response.getStatusCode().is2xxSuccessful()) {
-	// 		System.out.println("File uploaded successfully.");
-	// 	} else {
-	// 		System.out.println("Failed to upload file: " + response.getBody().get("message").asText());
-	// 	}
-	// }
 }

@@ -1,6 +1,9 @@
 package me.nogari.nogari.api.service;
 
+import static com.fasterxml.jackson.databind.type.LogicalType.*;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -11,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -134,8 +140,37 @@ public class OauthServiceImpl implements OauthService {
 			() -> new IllegalArgumentException()
 		);
 		token.setGithubToken(ATK);
-		// memberTokenRepository.save(tokenInfo);
+
+		//깃허브 id 삽입
+		setGitHubId(member, ATK);
+
 		return response.getBody();
+	}
+
+	@Transactional
+	void setGitHubId(Member member, String ATK) {
+		// USER 정보
+		HttpHeaders headersTest = new HttpHeaders();
+		headersTest.add("Accept", "application/vnd.github+json");
+		headersTest.add("Authorization", "Bearer " + ATK);
+		headersTest.add("X-GitHub-Api-Version", "2022-11-28");
+		headersTest.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity entity = new HttpEntity<>(headersTest);
+
+		ResponseEntity<Map<String, String>> responseTest = restTemplate.exchange(
+			"https://api.github.com/user",
+			HttpMethod.GET,
+			entity,
+			new ParameterizedTypeReference<Map<String, String>>() {}
+		);
+		String githubId = responseTest.getBody().get("login");
+		System.out.println(githubId);
+
+		Member foundMember = memberRepository.findById(member.getMemberId()).orElseThrow(
+			() -> new IllegalArgumentException()
+		);
+
+		foundMember.setGithubId(githubId);
 	}
 
 	private HttpEntity<MultiValueMap<String,String>> getGitHubParams(String code) {

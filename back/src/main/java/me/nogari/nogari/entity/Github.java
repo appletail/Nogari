@@ -41,4 +41,10 @@ public class Github extends BaseTimeEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	@Column(name = "sha", length = 300)
+	private String sha;
+
+	@Column(name = "category_name", length = 50)
+	private String categoryName;
 }
