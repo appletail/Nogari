@@ -17,7 +17,7 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:react-hooks/recommended',
-    'plugin:storybook/recommended',
+    'plugin:jsx-a11y/recommended',
     'prettier',
   ],
   overrides: [],
@@ -26,7 +26,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: ['react', '@typescript-eslint', 'import', 'react-hooks'],
+  plugins: ['react', '@typescript-eslint'],
   rules: {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
@@ -50,11 +50,6 @@ module.exports = {
         multiline: 'last',
       },
     ],
-    'react/no-unknown-property': [
-      'error',
-      { ignore: ['args', 'rotation', 'position', 'side', 'castShadow'] },
-    ],
-    'import/no-unresolved': 'off',
     'import/order': [
       'warn',
       {
@@ -83,6 +78,18 @@ module.exports = {
           order: 'asc',
           caseInsensitive: true,
         },
+      },
+    ],
+    'jsx-a11y/anchor-has-content': [
+      'warn',
+      {
+        components: ['Link'],
+      },
+    ],
+    'jsx-a11y/anchor-is-valid': [
+      'warn',
+      {
+        components: ['Link'],
       },
     ],
   },
