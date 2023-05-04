@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.request.LoginRequestDto;
 import me.nogari.nogari.api.request.SignRequestDto;
@@ -25,6 +26,7 @@ public class MemberController {
 	private final MemberService memberService;
 
 	@PostMapping("/login")
+	@Operation(summary = "회원 로그인")
 	public BaseResponse<Object> login(@RequestBody LoginRequestDto request) throws Exception {
 
 		return BaseResponse.builder()
@@ -35,6 +37,7 @@ public class MemberController {
 	}
 
 	@PostMapping("/logout")
+	@Operation(summary = "회원 로그아웃")
 	public BaseResponse<Object> logout(@RequestParam Long memberId, @RequestBody JWTDto jwtDto) {
 
 		return BaseResponse.builder()
@@ -45,6 +48,7 @@ public class MemberController {
 	}
 
 	@PostMapping("/signup")
+	@Operation(summary = "회원가입")
 	public BaseResponse<Object> signup(@RequestBody SignRequestDto request) throws Exception {
 
 		try {
@@ -64,16 +68,19 @@ public class MemberController {
 	}
 
 	@GetMapping("/user/get")
+	@Operation(summary = "회원 정보 조회")
 	public ResponseEntity<SignResponseDto> getUser(@RequestParam String email) throws Exception {
 		return new ResponseEntity<>(memberService.getMember(email), HttpStatus.OK);
 	}
 
 	@GetMapping("/admin/get")
+	@Operation(summary = "관리자 정보 조회")
 	public ResponseEntity<SignResponseDto> getUserForAdmin(@RequestParam String account) throws Exception {
 		return new ResponseEntity<>(memberService.getMember(account), HttpStatus.OK);
 	}
 
 	@GetMapping("/duplicate")
+	@Operation(summary = "이메일 중복검사")
 	public BaseResponse<Object> checkEmailDuplicate(@RequestParam String email) {
 		boolean status = memberService.checkEmailDuplicate(email);
 		if (status) {
@@ -92,6 +99,7 @@ public class MemberController {
 	}
 
 	@PostMapping("/refresh")
+	@Operation(summary = "토큰 재발급")
 	public BaseResponse<Object> refresh(@RequestBody JWTDto jwt) throws Exception {
 
 		return BaseResponse.builder()
