@@ -69,6 +69,8 @@ public class SecurityConfig {
 			.antMatchers("/user/**").hasRole("USER")
 			.antMatchers("/members/logout").hasRole("USER")
 			.antMatchers("/contents/tistory").hasRole("USER")
+			.antMatchers("/members/user/get").hasRole("USER")
+			.antMatchers("/members/admin/get").hasRole("ADMIN")
 			.antMatchers("/oauth/**").permitAll()
 			.antMatchers("/contents/**").permitAll()
 			.antMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
