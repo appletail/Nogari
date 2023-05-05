@@ -1,4 +1,9 @@
 #root {
   width: 370px;
   height: 345px;
+  border: 1px solid;
+}
+
+body {
+  margin: 0;
 }
