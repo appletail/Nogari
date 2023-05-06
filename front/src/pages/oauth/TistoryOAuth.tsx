@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-// import { axAuth } from '@/apis/axiosInstance'
 import { postOauthTistory } from '@/apis/OauthApis'
 const postTistory = async (code: string) => {
   try {
@@ -18,7 +17,6 @@ function TistoryOAuth() {
 
   useEffect(() => {
     const code = searchParams.get('code')
-    console.log(code)
     if (code) {
       postTistory(code)
     }

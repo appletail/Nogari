@@ -6,3 +6,10 @@ export async function postOauthTistory(code: string) {
   })
   return response
 }
+
+export async function postOauthNotion(code: string) {
+  const response = await axAuth.post(`/oauth/notion`, {
+    code,
+  })
+  return response
+}

@@ -12,10 +12,11 @@ function getRefreshToken() {
 export const interceptors = (instance: AxiosInstance) => {
   instance.interceptors.response.use(
     (response) => {
+      console.log('interceptor success')
       return response
     },
     async (error) => {
-      console.log('error')
+      console.log('interceptor error')
       console.log(error)
     }
   )
