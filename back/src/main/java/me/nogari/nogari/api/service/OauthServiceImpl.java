@@ -9,12 +9,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -149,6 +151,11 @@ public class OauthServiceImpl implements OauthService {
 
 	@Transactional
 	void setGitHubId(Member member, String ATK) {
+		System.out.println("setGitHubId");
+		
+		RestTemplate rt = new RestTemplate();
+		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+		
 		// USER 정보
 		HttpHeaders headersTest = new HttpHeaders();
 		headersTest.add("Accept", "application/vnd.github+json");
@@ -157,17 +164,18 @@ public class OauthServiceImpl implements OauthService {
 		headersTest.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity entity = new HttpEntity<>(headersTest);
 
-		ResponseEntity<Map<String, String>> responseTest = restTemplate.exchange(
-			"https://api.github.com/user",
-			HttpMethod.GET,
-			entity,
-			new ParameterizedTypeReference<Map<String, String>>() {}
+		ResponseEntity<Map<String, Object>> responseTest = rt.exchange(
+				"https://api.github.com/user",
+				HttpMethod.GET,
+				entity,
+				new ParameterizedTypeReference<Map<String, Object>>() {}
 		);
-		String githubId = responseTest.getBody().get("login");
-		System.out.println(githubId);
+		System.out.println("restTemplate 완료");
+		String githubId = (String) responseTest.getBody().get("login");
+		System.out.println("githubId : " + githubId);
 
 		Member foundMember = memberRepository.findById(member.getMemberId()).orElseThrow(
-			() -> new IllegalArgumentException()
+			() -> new NoSuchElementException()
 		);
 
 		foundMember.setGithubId(githubId);
@@ -194,7 +202,7 @@ public class OauthServiceImpl implements OauthService {
 		MultiValueMap<String, String> params= new LinkedMultiValueMap<>();
 		params.add("grant_type", "authorization_code");
 		params.add("code", code);
-		params.add("redirect_uri", "https://k8c206.p.ssafy.io/oauth/notion");
+		params.add("redirect_uri", "http://localhost:3000/oauth/notion");
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 

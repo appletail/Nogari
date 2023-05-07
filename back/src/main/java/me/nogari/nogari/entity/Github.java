@@ -34,16 +34,19 @@ public class Github extends BaseTimeEntity {
 
 	@Column(name = "status", length = 15, nullable = false)
 	private String status;
+	
+	@Column(name = "request_link", length = 300, nullable = false)
+	private String requestLink; //요청링크
 
 	@Column(name = "link", length = 300)
-	private String link;
+	private String link; //발행링크
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
 
 	@Column(name = "sha", length = 300)
-	private String sha;
+	private String sha; //수정코드
 
 	@Column(name = "category_name", length = 50)
 	private String categoryName;

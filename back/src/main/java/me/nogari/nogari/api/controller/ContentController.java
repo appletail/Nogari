@@ -36,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.PostNotionToGithubDto;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
@@ -282,5 +283,38 @@ public class ContentController {
 			.resultCode(HttpStatus.OK.value())
 			.resultMsg("무한스크롤 조회 성공")
 			.build();
+	}
+	
+	@ResponseBody
+	@PostMapping("/git/post")
+	@Operation(summary = "깃허브 게시글 티스토리 발행")
+	public BaseResponse<Object> postNotionToGithub(
+		@RequestBody List<PostNotionToGithubDto> postNotionToGithubDtoList,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+		Optional<Member> member;
+		try {
+			member = Optional.ofNullable(customUserDetails.getMember());
+		} catch (Exception e) {
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("로그인된 사용자가 없습니다.")
+				.build();
+		}
+		try {
+			return BaseResponse.builder()
+				.result(contentService.postNotionToGithubMultiThread(postNotionToGithubDtoList, member.get()))
+				.resultCode(HttpStatus.OK.value())
+				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
+				.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다.")
+				.build();
+		}
 	}
 }

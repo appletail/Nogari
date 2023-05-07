@@ -96,6 +96,7 @@ public class OAuthController {
 				.resultMsg("정상적으로 깃허브 엑세스 토큰 얻기 성공")
 				.build();
 		}catch (Exception e){
+			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
