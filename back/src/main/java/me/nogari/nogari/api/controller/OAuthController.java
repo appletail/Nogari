@@ -68,7 +68,6 @@ public class OAuthController {
 				.resultCode(HttpStatus.BAD_REQUEST.value())
 				.resultMsg("티스토리 엑세스 토큰 얻기에 실패")
 				.build();
-
 		}
 	}
 
@@ -91,7 +90,8 @@ public class OAuthController {
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 깃허브 엑세스 토큰 얻기 성공")
 				.build();
-		} catch (Exception e) {
+		}catch (Exception e){
+			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())

@@ -66,4 +66,43 @@ public class LambdaCallFunction {
 		}
 		return responseString;
 	}
+
+	public String gitPost() {
+		String requestBody = String.format("{\n"
+			+ "  \"notion\": {\n"
+			+ "    \"notionToken\": \"" + notionToken + "\",\n"
+			+ "    \"page_url\": \""+ url + "\"\n"
+			+ "  },\n"
+			+ "  \"type\": \"" + type + "\"\n"
+			// + "  \"tistory\": {\n"
+			// + "    \"access_token\": \""+ this.tistoryToken +"\",\n"
+			// + "    \"blogName\": \""+ this.blogName +"\"\n"
+			// + "  }\n"
+			+ "}"
+		);
+
+		// AWS Lambda에 등록된 함수 URL로 POST를 요청한다.
+		HttpPost httpPost = new HttpPost(functionURL);
+
+		// 요청 헤더 설정
+		httpPost.setHeader("Content-Type", "application/json");
+		httpPost.setHeader("Accept", "application/json");
+		httpPost.setHeader("Authorization", "Bearer access_token");
+
+		// 요청 바디 설정
+		httpPost.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault();
+			 CloseableHttpResponse response = httpClient.execute(httpPost)
+		) {
+			HttpEntity entity = response.getEntity();
+			System.out.println(response);
+			System.out.println(response.getStatusLine());
+			responseString = EntityUtils.toString(entity, "UTF-8");
+			System.out.println(responseString);
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return responseString;
+	}
 }

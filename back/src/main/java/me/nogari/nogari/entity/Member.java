@@ -52,6 +52,9 @@ public class Member {
 	@Column(name = "refreshToken")
 	private String refreshToken;
 
+	@Column(name = "github_id")
+	private String githubId;
+
 	@OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@Builder.Default
 	private List<Authority> roles = new ArrayList<>();
@@ -78,6 +81,8 @@ public class Member {
 		this.refreshToken = refreshToken;
 	}
 
-
+	public void setGithubId(String githubId){
+		this.githubId = githubId;
+	}
 
 }
