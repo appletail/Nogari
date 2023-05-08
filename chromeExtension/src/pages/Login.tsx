@@ -21,14 +21,8 @@ function Login() {
       const response = await postEmailLogin(data)
       // response 요청 성공시
       if (response.data.resultCode === 200) {
-        sessionStorage.setItem(
-          'accessToken',
-          JSON.stringify(response.data.result.token.access_token)
-        )
-        sessionStorage.setItem(
-          'refreshToken',
-          JSON.stringify(response.data.result.token.refresh_token)
-        )
+        chrome.storage.sync.set({ accessToken: response.data.result.token.access_token })
+        chrome.storage.sync.set({ refreshToken: response.data.result.token.refresh_token })
         navigate('/', { replace: true })
       }
     } catch (error: any) {
