@@ -14,7 +14,7 @@ public interface MemberService {
 
 	boolean checkEmailDuplicate(String email);
 
-	JWTDto refreshAccessToken(JWTDto token) throws Exception;
+	JWTDto refreshAccessToken(String email, JWTDto token) throws Exception;
 
 	boolean logout(Long memberId, JWTDto jwtDto);
 }
