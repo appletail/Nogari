@@ -9,11 +9,11 @@ import routers from './routes'
 import ThemeProvider from './theme'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <HelmetProvider>
-      <ThemeProvider>
-        <RouterProvider router={routers} />
-      </ThemeProvider>
-    </HelmetProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <HelmetProvider>
+    <ThemeProvider>
+      <RouterProvider router={routers} />
+    </ThemeProvider>
+  </HelmetProvider>
+  // </React.StrictMode>
 )

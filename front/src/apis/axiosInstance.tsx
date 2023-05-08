@@ -27,6 +27,7 @@ function postRefreshToken() {
     access_token: sessionStorage.getItem('accessToken'),
     refresh_token: sessionStorage.getItem('refreshToken'),
   })
+
   return response
 }
 
@@ -35,11 +36,23 @@ export const interceptors = (instance: AxiosInstance) => {
     async (response) => {
       const { config } = response
 
-      if (response?.data?.resultCode !== 200) {
+      if (response.data?.resultCode !== 200) {
         const originRequest = config
+        // console.log(originRequest)
         try {
           const tokenResponse = await postRefreshToken()
-          console.log(tokenResponse.data)
+          const resultCode = tokenResponse.data.resultCode
+          if (resultCode === 200) {
+            const newAccessToken = tokenResponse.data.result.access_token
+            sessionStorage.setItem(
+              'acessToken',
+              tokenResponse.data.result.access_token
+            )
+            axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
+            originRequest.headers.Authorization = `Bearer ${newAccessToken}`
+            return axios(originRequest)
+          }
+          console.log(tokenResponse)
           // if (tokenResponse.data?.resultCode === 200) {
           //   console.log(tokenResponse.data?.resultMessage)
           // } else {
@@ -53,8 +66,14 @@ export const interceptors = (instance: AxiosInstance) => {
       return response
     },
     async (error) => {
-      console.log('interceptor error')
-      console.log(error)
+      const {
+        config,
+        response: { status },
+      } = error
+
+      // console.log('interceptor error')
+      // console.log(status)
+      return Promise.reject(error.response)
     }
   )
 
