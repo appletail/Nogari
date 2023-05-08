@@ -10,17 +10,15 @@
     "128": "src/assets/icons/nogari_fish.png"
   },
   "action": {
-    "default_title": "Nogari",
     "default_popup": "index.html"
   },
-  "content_scripts": [
-    {
-      "js": [
-        "src/content.tsx"
-      ],
-      "matches": [
-        "https://www.google.com/*"
-      ]
-    }
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.blogger.com/",
+    "https://*.google.com/"
   ]
 }

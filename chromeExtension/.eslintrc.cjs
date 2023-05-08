@@ -17,7 +17,6 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:react-hooks/recommended',
-    'plugin:jsx-a11y/recommended',
     'prettier',
   ],
   overrides: [],
@@ -50,6 +49,7 @@ module.exports = {
         multiline: 'last',
       },
     ],
+    'import/no-unresolved': 'off',
     'import/order': [
       'warn',
       {
@@ -78,18 +78,6 @@ module.exports = {
           order: 'asc',
           caseInsensitive: true,
         },
-      },
-    ],
-    'jsx-a11y/anchor-has-content': [
-      'warn',
-      {
-        components: ['Link'],
-      },
-    ],
-    'jsx-a11y/anchor-is-valid': [
-      'warn',
-      {
-        components: ['Link'],
       },
     ],
   },
