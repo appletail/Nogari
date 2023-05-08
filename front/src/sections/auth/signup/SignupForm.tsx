@@ -36,6 +36,7 @@ function SignupForm() {
     handleSubmit,
     formState: { isValid },
     getFieldState,
+    clearErrors,
   } = useForm<ILoginValue>({
     mode: 'all',
   })
@@ -49,14 +50,16 @@ function SignupForm() {
     const email = watch('email')
     const emailState = getFieldState('email')
 
-    // 이메일이 있고 이메일 형식에 맞춘 경우에만 중복확인검사 실시
-    if (email && emailState.invalid) {
+    // 이메일이 없거나 이메일 형식에 안맞는 경우 return
+    if (email && emailState.error?.type == 'emailvalidate') {
       try {
         const response = await getCheckEmail(email)
         if (response.data.resultCode === 200) {
           setEmailDuplicate(response.data.result)
           alert(response.data.resultMessage)
-          // console.log(emailDuplicate)
+          if (!response.data.result) {
+            clearErrors('email')
+          }
         }
       } catch (error: any) {
         console.log(error)
@@ -99,14 +102,25 @@ function SignupForm() {
                 value: Regex.email,
                 message: '이메일 형식을 입력해주세요',
               },
-              onBlur: emailHandler,
               validate: {
                 emailvalidate: () =>
                   !emailDuplicate || '이메일 중복확인을 해주세요',
               },
+              onChange: () => {
+                setEmailDuplicate(true)
+              },
             }}
             textFieldProps={{
               label: 'Email',
+              InputProps: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <LoadingButton onClick={emailHandler}>
+                      중복검사
+                    </LoadingButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
