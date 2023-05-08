@@ -1,0 +1,13 @@
+.Icons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.Icon {
+  cursor: pointer;
+}
+
+.Refresh {
+  cursor: pointer;
+}
