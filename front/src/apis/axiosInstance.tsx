@@ -33,10 +33,16 @@ function postRefreshToken() {
 export const interceptors = (instance: AxiosInstance) => {
   instance.interceptors.response.use(
     async (response) => {
-      const { config } = response
+      return response
+    },
+    async (error) => {
+      const {
+        config,
+        response: { status },
+      } = error
 
-      if (response.data?.resultCode !== 200) {
-        const originRequest = config
+      const originRequest = config
+      if (status === 401) {
         try {
           const tokenResponse = await postRefreshToken()
           console.log(tokenResponse)
@@ -51,27 +57,12 @@ export const interceptors = (instance: AxiosInstance) => {
             originRequest.headers.Authorization = `Bearer ${newAccessToken}`
             return axios(originRequest)
           }
-          // console.log(tokenResponse)
-          // if (tokenResponse.data?.resultCode === 200) {
-          //   console.log(tokenResponse.data?.resultMessage)
-          // } else {
-          //   console.log('---------------------')
-          //   console.log(tokenResponse?.data?.resultMessage)
-          // }
         } catch (error) {
-          // console.log(error)
+          console.log('----******-------')
+          console.log(error)
         }
       }
-      return response
-    },
-    async (error) => {
-      const {
-        config,
-        response: { status },
-      } = error
 
-      // console.log('interceptor error')
-      // console.log(status)
       return Promise.reject(error.response)
     }
   )
