@@ -61,6 +61,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonParseException;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQuery;
 
 import me.nogari.nogari.repository.TistoryRepositoryCust;
 
@@ -203,7 +205,7 @@ public class ContentServiceImpl implements ContentService {
 	public List<Object> getTistoryList(PaginationDto paginationDto, Member member) {
 
 		Long lastTistoryId = paginationDto.getLastTistoryId();
-		// System.out.println("lastTistoryId= " + lastTistoryId);
+
 		paginationDto.getFilter();
 		int pageSize = paginationDto.getPageSize();
 		paginationDto.getWord();
@@ -224,22 +226,7 @@ public class ContentServiceImpl implements ContentService {
 			categoriesList = getTistoryCates(blogNameList, categoriesList, member);
 		}
 
-		List<Tistory> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
-		System.out.println(tistoryList.toString());
-
-		tistoryList.stream()
-				.map(content -> new TistoryContentResponseDto(content))
-				.collect(Collectors.toList());
-
-		// if (filter.equals("오래된순")) {
-		// 	tistoryList = tistoryRepository.sortTistoryByOldest(member.getMemberId()).orElseThrow(() -> {
-		// 		return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-		// 	});
-		// } else {
-		// 	tistoryList = tistoryRepository.sortTistoryByNewest(member.getMemberId()).orElseThrow(() -> {
-		// 		return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-		// 	});
-		// }
+		List<TistoryContentResponseDto> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
 
 		List<Object> rslt = new ArrayList<>();
 		rslt.add(tistoryList);
