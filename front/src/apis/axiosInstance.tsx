@@ -45,20 +45,20 @@ export const interceptors = (instance: AxiosInstance) => {
       if (status === 401) {
         try {
           const tokenResponse = await postRefreshToken()
+          console.log('----------------------------------')
           console.log(tokenResponse)
-          const resultCode = tokenResponse.data.resultCode
-          if (resultCode === 200) {
-            const newAccessToken = tokenResponse.data.result.access_token
-            sessionStorage.setItem(
-              'acessToken',
-              tokenResponse.data.result.access_token
-            )
-            axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
-            originRequest.headers.Authorization = `Bearer ${newAccessToken}`
-            return axios(originRequest)
-          }
+          console.log('------------------------------------')
+          // const resultCode = tokenResponse.data.resultCode
+
+          const newAccessToken = tokenResponse.data.result.access_token
+          sessionStorage.setItem(
+            'accessToken',
+            tokenResponse.data.result.access_token
+          )
+          axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
+          originRequest.headers.Authorization = `Bearer ${newAccessToken}`
+          return axios(originRequest)
         } catch (error) {
-          console.log('----******-------')
           console.log(error)
         }
       }
