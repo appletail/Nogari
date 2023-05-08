@@ -148,8 +148,8 @@ public class MemberServiceImpl implements MemberService {
 		}
 	}
 
-	public JWTDto refreshAccessToken(JWTDto token) throws Exception {
-		String email = jwtProvider.getEmail(token.getAccess_token());
+	@Override
+	public JWTDto refreshAccessToken(String email, JWTDto token) throws Exception {
 		Member member = memberRepository.findByEmail(email).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 		JWT refreshToken = validRefreshToken(member, token.getRefresh_token());
