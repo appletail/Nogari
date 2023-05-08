@@ -174,7 +174,7 @@ public class ContentController {
 	@GetMapping("/git/upload")
 	@Operation(summary = "github upload")
 	public void gitUpload() throws GitAPIException, IOException {
-		contentService.upload();
+		// contentService.upload();
 	}
 
 	@ResponseBody
@@ -277,7 +277,6 @@ public class ContentController {
 
 	@GetMapping("/tistory")
 	public BaseResponse<Object> getTistoryContents(@RequestParam Long lastTistoryId, @RequestParam int pageSize) {
-
 		return BaseResponse.builder()
 			.result(contentService.getTistoryContents(lastTistoryId, pageSize))
 			.resultCode(HttpStatus.OK.value())

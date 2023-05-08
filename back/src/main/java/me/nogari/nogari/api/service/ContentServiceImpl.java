@@ -559,8 +559,9 @@ public class ContentServiceImpl implements ContentService {
 			.collect(Collectors.toList());
 	}
 
-	@Override
-	public void upload() throws IOException {
+	public void upload(PostNotionToGithubDto githubPosting, Member member, String title, String content) throws IOException {
+		System.out.println("upload 시작");
+		System.out.println("upload title : " + title);
 		RestTemplate rt = new RestTemplate();
 		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 
@@ -568,24 +569,31 @@ public class ContentServiceImpl implements ContentService {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 		Date nowDate = new Date();
 		String fileDate = simpleDateFormat.format(nowDate);
-		System.out.println(fileDate);
+		System.out.println("upload filedate : " + fileDate);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Accept", "application/vnd.github+json");
-		headers.add("Authorization", "Bearer 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");
+		headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
 		headers.add("X-GitHub-Api-Version", "2022-11-28");
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		String dirPath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
-			File gitDir = new File(dirPath);
-			// 업로드할 파일의 내용을 읽어옵니다.
-			byte[] fileBytes = Files.readAllBytes(gitDir.toPath());
-			String fileContent = Base64.getEncoder().encodeToString(fileBytes);
+		// String dirPath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
+		// 	File gitDir = new File(dirPath);
+		// 	// 업로드할 파일의 내용을 읽어옵니다.
+		// 	byte[] fileBytes = Files.readAllBytes(gitDir.toPath());
+		// 	String fileContent = Base64.getEncoder().encodeToString(fileBytes);
+
+		String fileContent = Base64.getEncoder().encodeToString(content.getBytes());
 
 		Map<String, String> body = new LinkedHashMap<>();
-		body.put("message", "my commit message test");
+		body.put("message", "[UPLOAD] " + title);
 		body.put("content", fileContent);
-		body.put("sha", "96c36401ae22840df366b6c428cde9c9a2dcb147");
+
+		//수정요청
+		// if(githubPosting.getStatus().equals("수정요청")){
+		// 	body.put("sha", githubPosting.getn);
+		// }
+
 
 		//committer 주석 처리
 		// Map<String, String> address = new LinkedHashMap<>();
@@ -595,11 +603,14 @@ public class ContentServiceImpl implements ContentService {
 
 		HttpEntity<Map<String, String>> uploadRequest = new HttpEntity<>(body, headers);
 		// String filePath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
-		String filePath = "/nogari/titletmp_TEST_" + fileDate + ".txt";
+		;
+		String filePath = member.getGithubId() + "/" + githubPosting.getRepository() + "/contents/" +githubPosting.getCategoryName() +"/"+ title + "_" + fileDate + "."+ githubPosting.getType();
+		System.out.println("filePath : " +  filePath );
 		// String filePath = "/nogari2/titletmp2.txt";
 
 		ResponseEntity<String> response = rt.exchange(
-			"https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
+			// "https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
+			"https://api.github.com/repos/" + filePath,
 			HttpMethod.PUT,
 			uploadRequest,
 			String.class
@@ -611,6 +622,7 @@ public class ContentServiceImpl implements ContentService {
 	
 	// [Multi Thread] : 사용자가 3개의 발행 요청시, 작업이 동시에 수행되어 총 16초가 소요된다.
 	@Override
+	@Transactional
 	public Object postNotionToGithubMultiThread(List<PostNotionToGithubDto> postNotionToGithubDtoList, Member member) {
 		// 초기 스레드 수 : 0, 코어 스레드 수 : 0, 최대 스레드 수 : Integer.MAX_VALUE
 		// 추가된 스레드가 60초동안 아무 작업을 수행하지 않으면 ThreadPool에서 제거한다.
@@ -645,33 +657,33 @@ public class ContentServiceImpl implements ContentService {
 				});
 				futureList.add(future);
 			}
-			else if(tistoryPosting.getStatus().equals("수정요청")){
-				// Tistory DTO에 ResponseLink가 제공되는 경우만 수정을 진행한다.
-				if(!tistoryPosting.getResponseLink().equals("")){
-					// STEP1. [수정요청] Tistory 객체 조회
-					Tistory tistory = tistoryRepository.findByResponseLink(tistoryPosting.getResponseLink());
-					tistory.setRequestLink(tistoryPosting.getRequestLink());
-					tistory.setStatus("수정요청");
-					tistoryList.add(tistory);
-
-					// STEP2. [awsLambdaAndTistoryModify] AWS Lambda 호출 및 각 스레드별 FutureList 추가
-					Future<?> future = executorService.submit(() -> {
-						try{
-							responseLinkList.add(awsLambdaAndTistoryModify(tistory.getPostId(), notionToken, tistoryPosting, member));
-						} catch(HttpClientErrorException e){
-							// 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
-							tistory.setStatus("수정실패");
-						} catch(JsonParseException e){
-							// 입력값이 정상적으로 입력되지 않은 경우
-							tistory.setStatus("수정실패");
-						} catch(Exception e){
-							e.printStackTrace();
-							tistory.setStatus("수정실패");
-						}
-					});
-					futureList.add(future);
-				}
-			}
+			// else if(githubPosting.getStatus().equals("수정요청")){
+			// 	// Tistory DTO에 ResponseLink가 제공되는 경우만 수정을 진행한다.
+			// 	if(!githubPosting.getResponseLink().equals("")){
+			// 		// STEP1. [수정요청] Tistory 객체 조회
+			// 		Tistory tistory = tistoryRepository.findByResponseLink(githubPosting.getResponseLink());
+			// 		tistory.setRequestLink(tistoryPosting.getRequestLink());
+			// 		tistory.setStatus("수정요청");
+			// 		tistoryList.add(tistory);
+			//
+			// 		// STEP2. [awsLambdaAndTistoryModify] AWS Lambda 호출 및 각 스레드별 FutureList 추가
+			// 		Future<?> future = executorService.submit(() -> {
+			// 			try{
+			// 				responseLinkList.add(awsLambdaAndTistoryModify(tistory.getPostId(), notionToken, tistoryPosting, member));
+			// 			} catch(HttpClientErrorException e){
+			// 				// 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
+			// 				tistory.setStatus("수정실패");
+			// 			} catch(JsonParseException e){
+			// 				// 입력값이 정상적으로 입력되지 않은 경우
+			// 				tistory.setStatus("수정실패");
+			// 			} catch(Exception e){
+			// 				e.printStackTrace();
+			// 				tistory.setStatus("수정실패");
+			// 			}
+			// 		});
+			// 		futureList.add(future);
+			// 	}
+			// }
 		}
 		System.out.println(executorService);
 
@@ -689,34 +701,35 @@ public class ContentServiceImpl implements ContentService {
 		// STEP4. [발행완료|발행실패] Tistory 발행 상태 DB 갱신
 		// 각 발행 요청 스레드별 연산 결과를 모두 반환 받을때까지 대기하기 위해, future.get()을 사용한다.
 		// 서브 스레드별 연산 결과를 모두 반환 받을때까지 메인 스레드의 실행 흐름을 잠시 Block한다.
-		int index = 0;
-		for (Future<?> f : futureList) {
-			try {
-				f.get();
-				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
-				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
-				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
-				tistoryList.get(index++).setStatus("발행완료");
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
-				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
-				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
-				tistoryList.get(index++).setStatus("발행실패");
-			} catch (ExecutionException e){
-				e.printStackTrace();
-				tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
-				tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
-				tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
-				tistoryList.get(index++).setStatus("발행실패");
-			} catch (IndexOutOfBoundsException e){
-				tistoryList.get(index++).setStatus("수정실패");
-			}
-		}
+		// int index = 0;
+		// for (Future<?> f : futureList) {
+		// 	try {
+		// 		f.get();
+		// 		tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
+		// 		tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+		// 		tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
+		// 		tistoryList.get(index++).setStatus("발행완료");
+		// 	} catch (InterruptedException e) {
+		// 		e.printStackTrace();
+		// 		tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
+		// 		tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+		// 		tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
+		// 		tistoryList.get(index++).setStatus("발행실패");
+		// 	} catch (ExecutionException e){
+		// 		e.printStackTrace();
+		// 		tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
+		// 		tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
+		// 		tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
+		// 		tistoryList.get(index++).setStatus("발행실패");
+		// 	} catch (IndexOutOfBoundsException e){
+		// 		tistoryList.get(index++).setStatus("수정실패");
+		// 	}
+		// }
 		return null;
 	}
 	
 	public String[] awsLambdaAndGithubPost(String notionToken, PostNotionToGithubDto githubPosting, Member member) {
+		System.out.println("awsLambdaAndGithubPost 시작 =========");
 		String title = ""; // Tistory에 게시될 게시글 제목
 		String content = ""; // Tistory에 게시될 게시글 내용
 
@@ -724,12 +737,12 @@ public class ContentServiceImpl implements ContentService {
 		try{
 			lambdaCallFunction = new LambdaCallFunction(
 				notionToken,
-				member.getToken().getTistoryToken(),
+				member.getToken().getGithubToken(),
 				githubPosting.getRepository(),
 				githubPosting.getRequestLink(),
 				githubPosting.getType()
 			);
-			content = lambdaCallFunction.post();
+			content = lambdaCallFunction.gitPost();
 
 			try {
 				ObjectMapper objectMapper = new ObjectMapper();
@@ -743,49 +756,55 @@ public class ContentServiceImpl implements ContentService {
 		} catch(IOException e){
 			e.printStackTrace();
 		}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//upload 호출
-		
-		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행한다.
-		RestTemplate rt = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("access_token", member.getToken().getTistoryToken());
-		params.add("output", "");
-		params.add("blogName", tistoryPosting.getBlogName()); // 블로그 이름
-		params.add("title", title); // 글 제목
-		params.add("content", content); // 글 내용
-		params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
-		params.add("category", tistoryPosting.getCategoryName()); // 카테고리 아이디
-		params.add("published", ""); // 발행 시간
-		params.add("slogan", ""); // 문자 주소
-		params.add("tag", tistoryPosting.getTagList()); // 태그 리스트(','로 구분)
-		params.add("acceptComment", "1"); // 댓글 허용 :기본값(댓글 허용)
-		params.add("password", ""); // 보호글 비밀번호
-
-		HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
-
-		// STEP2-3. Tistory API에 요청을 보내고, 응답 결과 중 Response URL을 DB에 반영한다.
-		ResponseEntity<String> response = rt.exchange(
-			"https://www.tistory.com/apis/post/write",
-			HttpMethod.POST,
-			TistoryPostRequest,
-			String.class
-		);
-
-		String responseString = response.toString(); // Tistory API의 응답
-		String[] responseList = new String[3]; // responseLink와 postId를 함께 담아서 보낼 배열
-		String responseLink = ""; // Tistory에 게시된 게시글 링크
-		String postId = ""; // Tistory에 게시된 게시글 번호
-		Document doc = Jsoup.parse(responseString);
-		responseLink = doc.select("url").text();
-		postId = doc.select("postId").text();
-
-		responseList[0] = responseLink;
-		responseList[1] = postId;
-		responseList[2] = title;
-		return responseList;
+		System.out.println("title : " + title);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// STEP2-2. Github API를 이용하여 Github 포스팅을 진행한다.
+		try {
+			upload(githubPosting, member, title, content);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		// RestTemplate rt = new RestTemplate();
+		// HttpHeaders headers = new HttpHeaders();
+		//
+		// MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		// params.add("access_token", member.getToken().getTistoryToken());
+		// params.add("output", "");
+		// params.add("blogName", tistoryPosting.getBlogName()); // 블로그 이름
+		// params.add("title", title); // 글 제목
+		// params.add("content", content); // 글 내용
+		// params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
+		// params.add("category", tistoryPosting.getCategoryName()); // 카테고리 아이디
+		// params.add("published", ""); // 발행 시간
+		// params.add("slogan", ""); // 문자 주소
+		// params.add("tag", tistoryPosting.getTagList()); // 태그 리스트(','로 구분)
+		// params.add("acceptComment", "1"); // 댓글 허용 :기본값(댓글 허용)
+		// params.add("password", ""); // 보호글 비밀번호
+		//
+		// HttpEntity<MultiValueMap<String, String>> TistoryPostRequest = new HttpEntity<>(params, headers);
+		//
+		// // STEP2-3. Tistory API에 요청을 보내고, 응답 결과 중 Response URL을 DB에 반영한다.
+		// ResponseEntity<String> response = rt.exchange(
+		// 	"https://www.tistory.com/apis/post/write",
+		// 	HttpMethod.POST,
+		// 	TistoryPostRequest,
+		// 	String.class
+		// );
+		//
+		// String responseString = response.toString(); // Tistory API의 응답
+		// String[] responseList = new String[3]; // responseLink와 postId를 함께 담아서 보낼 배열
+		// String responseLink = ""; // Tistory에 게시된 게시글 링크
+		// String postId = ""; // Tistory에 게시된 게시글 번호
+		// Document doc = Jsoup.parse(responseString);
+		// responseLink = doc.select("url").text();
+		// postId = doc.select("postId").text();
+		//
+		// responseList[0] = responseLink;
+		// responseList[1] = postId;
+		// responseList[2] = title;
+		// return responseList;
+		return null;
 	}
 
 

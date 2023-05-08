@@ -32,7 +32,7 @@ public class Github extends BaseTimeEntity {
 	@Column(name = "repository", length = 50)
 	private String repository;
 
-	@Column(name = "status", length = 15, nullable = false)
+	@Column(name = "status", length = 50, nullable = false)
 	private String status;
 	
 	@Column(name = "request_link", length = 300, nullable = false)

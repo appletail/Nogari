@@ -72,7 +72,6 @@ public class OAuthController {
 				.resultCode(HttpStatus.BAD_REQUEST.value())
 				.resultMsg("티스토리 엑세스 토큰 얻기에 실패")
 				.build();
-
 		}
 	}
 

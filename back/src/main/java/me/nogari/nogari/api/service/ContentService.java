@@ -26,6 +26,5 @@ public interface ContentService {
 
 	List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize);
 
-	void upload() throws IOException;
 
 }
