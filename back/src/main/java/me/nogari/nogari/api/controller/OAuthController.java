@@ -128,4 +128,28 @@ public class OAuthController {
 				.build();
 		}
 	}
+
+	@ResponseBody
+	@GetMapping("/check")
+	@Operation(summary = "노션, 티스토리, 깃헙 토큰 유무 확인")
+	public BaseResponse<Object> checkIfTokenIsEmpty(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+		try{
+			Member member = customUserDetails.getMember();
+
+			return BaseResponse.builder()
+				.result(oauthService.checkIfTokenIsEmpty(member))
+				.resultCode(HttpStatus.OK.value())
+				.resultMsg("정상적으로 토큰 유무 성공")
+				.build();
+		}catch (Exception e){
+			e.printStackTrace();
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("토큰 유무 확인 실패")
+				.build();
+		}
+	}
+
+
 }
