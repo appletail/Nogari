@@ -5,7 +5,7 @@ import Loading_spinner from '../../assets/logos/nogari_spinner.svg'
 
 import style from '../../styles/LoadingSpinner.module.css'
 
-function LoadingSpinner({ loading_text }: { loading_text: string }) {
+function LoadingSpinner() {
   const randomNum = Math.floor(Math.random() * loadingTips.length)
   const [tip, setTip] = useState(loadingTips[randomNum])
 
@@ -17,7 +17,7 @@ function LoadingSpinner({ loading_text }: { loading_text: string }) {
   return (
     <div className={style.Wrapper}>
       <img className={style.BingGleBingGle} src={Loading_spinner} />
-      <p className={style.Text}>{loading_text}</p>
+      <p className={style.Text}>로딩중입니다...</p>
       <div>{tip}</div>
     </div>
   )

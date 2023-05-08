@@ -1,16 +1,14 @@
 import axios, { AxiosInstance } from 'axios'
 
-export const interceptors = (
-  instance: AxiosInstance,
-  storage: {
-    [key: string]: any
-  }
-) => {
+export const interceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
       // access token 헤더 삽입 코드
-      const token = storage.accessToken
-      config.headers.Authorization = `Bearer ${token}`
+      chrome.storage.sync.get(['accessToken'], function (storage) {
+        const token = storage.accessToken
+        config.headers.Authorization = `Bearer ${token}`
+      })
+
       return config
     },
     (error) => Promise.reject(error.response)
@@ -18,7 +16,7 @@ export const interceptors = (
   return instance
 }
 
-const BASE_URL = `https://www.nogari.me/api/v1/`
+const BASE_URL = `https://www.nogari.me/api/v1`
 
 // 단순 get요청으로 인증값이 필요없는 경우
 const axiosApi = (url: string, options?: object) => {
@@ -29,10 +27,7 @@ const axiosApi = (url: string, options?: object) => {
 // post, delete등 api요청 시 인증값이 필요한 경우
 const axiosAuthApi = (url: string, options?: object) => {
   const instance = axios.create({ baseURL: url, ...options })
-
-  chrome.storage.sync.get(['accessToken'], function (storage) {
-    interceptors(instance, storage)
-  })
+  interceptors(instance)
 
   return instance
 }

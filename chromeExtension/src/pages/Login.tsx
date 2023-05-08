@@ -21,8 +21,9 @@ function Login() {
       const response = await postEmailLogin(data)
       // response 요청 성공시
       if (response.data.resultCode === 200) {
-        chrome.storage.sync.set({ accessToken: response.data.result.token.access_token })
+        console.log(response.data)
         chrome.storage.sync.set({ refreshToken: response.data.result.token.refresh_token })
+        chrome.storage.sync.set({ accessToken: response.data.result.token.access_token })
         navigate('/', { replace: true })
       }
     } catch (error: any) {

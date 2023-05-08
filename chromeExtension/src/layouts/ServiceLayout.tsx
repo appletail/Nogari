@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { connectedConfig } from './config'
+import { axAuth } from '../apis/axiosInstance'
 import refresh from '../assets/refresh.svg'
 
 import LoadingSpinner from '../components/loading'
@@ -32,7 +33,11 @@ function ServiceLayout() {
   }, [])
 
   const handleRefresh = () => {
-    console.log('빠르게 해보자')
+    axAuth({
+      url: '/oauth/check',
+    })
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err))
   }
 
   return (
@@ -61,7 +66,7 @@ function ServiceLayout() {
       </div>
       <hr />
       <Outlet />
-      {loading && <LoadingSpinner loading_text="토큰을 불러오는 중입니다..." />}
+      {loading && <LoadingSpinner />}
     </div>
   )
 }

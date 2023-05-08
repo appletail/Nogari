@@ -1,1 +1,1 @@
-export const whiteList: string[] = ['/contents/post']
+export const whiteList: string[] = ['/oauth/check']
