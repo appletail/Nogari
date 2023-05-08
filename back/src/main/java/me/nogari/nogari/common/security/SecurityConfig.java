@@ -96,6 +96,8 @@ public class SecurityConfig {
 				@Override
 				public void commence(HttpServletRequest request, HttpServletResponse response,
 					AuthenticationException authException) throws IOException, ServletException {
+
+					System.out.println(request.getHeader("Authorization"));
 					// 인증문제가 발생했을 때 이 부분을 호출한다.
 					response.setStatus(401);
 					response.setCharacterEncoding("utf-8");
