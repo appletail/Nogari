@@ -5,4 +5,4 @@ module.exports = {
       grid: true,
     },
   },
-};
+}
