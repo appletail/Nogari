@@ -1,6 +1,9 @@
 package me.nogari.nogari.api.service;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -63,7 +67,7 @@ public class OauthServiceImpl implements OauthService {
 				+ "client_secret="
 				+ TISTORY_CLIENT_SECRETKEY
 				+ "&"
-				+ "redirect_uri=https://localhost:3000"
+				+ "redirect_uri=http://localhost:3000/oauth/tistory"
 				+ "&"
 				+ "code="+code
 				+ "&"
@@ -221,6 +225,23 @@ public class OauthServiceImpl implements OauthService {
 		user.setNotionToken(ATK);
 
 		return response.getBody().getAccess_token();
+	}
+
+	@Override
+	public HashMap<String,Boolean> checkIfTokenIsEmpty(Member mem) {
+
+		Member member = memberRepository.findById(mem.getMemberId()).orElseThrow(
+			() -> new IllegalArgumentException()
+		);
+
+		HashMap<String,Boolean> rslt = new HashMap<>();
+
+		// 비어(null)있으면 false, 아니면 true
+		rslt.put("notion", !Objects.isNull(member.getNotionToken()) );
+		rslt.put("tistory", !Objects.isNull(member.getToken().getTistoryToken()));
+		rslt.put("github", !Objects.isNull(member.getToken().getGithubToken()));
+
+		return rslt;
 	}
 
 }

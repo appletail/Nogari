@@ -1,0 +1,10 @@
+#root {
+  width: 370px;
+  height: 345px;
+  border: 1px solid;
+  padding: 8px;
+}
+
+body {
+  margin: 0;
+}

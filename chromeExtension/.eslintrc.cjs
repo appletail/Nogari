@@ -17,7 +17,6 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:react-hooks/recommended',
-    'plugin:storybook/recommended',
     'prettier',
   ],
   overrides: [],
@@ -26,7 +25,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: ['react', '@typescript-eslint', 'import', 'react-hooks'],
+  plugins: ['react', '@typescript-eslint'],
   rules: {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
@@ -49,10 +48,6 @@ module.exports = {
         reservedFirst: true,
         multiline: 'last',
       },
-    ],
-    'react/no-unknown-property': [
-      'error',
-      { ignore: ['args', 'rotation', 'position', 'side', 'castShadow'] },
     ],
     'import/no-unresolved': 'off',
     'import/order': [
