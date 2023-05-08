@@ -16,7 +16,7 @@ function TistoryOAuth() {
           const response = await postOauthTistory(code)
           console.log(response)
         } catch (error) {
-          console.log(error)
+          // console.log(error)
         }
       }
     })()

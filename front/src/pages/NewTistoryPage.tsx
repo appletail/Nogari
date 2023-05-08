@@ -21,11 +21,6 @@ import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
 // ------------------------------------------------------------------
-const StyledContainer = styled('div')(({ theme }) => ({
-  marginTop: '100px',
-  marginLeft: '40px',
-  marginRight: '40px',
-}))
 
 function NewTistoryPage() {
   // 행이 수정될 때 사용하는 함수
@@ -88,42 +83,35 @@ function NewTistoryPage() {
         <title> Tistory </title>
       </Helmet>
 
-      <StyledContainer>
-        <Stack
-          alignItems="center"
-          direction="row"
-          // justifyContent="space-between"
-          mb={5}
-        >
-          <Stack alignItems="center" direction="row" spacing={1}>
-            <Tistory style={{ width: 24, height: 24 }} />
-            <Typography gutterBottom variant="h4">
-              Tistory
-            </Typography>
-          </Stack>
-
-          <Button color="primary" startIcon={<LoginIcon />} variant="contained">
-            로그인
-          </Button>
-          <Button onClick={onClickHandler}>Get data</Button>
+      <Stack alignItems="center" direction="row" mb={5}>
+        <Stack alignItems="center" direction="row" spacing={1}>
+          <Tistory style={{ width: 24, height: 24 }} />
+          <Typography gutterBottom variant="h4">
+            Tistory
+          </Typography>
         </Stack>
-        <Card>
-          <Scrollbar>
-            <div style={{ height: 'auto' }}>
-              <DataGrid
-                cellModesModel={cellModesModel}
-                columns={columns}
-                experimentalFeatures={{}}
-                pageSizeOptions={[100]}
-                processRowUpdate={processRowUpdate}
-                rows={rows}
-                onCellClick={handleCellClick}
-                onCellModesModelChange={handleCellModesModelChange}
-              />
-            </div>
-          </Scrollbar>
-        </Card>
-      </StyledContainer>
+
+        <Button color="primary" startIcon={<LoginIcon />} variant="contained">
+          로그인
+        </Button>
+        <Button onClick={onClickHandler}>Get data</Button>
+      </Stack>
+      <Card>
+        <Scrollbar>
+          <div style={{ height: 'auto' }}>
+            <DataGrid
+              cellModesModel={cellModesModel}
+              columns={columns}
+              experimentalFeatures={{}}
+              pageSizeOptions={[100]}
+              processRowUpdate={processRowUpdate}
+              rows={rows}
+              onCellClick={handleCellClick}
+              onCellModesModelChange={handleCellModesModelChange}
+            />
+          </div>
+        </Scrollbar>
+      </Card>
     </>
   )
 }
