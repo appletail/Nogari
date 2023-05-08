@@ -26,6 +26,7 @@ const Regex = {
 
 function SignupForm() {
   const navigate = useNavigate()
+  // 이메일 중복확인 검사
   const [emailDuplicate, setEmailDuplicate] = useState(true)
 
   // form 생성
@@ -47,14 +48,15 @@ function SignupForm() {
   const emailHandler = async () => {
     const email = watch('email')
     const emailState = getFieldState('email')
-    console.log(emailState)
 
-    if (email && !emailState.invalid) {
+    // 이메일이 있고 이메일 형식에 맞춘 경우에만 중복확인검사 실시
+    if (email && emailState.invalid) {
       try {
         const response = await getCheckEmail(email)
         if (response.data.resultCode === 200) {
           setEmailDuplicate(response.data.result)
           alert(response.data.resultMessage)
+          // console.log(emailDuplicate)
         }
       } catch (error: any) {
         console.log(error)
@@ -73,7 +75,7 @@ function SignupForm() {
     } catch (error: any) {
       console.log(error)
     }
-    // navigate('/test', { replace: true })
+    navigate('/test', { replace: true })
   }
 
   // 비밀번호 확인
@@ -97,7 +99,7 @@ function SignupForm() {
                 value: Regex.email,
                 message: '이메일 형식을 입력해주세요',
               },
-              onChange: emailHandler,
+              onBlur: emailHandler,
               validate: {
                 emailvalidate: () =>
                   !emailDuplicate || '이메일 중복확인을 해주세요',
@@ -107,6 +109,7 @@ function SignupForm() {
               label: 'Email',
             }}
           />
+
           <InputText
             control={control}
             defaultValue=""
