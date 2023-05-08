@@ -20,7 +20,7 @@ function RootLayout() {
     <div style={{ width: '100%', height: '100%' }}>
       {showLink && (
         <div>
-          바로가기 개발 끝내면 삭제할 것 (단축키 &apos;F2&apos;)
+          <p>바로가기 개발 끝내면 삭제할 것 (단축키 &apos;F2&apos;)</p>
           <button type="button" onClick={() => navigate('/index.html')}>
             Login
           </button>
