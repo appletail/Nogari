@@ -57,11 +57,12 @@ public class LambdaCallFunction {
 			 CloseableHttpResponse response = httpClient.execute(httpPost)
 		) {
 			HttpEntity entity = response.getEntity();
-			System.out.println(response);
-			System.out.println(response.getStatusLine());
+			System.out.println("★ response : " + response);
+			System.out.println("★ response.status : " + response.getStatusLine());
 			responseString = EntityUtils.toString(entity, "UTF-8");
-			System.out.println(responseString);
+			System.out.println("★ responseString : " + responseString);
 		} catch(Exception e){
+			System.out.println("★ DataIntegrity~");
 			e.printStackTrace();
 		}
 		return responseString;

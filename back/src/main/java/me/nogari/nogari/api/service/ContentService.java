@@ -16,9 +16,10 @@ public interface ContentService {
 	Object getTistoryCates(List<String> blogNameList, List<Object> categories, Member member);
 	// Object getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categories, Member member);
 
-	Object postNotionToTistory(List<PostNotionToTistoryDto> postNotionToTistoryDto, Member member);
+	// [Single Thread] : 사용자가 N개의 발행 요청시, 작업이 순차적으로 수행되어 처리시간이 N개의 요청만큼 소요된다.
+	// Object postNotionToTistory(List<PostNotionToTistoryDto> postNotionToTistoryDto, Member member);
 
-	// [Multi Thread] : 사용자가 3개의 발행 요청시, 작업이 동시에 수행되어 총 16초가 소요된다.
+	// [Multi Thread] : 사용자가 N개의 발행 요청시, 작업이 동시에 수행되어 처리시간이 기존 N초에서 (1/N)초 수준으로 단축된다.
 	Object postNotionToTistoryMultiThread(List<PostNotionToTistoryDto> PostNotionToTistoryDtoList, Member member);
 
 	List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize);

@@ -159,7 +159,7 @@ public class OauthServiceImpl implements OauthService {
 		MultiValueMap<String, String> params= new LinkedMultiValueMap<>();
 		params.add("grant_type", "authorization_code");
 		params.add("code", code);
-		params.add("redirect_uri", "https://k8c206.p.ssafy.io/oauth/notion");
+		params.add("redirect_uri", "http://localhost:3000/oauth/notion");
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
