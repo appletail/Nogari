@@ -47,7 +47,7 @@ function LoginForm() {
           'refreshToken',
           response.data.result.token.refresh_token
         )
-        navigate('/test', { replace: true })
+        navigate('/tistory', { replace: true })
       }
     } catch (error: any) {
       console.log(error)

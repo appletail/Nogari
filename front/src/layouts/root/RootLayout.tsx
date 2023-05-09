@@ -6,6 +6,7 @@ import { styled } from '@mui/material/styles'
 
 import SideBar from './sideBar/SideBar'
 
+import { postLogOut } from '@/apis/authApis'
 import Iconify from '@/components/iconify'
 import LoadingSpinner from '@/components/loading'
 import { loadingInterceptors } from '@/components/loading/LoadingInterceptors'
@@ -16,6 +17,15 @@ function RootLayout() {
     loadingInterceptors(setLoading)
   }, [])
 
+  const logoutHandler = async () => {
+    const response = await postLogOut()
+    if (response.data.resultCode === 200) {
+      sessionStorage.clear()
+      window.location.replace('/')
+    }
+    console.log(response)
+  }
+
   return (
     <>
       {/* 좌측 패딩 */}
@@ -25,7 +35,7 @@ function RootLayout() {
           <IconButton>
             <Iconify icon={'ic:baseline-search'} />
           </IconButton>
-          <IconButton>
+          <IconButton onClick={logoutHandler}>
             <Iconify icon={'ic:baseline-logout'} />
           </IconButton>
         </Stack>
