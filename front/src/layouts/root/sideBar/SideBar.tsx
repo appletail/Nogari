@@ -1,6 +1,8 @@
 // @mui
 import { useEffect, useState } from 'react'
 
+import { useQuery } from 'react-query'
+
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 
@@ -12,6 +14,7 @@ import { NavContent, NavConnectedSite } from './styles'
 import account from '@/_mock/account'
 
 // hooks
+import { getOauthStatus } from '@/apis/OauthApis'
 import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
@@ -34,6 +37,12 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
+  const { data } = useQuery('oauths', getOauthStatus, {
+    onSuccess: (data) => {
+      console.log(data)
+    },
+  })
+
   const [isLogins, setIsLogins] = useState({
     notion: false,
     tistory: false,
