@@ -148,6 +148,7 @@ public class MemberServiceImpl implements MemberService {
 		}
 	}
 
+	@Override
 	public JWTDto refreshAccessToken(JWTDto token) throws Exception {
 		String email = jwtProvider.getEmail(token.getAccess_token());
 		Member member = memberRepository.findByEmail(email).orElseThrow(() ->
