@@ -42,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.aws.LambdaCallFunction;
 import me.nogari.nogari.api.aws.LambdaResponse;
 import me.nogari.nogari.api.aws.awsLambdaCallable;
+import me.nogari.nogari.api.aws.awsLambdaCallableGithub;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
@@ -502,70 +503,132 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	public Object postNotionToGithubMultiThread(List<PostNotionToGithubDto> postNotionToGithubDtoList, Member member) {
+		// 각 Request에 대한 Response 메시지를 저장하는 리스트
+		List<Map<String, Object>> responseList = new ArrayList<>();
+
 		// 초기 스레드 수 : 0, 코어 스레드 수 : 0, 최대 스레드 수 : Integer.MAX_VALUE
 		// 추가된 스레드가 60초동안 아무 작업을 수행하지 않으면 ThreadPool에서 제거한다.
 		executorService = Executors.newCachedThreadPool();
 
+		// JAVA의 Future 인터페이스의 비동기 작업은 결과의 순서를 보장하지 않기 때문에, 완료된 작업의 결과를 순서대로 제공받기 위해 ExecutorCompletionService를 이용한다.
+		ExecutorCompletionService<LambdaResponse> completionService = new ExecutorCompletionService<>(executorService);
+
 		// 각 Thread별 실행결과를 반환받는 Future 리스트
 		// Future 객체는 다른 스레드들의 연산 결과를 반환받기 위해 사용하는 지연 완료 객체 (Pending Completion Object)이다.
 		List<Future<?>> futureList = new ArrayList<>();
-		List<Github> githubList = new ArrayList<>();
-		List<String[]> responseLinkList = new ArrayList<>();
 
-		String notionToken = member.getNotionToken();
+		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
+		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToGithubDtoList.size()];
 
-		for(PostNotionToGithubDto githubPosting : postNotionToGithubDtoList){
-			if(githubPosting.getStatus().equals("발행요청")){
-				// STEP1. [발행요청] Tistory 객체 DB 저장
+		for(int i=0; i<postNotionToGithubDtoList.size(); i++){
+			PostNotionToGithubDto post = postNotionToGithubDtoList.get(i);
+			Map<String, Object> responseBody = new HashMap<>();
+
+			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
+			boolean testFlag = false;
+
+			// 발행상태 변화도 : 발행요청, 발행실패 -> 발행완료 <-> 수정요청 <- 수정실패
+			// 1. [발행요청]은 사용자가 신규로 생성한 튜플에 대해서만 가능하다. -> requestLink를 검사한다.
+			// 2. [발행실패]는 [발행요청]에 실패한 튜플로, 다시 [발행요청]을 시도한다. -> requestLink를 검사한다.
+			// 3. [발행완료]는 [발행요청] 및 [발행실패]에 대해 발행이 완료된 상태로, [수정요청]이 가능하다. -> 아무 작업도 수행하지 않는다.
+			// 4. [수정요청]은 사용자가 이미 발행했던 [발행완료] 튜플에 대해서만 가능하다. -> requestLink, responseLink를 검사한다.
+			// 5. [수정실패]는 [수정요청]에 실패한 튜플로, 다시 [수정요청]을 시도한다. -> requestLink, responseLink를 검사한다.
+
+			if(post.getStatus().equals("발행요청") || post.getStatus().equals("발행실패")){
+				// STEP2. 클라이언트의 발행요청을 데이터베이스에 저장한다.
 				Github github = Github.builder()
-					.repository(githubPosting.getRepository())
-					.requestLink(githubPosting.getRequestLink())
-					.categoryName(githubPosting.getCategoryName())
-					.filename(githubPosting.getFilename())
+					.repository(post.getRepository())
+					.requestLink(post.getRequestLink())
+					.categoryName(post.getCategoryName())
+					.filename(post.getFilename())
 					.status("발행요청")
 					//					.title(githubPosting.getTitle())
 					.member(member)
 					.build();
 				githubRepository.save(github);
-				githubList.add(github);
 
-				// STEP2. [awsLambdaAndTistoryPost] AWS Lambda 호출 및 각 스레드별 FutureList 추가
-				Future<?> future = executorService.submit(() -> {
-					responseLinkList.add(awsLambdaAndGithubPost(notionToken, githubPosting, member));
-				});
-				futureList.add(future);
+
+				// STEP3. 클라이언트로부터 전달받은 입력값을 검사한다.
+				testFlag = conditionCheckGithub(post);
+
+				// STEP4-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
+				if(testFlag){
+					try{
+						Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallableGithub(i, post, github, member);
+						Future<?> future = completionService.submit(postLambdaCallable);
+						futureList.add(future);
+					} catch(Exception e){
+						// Exception : 기타 예외의 경우
+						e.printStackTrace();
+					}
+				}
+				// STEP4-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
+				else{
+					responseBody.put("requestIndex", (i+1));
+					responseBody.put("resultCode", 400);
+					responseBody.put("resultMessage", "[발행실패] 입력 값이 올바르지 않습니다.");
+					responseList.add(responseBody);
+
+					github.setStatus("발행실패");
+				}
 			}
-			// else if(githubPosting.getStatus().equals("수정요청")){
-			// 	// Tistory DTO에 ResponseLink가 제공되는 경우만 수정을 진행한다.
-			// 	if(!githubPosting.getResponseLink().equals("")){
-			// 		// STEP1. [수정요청] Tistory 객체 조회
-			// 		Tistory tistory = tistoryRepository.findByResponseLink(githubPosting.getResponseLink());
-			// 		tistory.setRequestLink(tistoryPosting.getRequestLink());
-			// 		tistory.setStatus("수정요청");
-			// 		tistoryList.add(tistory);
-			//
-			// 		// STEP2. [awsLambdaAndTistoryModify] AWS Lambda 호출 및 각 스레드별 FutureList 추가
-			// 		Future<?> future = executorService.submit(() -> {
-			// 			try{
-			// 				responseLinkList.add(awsLambdaAndTistoryModify(tistory.getPostId(), notionToken, tistoryPosting, member));
-			// 			} catch(HttpClientErrorException e){
-			// 				// 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
-			// 				tistory.setStatus("수정실패");
-			// 			} catch(JsonParseException e){
-			// 				// 입력값이 정상적으로 입력되지 않은 경우
-			// 				tistory.setStatus("수정실패");
-			// 			} catch(Exception e){
-			// 				e.printStackTrace();
-			// 				tistory.setStatus("수정실패");
-			// 			}
-			// 		});
-			// 		futureList.add(future);
-			// 	}
-			// }
+			else if(post.getStatus().equals("발행완료")){
+				responseBody.put("requestIndex", (i+1));
+				responseBody.put("resultCode", 200);
+				responseBody.put("resultMessage", "[발행완료] 이미 발행 완료된 페이지입니다.");
+				responseList.add(responseBody);
+			}
+			else if(post.getStatus().equals("수정요청") || post.getStatus().equals("수정실패")){
+				// STEP2. 클라이언트로부터 전달받은 입력값을 검사한다.
+				testFlag = conditionCheckGithub(post);
+
+				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
+				if(testFlag){
+					// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
+					try{
+						Github github = githubRepository.findByResponseLink(post.getResponseLink());
+						github.setRequestLink(post.getRequestLink());
+						github.setStatus("수정요청");
+
+						Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, github, member);
+						Future<?> future = completionService.submit(awsLambdaCallable);
+						futureList.add(future);
+					} catch(Exception e){
+						// HttpClientErrorException : 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
+						// JsonParseException : 입력값이 정상적으로 입력되지 않은 경우
+						// NullPointerException : responseLink가 잘못 입력된 경우
+						// Exception : 기타 예외의 경우
+						responseBody.put("requestIndex", (i+1));
+						responseBody.put("resultCode", 400);
+						responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+						responseList.add(responseBody);
+					}
+				}
+				// STEP3-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
+				else{
+					try{
+						responseBody.put("requestIndex", (i+1));
+						responseBody.put("resultCode", 400);
+						responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+						responseList.add(responseBody);
+
+						Github github = githubRepository.findByResponseLink(post.getResponseLink());
+						github.setStatus("수정실패");
+					} catch(NullPointerException e){
+						// NullPointerException : responseLink가 잘못 입력된 경우
+					}
+				}
+			}
+			else{
+				responseBody.put("requestIndex", (i+1));
+				responseBody.put("resultCode", 400);
+				responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 요청의 상태 값이 올바르지 않습니다.");
+				responseList.add(responseBody);
+			}
 		}
 		System.out.println(executorService);
 
-		// STEP3. ExecutorService 종료 및 모든 스레드의 실행이 종료될 때까지 대기
+		// STEP3. ExecutorService 종료 및 모든 스레드의 실행이 종료될 때까지 대기한다.
 		try {
 			// ThreadPool에 대한 추가적인 Task 제출을 막는다.
 			executorService.shutdown();
@@ -576,34 +639,124 @@ public class ContentServiceImpl implements ContentService {
 			e.printStackTrace();
 		}
 
-		// STEP4. [발행완료|발행실패] Tistory 발행 상태 DB 갱신
+		// STEP4.
 		// 각 발행 요청 스레드별 연산 결과를 모두 반환 받을때까지 대기하기 위해, future.get()을 사용한다.
 		// 서브 스레드별 연산 결과를 모두 반환 받을때까지 메인 스레드의 실행 흐름을 잠시 Block한다.
-		// int index = 0;
-		// for (Future<?> f : futureList) {
-		// 	try {
-		// 		f.get();
-		// 		tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
-		// 		tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
-		// 		tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
-		// 		tistoryList.get(index++).setStatus("발행완료");
-		// 	} catch (InterruptedException e) {
-		// 		e.printStackTrace();
-		// 		tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
-		// 		tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
-		// 		tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
-		// 		tistoryList.get(index++).setStatus("발행실패");
-		// 	} catch (ExecutionException e){
-		// 		e.printStackTrace();
-		// 		tistoryList.get(index).setResponseLink(responseLinkList.get(index)[0]);
-		// 		tistoryList.get(index).setPostId(Long.parseLong(responseLinkList.get(index)[1]));
-		// 		tistoryList.get(index).setTitle(responseLinkList.get(index)[2]);
-		// 		tistoryList.get(index++).setStatus("발행실패");
-		// 	} catch (IndexOutOfBoundsException e){
-		// 		tistoryList.get(index++).setStatus("수정실패");
-		// 	}
-		// }
-		return null;
+		// 멀티스레드의 비동기 연산에 따른 무작위 발행을 막기 위해, 먼저 Http Response 패킷만 전부 받아두고, 순차적으로 발행 및 수정한다.
+		for (Future<?> f : futureList) {
+			Map<String, Object> responseBody = new HashMap<>();
+			try {
+				Future<LambdaResponse> completedFuture = completionService.take();
+				lambdaResponses[completedFuture.get().getIndex()] = completedFuture.get();
+			} catch (Exception e){
+				e.printStackTrace();
+			}
+		}
+
+		// STEP5. 요청상태에 따라 순차적으로 github 발행 및 수정을 수행한다.
+		// AWS Lambda 파싱에 실패한 경우에 대해서는 오류 메시지를 기록한다.
+		RestTemplate rt = new RestTemplate();
+		for(int i=0; i<lambdaResponses.length; i++){
+			Map<String, Object> responseBody = new HashMap<>();
+			ResponseEntity<String> response = null;
+			String tistoryRequestURL = "";
+			rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+
+			// 조건검사에 위배되거나, 예외가 발생한 요청에 해당한다.
+			if(lambdaResponses[i]==null){
+				continue;
+			}
+
+			// STEP5-1. Tistory Post API
+			if(lambdaResponses[i].getTistory().getStatus().equals("발행요청")){
+				tistoryRequestURL = "https://www.tistory.com/apis/post/write";
+				try{
+					response = rt.exchange(
+						tistoryRequestURL,
+						HttpMethod.POST,
+						lambdaResponses[i].getTistoryRequest(),
+						String.class
+					);
+
+					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
+					String tistoryResponse = response.toString(); // Tistory API의 응답
+					Document doc = Jsoup.parse(tistoryResponse);
+					lambdaResponses[i].getTistory().setResponseLink(doc.select("url").text()); // Tistory에 게시된 게시글 링크
+					lambdaResponses[i].getTistory().setPostId(Long.parseLong(doc.select("postId").text())); // Tistory에 게시된 게시글 번호
+					lambdaResponses[i].getTistory().setStatus("발행완료");
+
+					responseBody.put("requestIndex", i+1);
+					responseBody.put("resultCode", 200);
+					responseBody.put("resultMessage", "[발행완료] Tistory 게시물 발행이 정상적으로 완료되었습니다."
+						+ lambdaResponses[i].getTistory().getPostId());
+					responseList.add(responseBody);
+				} catch(HttpClientErrorException e){
+					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
+					// Case1. BlogName Error (HttpClientErrorException)
+					lambdaResponses[i].getTistory().setStatus("발행실패");
+
+					responseBody.put("requestIndex", i+1);
+					responseBody.put("resultCode", 400);
+					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 작성중 에러가 발생했습니다. (페이지 접근 권한이 없거나, 블로그 이름이 일치하지 않습니다.)");
+					responseList.add(responseBody);
+				}
+			}
+			// STEP5-2. Tistory Modify API
+			// [Exception] 사용자가 동일한 Tistory 게시글에 여러번 수정요청을 날리는 경우
+			// 프론트엔드 테이블 구조상 하나의 Tistory 게시글에 대한 수정요청은 한번만 가능하므로, 해당 경우에 대해서는 고려하지 않아도 된다.
+			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Tistory Modify API에 전달되지 않는다.
+			else if(lambdaResponses[i].getTistory().getStatus().equals("수정요청")){
+				tistoryRequestURL = "https://www.tistory.com/apis/post/modify";
+				try{
+					response = rt.exchange(
+						tistoryRequestURL,
+						HttpMethod.POST,
+						lambdaResponses[i].getTistoryRequest(),
+						String.class
+					);
+
+					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
+					lambdaResponses[i].getTistory().setStatus("발행완료");
+
+					responseBody.put("requestIndex", i+1);
+					responseBody.put("resultCode", 200);
+					responseBody.put("resultMessage", "[발행완료] Tistory 게시물 수정이 정상적으로 완료되었습니다."
+						+ lambdaResponses[i].getTistory().getPostId());
+					responseList.add(responseBody);
+				} catch(HttpClientErrorException e){
+					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
+					// Case1. BlogName Error (HttpClientErrorException)
+					lambdaResponses[i].getTistory().setStatus("발행실패");
+
+					responseBody.put("requestIndex", i+1);
+					responseBody.put("resultCode", 400);
+					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 블로그 이름이 일치하지 않습니다.)"
+						+ lambdaResponses[i].getTistory().getPostId());
+					responseList.add(responseBody);
+				}
+			}
+		}
+
+		for(int i=0; i<lambdaResponses.length; i++){
+			if(lambdaResponses[i]==null){
+				System.out.println((i+1) + " " + "에러가 발생한 게시글");
+			}
+			else{
+				System.out.println((i+1) + " " + lambdaResponses[i].getTistory().getResponseLink());
+			}
+		}
+
+		// 입력값이 잘못 전달된 요청에 대한 응답이 정상 발행되는 요청의 응답보다 먼저 출력되는 문제를 해결하기 위해, requestIndex 오름차순으로 정렬한다.
+		Collections.sort(responseList, new Comparator<Map<String, Object>>() {
+			@Override
+			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+				int requestIndex1 = (int) o1.get("requestIndex");
+				int requestIndex2 = (int) o2.get("requestIndex");
+				return Integer.compare(requestIndex1, requestIndex2);
+			}
+		});
+
+		return new ResponseEntity<>(responseList, HttpStatus.OK);
 	}
 
 	public boolean conditionCheck(PostNotionToTistoryDto p){
@@ -641,6 +794,42 @@ public class ContentServiceImpl implements ContentService {
 								testResult = true;
 							}
 						}
+					}
+				}
+			}
+		}
+
+		return testResult;
+	}
+	public boolean conditionCheckGithub(PostNotionToGithubDto p){
+		boolean testResult = false;
+
+		if(p.getStatus().equals("발행요청") || p.getStatus().equals("발행실패")){
+			// STEP1-1. 발행요청, 발행실패의 경우 blogName은 공백이 아니어야한다.
+			if(!p.getRepository().equals("")){
+				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
+				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
+					// STEP3-1. 발행요청, 발행실패의 경우 responseLink에 대해서는 검사하지 않는다.
+						// STEP5. type은 'md' 혹은 'html'이어야한다.
+						if(p.getType().equals("md") || p.getType().equals("html")){
+							// STEP6. categoryName, tagList는 별도의 조건이 없다.
+							testResult = true;
+						}
+				}
+			}
+		}
+		else if(p.getStatus().equals("수정요청") || p.getStatus().equals("수정실패")){
+			// STEP1-2. 수정요청, 수정실패의 경우 title ,blogName은 공백이 아니어야한다.
+			if(!p.getType().equals("") && !p.getRepository().equals("")){
+				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
+				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
+					// STEP3-2. 수정요청, 수정실패에 대해서는 responseLink가 공백이 아닌지 검사한다.
+					if(!p.getResponseLink().equals("")){
+							// STEP5. type은 'md' 혹은 'html'이어야한다.
+							if(p.getType().equals("md") || p.getType().equals("html")){
+								// STEP6. categoryName, tagList는 별도의 조건이 없다.
+								testResult = true;
+							}
 					}
 				}
 			}

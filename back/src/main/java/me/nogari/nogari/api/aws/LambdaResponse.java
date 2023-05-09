@@ -1,24 +1,43 @@
 package me.nogari.nogari.api.aws;
 
+import java.util.Map;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.util.MultiValueMap;
 
+import lombok.Builder;
+import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Tistory;
 
 public class LambdaResponse {
 	private int index;
 	private Tistory tistory;
 	private HttpEntity<MultiValueMap<String, String>> tistoryRequest;
+	private Github github;
+	private HttpEntity<Map<String, String>> githubRequest;
+
 
 	public LambdaResponse() {
 		this.index = 0;
 		this.tistory = null;
 		this.tistoryRequest = null;
+		this.github = null;
+		this.githubRequest = null;
 	}
 
 	public LambdaResponse(int index, Tistory tistory) {
 		this.index = index;
 		this.tistory = tistory;
+		this.tistoryRequest = null;
+		this.github = null;
+		this.githubRequest = null;
+	}
+
+	public LambdaResponse(int index, Github github) {
+		this.index = index;
+		this.github = github;
+		this.githubRequest = null;
+		this.tistory = null;
 		this.tistoryRequest = null;
 	}
 
@@ -26,6 +45,23 @@ public class LambdaResponse {
 		this.index = index;
 		this.tistory = tistory;
 		this.tistoryRequest = tistoryRequest;
+	}
+
+	public Github getGithub() {
+		return github;
+	}
+
+	public void setGithub(Github github) {
+		this.github = github;
+	}
+
+	public HttpEntity<Map<String, String>> getGithubRequest() {
+		return githubRequest;
+	}
+
+	public void setGithubRequest(
+		HttpEntity<Map<String, String>> githubRequest) {
+		this.githubRequest = githubRequest;
 	}
 
 	public Tistory getTistory() {

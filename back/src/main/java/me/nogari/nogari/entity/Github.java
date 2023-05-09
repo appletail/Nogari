@@ -13,9 +13,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -38,8 +40,8 @@ public class Github extends BaseTimeEntity {
 	@Column(name = "request_link", length = 300, nullable = false)
 	private String requestLink; //요청링크
 
-	@Column(name = "link", length = 300)
-	private String link; //발행링크
+	@Column(name = "link", length = 300, unique=true)
+	private String responseLink; //발행링크
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
