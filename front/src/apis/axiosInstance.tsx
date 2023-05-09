@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 import axios, { AxiosInstance } from 'axios'
 
 const BASE_URL = `${import.meta.env.VITE_SERVER_URL}` // 로컬 서버
@@ -31,25 +33,31 @@ axAuth.interceptors.response.use(
       config,
       response: { status },
     } = error
-
     const originRequest = config
     if (status === 401) {
       try {
         const tokenResponse = await postRefreshToken()
-        console.log('----------------------------------')
-        console.log(tokenResponse)
-        console.log('------------------------------------')
-        // const resultCode = tokenResponse.data.resultCode
+        const responseCode = tokenResponse.data.resultCode
+        // refresh token으로 access token 재발급
+        if (responseCode === 200) {
+          const newAccessToken = tokenResponse.data.result.access_token
+          sessionStorage.setItem(
+            'accessToken',
+            tokenResponse.data.result.access_token
+          )
+          axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
+          originRequest.headers.Authorization = `Bearer ${newAccessToken}`
+          return axios(originRequest)
+        }
 
-        const newAccessToken = tokenResponse.data.result.access_token
-        sessionStorage.setItem(
-          'accessToken',
-          tokenResponse.data.result.access_token
-        )
-        axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
-        originRequest.headers.Authorization = `Bearer ${newAccessToken}`
-        return axios(originRequest)
+        // refresh token이 만료되어 다시 로그인이 필요함
+        else if (responseCode === 408) {
+          alert(tokenResponse.data.resultMessage)
+          const navigate = useNavigate()
+          navigate('/')
+        }
       } catch (error) {
+        console.log('=======axios error==========')
         console.log(error)
       }
     }
