@@ -9,7 +9,7 @@ import { styled, alpha } from '@mui/material/styles'
 // mock
 import { navConfig, settingConfig, connectedConfig } from './config'
 
-import { NavContent, NavConnectedSite } from './styles'
+import { StyledNavContent, StyledNavConnectedSite } from './styles'
 
 import account from '@/_mock/account'
 
@@ -37,31 +37,7 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
-  const { data } = useQuery('oauths', getOauthStatus, {
-    onSuccess: (data) => {
-      console.log(data)
-    },
-  })
-
-  const [isLogins, setIsLogins] = useState({
-    notion: false,
-    tistory: false,
-    github: false,
-  })
-
-  useEffect(() => {
-    const notion = sessionStorage.getItem('notion')
-    const tistory = sessionStorage.getItem('tistory')
-    const github = sessionStorage.getItem('github')
-
-    const isLogin = {
-      notion: notion ? true : false,
-      tistory: tistory ? true : false,
-      github: github ? true : false,
-    }
-
-    setIsLogins(isLogin)
-  }, [])
+  const { data } = useQuery('oauths', getOauthStatus)
 
   const renderContent = (
     <>
@@ -86,20 +62,20 @@ export default function Nav() {
           </StyledAccount>
         </Link>
       </Box>
-      <NavContent>
+      <StyledNavContent>
         <NavSection data={navConfig} />
         <div>
           <div style={{ padding: '0 22px' }}>
             <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
-            <NavConnectedSite>
+            <StyledNavConnectedSite>
               <ConnectedSection
                 data={connectedConfig(
-                  isLogins.notion,
-                  isLogins.tistory,
-                  isLogins.github
+                  data?.data.result.notion,
+                  data?.data.result.tistory,
+                  data?.data.result.github
                 )}
               />
-            </NavConnectedSite>
+            </StyledNavConnectedSite>
           </div>
           <div
             style={{
@@ -111,7 +87,7 @@ export default function Nav() {
           ></div>
           <SettingSection data={settingConfig} />
         </div>
-      </NavContent>
+      </StyledNavContent>
     </>
   )
 
