@@ -79,7 +79,7 @@ function SignupForm() {
     } catch (error: any) {
       console.log(error)
     }
-    navigate('/test', { replace: true })
+    navigate('/', { replace: true })
   }
 
   // 비밀번호 확인

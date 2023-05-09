@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async'
 import { faker } from '@faker-js/faker'
 import LoginIcon from '@mui/icons-material/Login'
 import { Card, Stack, Button, Typography } from '@mui/material'
-import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
@@ -23,10 +22,10 @@ import Scrollbar from '@/components/scrollbar/Scrollbar'
 // ------------------------------------------------------------------
 
 function NewTistoryPage() {
-  // 행이 수정될 때 사용하는 함수
   const [rows, setRows] = useState(predefinedRows)
   const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
+  // 행이 수정될 때 사용하는 함수
   const processRowUpdate = (newRow: any, oldRow: any) => {
     setRows((prevRows) => {
       const newRows = [...prevRows].map((row) => {
@@ -38,6 +37,8 @@ function NewTistoryPage() {
     // the DataGrid expects the newRow as well
     return newRow
   }
+
+  // data 제출 시에 사용하는 함수
   const onClickHandler = () => {
     console.log(rows)
   }
