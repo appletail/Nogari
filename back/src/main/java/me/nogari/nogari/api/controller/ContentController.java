@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -222,9 +223,11 @@ public class ContentController {
 	@ResponseBody
 	@GetMapping("/git/repoList")
 	@Operation(summary = "get github repo list")
-	public List<Repository> gitRepoList() throws GitAPIException, IOException {
-		// Create a GitHub client and set the access token
-		String ATK = "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";
+	public List<String> gitRepoList(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) throws GitAPIException, IOException {
+
+		Member member = customUserDetails.getMember();
+		String ATK = member.getToken().getGithubToken();
 
 		GitHubClient client = new GitHubClient();
 		client.setOAuth2Token(ATK);
@@ -232,15 +235,16 @@ public class ContentController {
 		// RepositoryService 생성
 		RepositoryService repoService = new RepositoryService(client);
 
+		List<String> repositoryList = new ArrayList<>();
 		// 유저의 repositories 리스트 가져오기
 		List<Repository> repositories = repoService.getRepositories();
 		for (Repository repo : repositories) {
 			System.out.println(repo.getName());
+			repositoryList.add(repo.getName());
 		}
 
-		return repoService.getRepositories();
+		return repositoryList;
 	}
-
 	@ResponseBody
 	@PostMapping("/post")
 	@Operation(summary = "노션 게시글 티스토리 발행")
