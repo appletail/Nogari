@@ -263,14 +263,14 @@ public class ContentController {
 			return BaseResponse.builder()
 				.result(contentService.postNotionToTistoryMultiThread(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
+				.resultMsg("Nogari Tistory POST API가 정상적으로 실행되었습니다.")
 				.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다.")
+				.resultMsg("Nogari Tistory POST API가 실행되는 과정에서 오류가 발생했습니다.")
 				.build();
 		}
 	}
