@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-// import { axAuth } from '@/apis/axiosInstance'
 import { postOauthTistory } from '@/apis/OauthApis'
 
 function TistoryOAuth() {
@@ -14,14 +13,22 @@ function TistoryOAuth() {
       if (code) {
         try {
           const response = await postOauthTistory(code)
+          console.log('======success======')
           console.log(response)
+          const resultCode = response.data.resultCode
+          if (resultCode === 200) {
+            alert('티스토리 연동이 완료되었습니다.')
+            sessionStorage.setItem('tistory', 'true')
+            navigate('/tistory')
+          }
         } catch (error) {
+          console.log('======error======')
           console.log(error)
         }
       }
     })()
   }, [searchParams])
-  return <div>TistoryOAuth</div>
+  return <></>
 }
 
 export default TistoryOAuth
