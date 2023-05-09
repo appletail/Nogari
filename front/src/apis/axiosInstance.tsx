@@ -15,7 +15,7 @@ export const axAuth = axios.create({
 
 // refresh token 으로 갱신 필요한 경우
 function postRefreshToken() {
-  const response = axAuth.post('/members/refresh', {
+  const response = axBase.post('/members/refresh', {
     access_token: sessionStorage.getItem('accessToken'),
     refresh_token: sessionStorage.getItem('refreshToken'),
   })
