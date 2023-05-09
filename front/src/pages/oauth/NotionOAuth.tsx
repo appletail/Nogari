@@ -13,16 +13,12 @@ function NotionOAuth() {
       if (code) {
         try {
           const response = await postOauthNotion(code)
-          console.log('======success======')
-          console.log(response)
           const resultCode = response.data.resultCode
           if (resultCode === 200) {
             alert('노션 연동이 완료되었습니다.')
-            sessionStorage.setItem('notion', 'true')
             navigate('/tistory')
           }
         } catch (error) {
-          console.log('======error======')
           console.log(error)
         }
       }

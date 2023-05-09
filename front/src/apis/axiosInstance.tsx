@@ -58,7 +58,7 @@ axAuth.interceptors.response.use(
           window.location.replace('/')
         }
       } catch (error) {
-        console.log('=======axios error==========')
+        // console.log('=======axios error==========')
         console.log(error)
       }
     }
