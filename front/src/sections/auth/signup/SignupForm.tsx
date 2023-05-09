@@ -26,6 +26,7 @@ const Regex = {
 
 function SignupForm() {
   const navigate = useNavigate()
+  // 이메일 중복확인 검사
   const [emailDuplicate, setEmailDuplicate] = useState(true)
 
   // form 생성
@@ -35,6 +36,7 @@ function SignupForm() {
     handleSubmit,
     formState: { isValid },
     getFieldState,
+    clearErrors,
   } = useForm<ILoginValue>({
     mode: 'all',
   })
@@ -47,14 +49,17 @@ function SignupForm() {
   const emailHandler = async () => {
     const email = watch('email')
     const emailState = getFieldState('email')
-    console.log(emailState)
 
-    if (email && !emailState.invalid) {
+    // 이메일이 없거나 이메일 형식에 안맞는 경우 return
+    if (email && emailState.error?.type == 'emailvalidate') {
       try {
         const response = await getCheckEmail(email)
         if (response.data.resultCode === 200) {
           setEmailDuplicate(response.data.result)
           alert(response.data.resultMessage)
+          if (!response.data.result) {
+            clearErrors('email')
+          }
         }
       } catch (error: any) {
         console.log(error)
@@ -73,7 +78,7 @@ function SignupForm() {
     } catch (error: any) {
       console.log(error)
     }
-    // navigate('/test', { replace: true })
+    navigate('/test', { replace: true })
   }
 
   // 비밀번호 확인
@@ -97,16 +102,28 @@ function SignupForm() {
                 value: Regex.email,
                 message: '이메일 형식을 입력해주세요',
               },
-              onChange: emailHandler,
               validate: {
                 emailvalidate: () =>
                   !emailDuplicate || '이메일 중복확인을 해주세요',
               },
+              onChange: () => {
+                setEmailDuplicate(true)
+              },
             }}
             textFieldProps={{
               label: 'Email',
+              InputProps: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <LoadingButton onClick={emailHandler}>
+                      중복검사
+                    </LoadingButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
+
           <InputText
             control={control}
             defaultValue=""

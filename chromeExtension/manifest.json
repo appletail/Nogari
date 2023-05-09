@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "nogari (노션에서 가는 이야기)",
+  "description": "버튼 클릭 한 번으로 미리 설정한 티스토리 블로그로 게시글이 발행됩니다.",
+  "version": "0.0.1",
+  "icons": {
+    "16": "src/assets/icons/nogari_fish.png",
+    "32": "src/assets/icons/nogari_fish.png",
+    "48": "src/assets/icons/nogari_fish.png",
+    "128": "src/assets/icons/nogari_fish.png"
+  },
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.blogger.com/",
+    "https://*.google.com/"
+  ]
+}

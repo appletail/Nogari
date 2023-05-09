@@ -66,7 +66,11 @@ function LoginPage() {
 
             <Typography sx={{ mb: 5 }} variant="body2">
               아직 계정이 없으신가요? {''}
-              <Link variant="subtitle2" onClick={() => navigate('/signup')}>
+              <Link
+                style={{ cursor: 'pointer' }}
+                variant="subtitle2"
+                onClick={() => navigate('/signup')}
+              >
                 회원가입 하기
               </Link>
             </Typography>
