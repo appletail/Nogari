@@ -40,9 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.aws.LambdaCallFunction;
+import me.nogari.nogari.api.request.PaginationDto;
 import me.nogari.nogari.api.aws.LambdaResponse;
 import me.nogari.nogari.api.aws.awsLambdaCallable;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
+
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
@@ -58,6 +60,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.gson.JsonParseException;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQuery;
 
 import me.nogari.nogari.repository.TistoryRepositoryCust;
 
@@ -123,7 +129,6 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	// public HashMap<String, List<Object>> getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categoriesList, Member member){
 	public List<Object> getTistoryCates(List<String> blogNameList, List<Object> categoriesList, Member member) {
 
 		// 토큰에서 tistory accesstoken 받아오기
@@ -182,11 +187,25 @@ public class ContentServiceImpl implements ContentService {
 		return categoriesList;
 	}
 
-	@Override
-	public List<Object> getTistoryList(String filter, Member member) {
+	// @Override
+	// public List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize) {
+	//
+	// 	// 무한스크롤 최초 id는 알 수 없으므로 -1을 받아, null로 처리
+	// 	if (lastTistoryId == -1) {
+	// 		lastTistoryId = null;
+	// 	}
+	//
+	// 	List<Tistory> contents = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
+	//
+	// 	return contents.stream()
+	// 		.map(content -> new TistoryContentResponseDto(content))
+	// 		.collect(Collectors.toList());
+	// }
 
-		// 티스토리 발행 이력
-		List<TistoryResponseInterface> tistoryList = new ArrayList<>();
+	@Override
+	public List<Object> getTistoryList(PaginationDto paginationDto, Member member) {
+
+		Long lastTistoryId = paginationDto.getLastTistoryId();
 
 		// 멤버의 블로그이름 리스트
 		List<String> blogNameList = new ArrayList<>();
@@ -194,25 +213,22 @@ public class ContentServiceImpl implements ContentService {
 		// 블로그별 카테고리 리스트
 		List<Object> categoriesList = new ArrayList<>();
 
-		if (filter.equals("오래된순")) {
-			tistoryList = tistoryRepository.sortTistoryByOldest(member.getMemberId()).orElseThrow(() -> {
-				return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-			});
-		} else {
-			tistoryList = tistoryRepository.sortTistoryByNewest(member.getMemberId()).orElseThrow(() -> {
-				return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-			});
+		// 티스토리 발행 이력
+		// List<TistoryResponseInterface> tistoryList = new ArrayList<>();
+
+		// 첫 호출인 경우 블로그이름 리스트, 카테고리 리스트와 같이 반환
+		if (lastTistoryId == -1) {
+			lastTistoryId = null;
+			blogNameList = getTistoryBlogName(blogNameList, member);
+			categoriesList = getTistoryCates(blogNameList, categoriesList, member);
 		}
 
-		blogNameList = getTistoryBlogName(blogNameList, member);
-		categoriesList = getTistoryCates(blogNameList, categoriesList, member);
+		List<TistoryContentResponseDto> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(paginationDto, member);
 
 		List<Object> rslt = new ArrayList<>();
 		rslt.add(tistoryList);
 		rslt.add(blogNameList);
-
 		rslt.add(categoriesList);
-		// System.out.println(rslt);
 
 		return rslt;
 	}
@@ -650,23 +666,10 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	public List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize) {
-
-		// 무한스크롤 최초 id는 알 수 없으므로 -1을 받아, null로 처리
-		if (lastTistoryId == -1) {
-			lastTistoryId = null;
-		}
-
-		List<Tistory> contents = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
-
-		return contents.stream()
-			.map(content -> new TistoryContentResponseDto(content))
-			.collect(Collectors.toList());
-	}
-
 	public void upload(PostNotionToGithubDto githubPosting, Member member, String title, String content) throws IOException {
 		System.out.println("upload 시작");
 		System.out.println("upload title : " + title);
+
 		RestTemplate rt = new RestTemplate();
 		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 

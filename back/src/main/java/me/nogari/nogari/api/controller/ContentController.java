@@ -37,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.PaginationDto;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.BaseResponse;
@@ -53,9 +54,9 @@ public class ContentController {
 	private ContentServiceImpl contentService;
 
 	@ResponseBody
-	@GetMapping("/sort")
-	@Operation(summary = "티스토리 발행 내역 리스트 조회")
-	public BaseResponse<Object> getTistoryListByFilter(@RequestParam String filter,
+	@GetMapping("/tistory")
+	@Operation(summary = "티스토리 무한스크롤 발행 내역 리스트 검색 및 조회")
+	public BaseResponse<Object> getTistoryListByFilter(@RequestBody PaginationDto paginationDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		// security session에 있는 유저 정보를 가져온다
@@ -73,7 +74,7 @@ public class ContentController {
 
 		try {
 			return BaseResponse.builder()
-				.result(contentService.getTistoryList(filter, member))
+				.result(contentService.getTistoryList(paginationDto, member))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 티스토리 발행 내역 조회 성공")
 				.build();
@@ -279,15 +280,6 @@ public class ContentController {
 		}
 	}
 
-	@GetMapping("/tistory")
-	public BaseResponse<Object> getTistoryContents(@RequestParam Long lastTistoryId, @RequestParam int pageSize) {
-		return BaseResponse.builder()
-			.result(contentService.getTistoryContents(lastTistoryId, pageSize))
-			.resultCode(HttpStatus.OK.value())
-			.resultMsg("무한스크롤 조회 성공")
-			.build();
-	}
-	
 	@ResponseBody
 	@PostMapping("/git/post")
 	@Operation(summary = "깃허브 게시글 티스토리 발행")
