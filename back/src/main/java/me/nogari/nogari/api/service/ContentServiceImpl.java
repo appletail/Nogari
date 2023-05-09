@@ -1,18 +1,11 @@
 package me.nogari.nogari.api.service;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.net.URLEncoder;
-import java.rmi.server.RemoteRef;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -23,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,9 +25,6 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -51,7 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import me.nogari.nogari.api.aws.LambdaCallFunction;
+import me.nogari.nogari.api.request.PaginationDto;
+import me.nogari.nogari.api.aws.LambdaResponse;
+import me.nogari.nogari.api.aws.awsLambdaCallable;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
+
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
@@ -63,15 +56,14 @@ import me.nogari.nogari.repository.GithubRepository;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.google.gson.JsonParseException;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQuery;
 
 import me.nogari.nogari.repository.TistoryRepositoryCust;
 
@@ -137,7 +129,6 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	// public HashMap<String, List<Object>> getTistoryCates(List<String> blogNameList, HashMap<String, List<Object>> categoriesList, Member member){
 	public List<Object> getTistoryCates(List<String> blogNameList, List<Object> categoriesList, Member member) {
 
 		// 토큰에서 tistory accesstoken 받아오기
@@ -196,11 +187,25 @@ public class ContentServiceImpl implements ContentService {
 		return categoriesList;
 	}
 
-	@Override
-	public List<Object> getTistoryList(String filter, Member member) {
+	// @Override
+	// public List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize) {
+	//
+	// 	// 무한스크롤 최초 id는 알 수 없으므로 -1을 받아, null로 처리
+	// 	if (lastTistoryId == -1) {
+	// 		lastTistoryId = null;
+	// 	}
+	//
+	// 	List<Tistory> contents = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
+	//
+	// 	return contents.stream()
+	// 		.map(content -> new TistoryContentResponseDto(content))
+	// 		.collect(Collectors.toList());
+	// }
 
-		// 티스토리 발행 이력
-		List<TistoryResponseInterface> tistoryList = new ArrayList<>();
+	@Override
+	public List<Object> getTistoryList(PaginationDto paginationDto, Member member) {
+
+		Long lastTistoryId = paginationDto.getLastTistoryId();
 
 		// 멤버의 블로그이름 리스트
 		List<String> blogNameList = new ArrayList<>();
@@ -208,25 +213,22 @@ public class ContentServiceImpl implements ContentService {
 		// 블로그별 카테고리 리스트
 		List<Object> categoriesList = new ArrayList<>();
 
-		if (filter.equals("오래된순")) {
-			tistoryList = tistoryRepository.sortTistoryByOldest(member.getMemberId()).orElseThrow(() -> {
-				return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-			});
-		} else {
-			tistoryList = tistoryRepository.sortTistoryByNewest(member.getMemberId()).orElseThrow(() -> {
-				return new IllegalArgumentException("티스토리 발행 이력을 찾을 수 없습니다.");
-			});
+		// 티스토리 발행 이력
+		// List<TistoryResponseInterface> tistoryList = new ArrayList<>();
+
+		// 첫 호출인 경우 블로그이름 리스트, 카테고리 리스트와 같이 반환
+		if (lastTistoryId == -1) {
+			lastTistoryId = null;
+			blogNameList = getTistoryBlogName(blogNameList, member);
+			categoriesList = getTistoryCates(blogNameList, categoriesList, member);
 		}
 
-		blogNameList = getTistoryBlogName(blogNameList, member);
-		categoriesList = getTistoryCates(blogNameList, categoriesList, member);
+		List<TistoryContentResponseDto> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(paginationDto, member);
 
 		List<Object> rslt = new ArrayList<>();
 		rslt.add(tistoryList);
 		rslt.add(blogNameList);
-
 		rslt.add(categoriesList);
-		// System.out.println(rslt);
 
 		return rslt;
 	}
@@ -664,23 +666,10 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	@Override
-	public List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize) {
-
-		// 무한스크롤 최초 id는 알 수 없으므로 -1을 받아, null로 처리
-		if (lastTistoryId == -1) {
-			lastTistoryId = null;
-		}
-
-		List<Tistory> contents = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
-
-		return contents.stream()
-			.map(content -> new TistoryContentResponseDto(content))
-			.collect(Collectors.toList());
-	}
-
 	public void upload(PostNotionToGithubDto githubPosting, Member member, String title, String content) throws IOException {
 		System.out.println("upload 시작");
 		System.out.println("upload title : " + title);
+
 		RestTemplate rt = new RestTemplate();
 		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 
@@ -1075,138 +1064,5 @@ public class ContentServiceImpl implements ContentService {
 	//
 	// 		return responseList;
 	// }
-}
-
-class LambdaResponse{
-	private int index;
-	private Tistory tistory;
-	private HttpEntity<MultiValueMap<String, String>> tistoryRequest;
-
-	public LambdaResponse(){
-		this.index = 0;
-		this.tistory = null;
-		this.tistoryRequest = null;
-	}
-
-	public LambdaResponse(int index, Tistory tistory){
-		this.index = index;
-		this.tistory = tistory;
-		this.tistoryRequest = null;
-	}
-
-	public LambdaResponse(int index, Tistory tistory, HttpEntity<MultiValueMap<String, String>> tistoryRequest) {
-		this.index = index;
-		this.tistory = tistory;
-		this.tistoryRequest = tistoryRequest;
-	}
-
-	public Tistory getTistory() {
-		return tistory;
-	}
-
-	public void setTistory(Tistory tistory) {
-		this.tistory = tistory;
-	}
-
-	public int getIndex(){
-		return index;
-	}
-
-	public void setIndex(int index){
-		this.index = index;
-	}
-
-	public HttpEntity<MultiValueMap<String, String>> getTistoryRequest(){
-		return tistoryRequest;
-	}
-
-	public void setTistoryRequest(HttpEntity<MultiValueMap<String, String>> tistoryRequest){
-		this.tistoryRequest = tistoryRequest;
-	}
-}
-
-class awsLambdaCallable implements Callable<LambdaResponse> {
-	private LambdaCallFunction lambdaCallFunction;
-
-	private int index;
-	private PostNotionToTistoryDto post;
-	private Tistory tistory;
-	private Member member;
-
-	public awsLambdaCallable(int index, PostNotionToTistoryDto post, Tistory tistory, Member member) {
-		this.index = index;
-		this.post = post;
-		this.tistory = tistory;
-		this.member = member;
-	}
-
-	public LambdaResponse tistoryAwsLambda(int index, PostNotionToTistoryDto post, Tistory tistory, Member member) throws Exception{
-		LambdaResponse lambdaResponse = new LambdaResponse(index, tistory);
-
-		// STEP2-1. AWS Lambda와 통신하는 과정
-		Map<String, Object> data = awsLambdaResponse(post, member);
-		String title = (String)data.get("title"); // Tistory에 게시될 게시글 제목
-		String content = (String)data.get("content"); // Tistory에 게시될 게시글 내용
-
-		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
-		HttpEntity<MultiValueMap<String, String>> httpTistoryRequest = getHttpLambdaRequest(title, content, tistory, post, member);
-		lambdaResponse.setTistoryRequest(httpTistoryRequest);
-
-		return lambdaResponse;
-	}
-
-	// STEP2-1. AWS Lambda와 통신하여 JSON 응답값을 받아오는 메소드
-	public Map<String, Object> awsLambdaResponse(PostNotionToTistoryDto post, Member member) throws Exception{
-		String response = ""; // Tistory에 발행할 Notion 페이지를 html로 파싱한 JSON 응답값
-
-		// STEP2-1-1. AWS Lambda와 통신하는 과정
-		lambdaCallFunction = new LambdaCallFunction(
-			member.getNotionToken(),
-			member.getToken().getTistoryToken(),
-			post.getBlogName(),
-			post.getRequestLink(),
-			post.getType()
-		);
-		response = lambdaCallFunction.post();
-
-		// STEP2-1-2. JSON 데이터로 구성된 파싱 결과를 형식에 맞게 읽어들인다.
-		ObjectMapper objectMapper = new ObjectMapper();
-		Map<String, Object> data = objectMapper.readValue(response, Map.class);
-
-		return data;
-	}
-
-	// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성하는 메소드
-	public HttpEntity<MultiValueMap<String, String>> getHttpLambdaRequest(
-		String title, String content, Tistory tistory, PostNotionToTistoryDto post, Member member){
-
-		HttpHeaders headers = new HttpHeaders();
-
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("access_token", member.getToken().getTistoryToken());
-		params.add("output", "");
-		params.add("blogName", post.getBlogName()); // 블로그 이름
-		params.add("title", title); // 글 제목
-		params.add("content", content); // 글 내용
-		params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
-		params.add("category", post.getCategoryName()); // 카테고리 아이디
-		params.add("published", ""); // 발행 시간
-		params.add("slogan", ""); // 문자 주소
-		params.add("tag", post.getTagList()); // 태그 리스트(','로 구분)
-		params.add("acceptComment", "1"); // 댓글 허용 :기본값(댓글 허용)
-		params.add("password", ""); // 보호글 비밀번호
-
-		if(tistory.getStatus().equals("수정요청")){
-			params.add("postId", Long.toString(tistory.getPostId()));
-		}
-
-		HttpEntity<MultiValueMap<String, String>> httpLambdaRequest = new HttpEntity<>(params, headers);
-		return httpLambdaRequest;
-	}
-
-	@Override
-	public LambdaResponse call() throws Exception {
-		return tistoryAwsLambda(index, post, tistory, member);
-	}
 }
 

@@ -23,11 +23,21 @@ export async function postRegister({ email, password }: ILoginInput) {
   })
   return response
 }
+
 // 로그인(Sign in) api
 export async function postEmailLogin({ email, password }: ILoginInput) {
   const response = await axBase.post(`/members/login`, {
     email,
     password,
+  })
+  return response
+}
+
+// 로그아웃 api
+export async function postLogOut() {
+  const response = await axAuth.post('/members/logout', {
+    access_token: sessionStorage.getItem('accessToken'),
+    refresh_token: sessionStorage.getItem('refreshToken'),
   })
   return response
 }

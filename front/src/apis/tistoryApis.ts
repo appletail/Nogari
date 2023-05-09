@@ -1,0 +1,1 @@
+import { axAuth } from './axiosInstance'

@@ -54,6 +54,7 @@ function SignupForm() {
     if (email && emailState.error?.type == 'emailvalidate') {
       try {
         const response = await getCheckEmail(email)
+        // console.log(response)
         if (response.data.resultCode === 200) {
           setEmailDuplicate(response.data.result)
           alert(response.data.resultMessage)
@@ -78,7 +79,7 @@ function SignupForm() {
     } catch (error: any) {
       console.log(error)
     }
-    navigate('/test', { replace: true })
+    navigate('/', { replace: true })
   }
 
   // 비밀번호 확인
