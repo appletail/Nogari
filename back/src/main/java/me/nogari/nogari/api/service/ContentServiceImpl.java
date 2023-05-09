@@ -206,10 +206,6 @@ public class ContentServiceImpl implements ContentService {
 
 		Long lastTistoryId = paginationDto.getLastTistoryId();
 
-		paginationDto.getFilter();
-		int pageSize = paginationDto.getPageSize();
-		paginationDto.getWord();
-
 		// 멤버의 블로그이름 리스트
 		List<String> blogNameList = new ArrayList<>();
 
@@ -226,12 +222,11 @@ public class ContentServiceImpl implements ContentService {
 			categoriesList = getTistoryCates(blogNameList, categoriesList, member);
 		}
 
-		List<TistoryContentResponseDto> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
+		List<TistoryContentResponseDto> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(paginationDto, member);
 
 		List<Object> rslt = new ArrayList<>();
 		rslt.add(tistoryList);
 		rslt.add(blogNameList);
-
 		rslt.add(categoriesList);
 
 		return rslt;

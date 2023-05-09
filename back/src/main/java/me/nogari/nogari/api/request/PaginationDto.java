@@ -1,5 +1,7 @@
 package me.nogari.nogari.api.request;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +19,7 @@ public class PaginationDto {
 	private String filter;
 	// 검색
 	private String word;
+
+	private List<String> statusList;
 
 }
