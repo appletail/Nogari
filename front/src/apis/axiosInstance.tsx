@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom'
-
 import axios, { AxiosInstance } from 'axios'
+
+import { postLogOut } from './authApis'
 
 const BASE_URL = `${import.meta.env.VITE_SERVER_URL}` // 로컬 서버
 
@@ -38,7 +38,8 @@ axAuth.interceptors.response.use(
       try {
         const tokenResponse = await postRefreshToken()
         const responseCode = tokenResponse.data.resultCode
-        // refresh token으로 access token 재발급
+
+        // refresh token이 유효한 경우, refresh token으로 access token 재발급
         if (responseCode === 200) {
           const newAccessToken = tokenResponse.data.result.access_token
           sessionStorage.setItem(
@@ -53,8 +54,8 @@ axAuth.interceptors.response.use(
         // refresh token이 만료되어 다시 로그인이 필요함
         else if (responseCode === 408) {
           alert(tokenResponse.data.resultMessage)
-          const navigate = useNavigate()
-          navigate('/')
+          sessionStorage.clear()
+          window.location.replace('/')
         }
       } catch (error) {
         console.log('=======axios error==========')
