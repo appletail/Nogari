@@ -105,11 +105,10 @@ public class MemberController {
 
 	@PostMapping("/refresh")
 	@Operation(summary = "토큰 재발급")
-	public BaseResponse<Object> refresh(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-		@RequestBody JWTDto jwt) throws Exception {
+	public BaseResponse<Object> refresh(@RequestBody JWTDto jwt) throws Exception {
 		try {
 			return BaseResponse.builder()
-				.result(memberService.refreshAccessToken(customUserDetails.getMember().getEmail(), jwt))
+				.result(memberService.refreshAccessToken(jwt))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("refresh 토큰이 만료되지 않아 access 토큰이 재발급 되었습니다.")
 				.build();
