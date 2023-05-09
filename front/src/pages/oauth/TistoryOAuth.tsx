@@ -1,13 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { postOauthTistory } from '@/apis/OauthApis'
+import LoadingSpinner from '@/components/loading'
+import { loadingInterceptors } from '@/components/loading/LoadingInterceptors'
 
 function TistoryOAuth() {
+  const [loading, setLoading] = useState(false)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
   useEffect(() => {
+    loadingInterceptors(setLoading)
     const code = searchParams.get('code')
     ;(async function () {
       if (code) {
@@ -25,7 +29,7 @@ function TistoryOAuth() {
       }
     })()
   }, [searchParams])
-  return <></>
+  return <>{loading && <LoadingSpinner />}</>
 }
 
 export default TistoryOAuth
