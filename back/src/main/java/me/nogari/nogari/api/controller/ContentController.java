@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.api.request.PaginationDto;
+import me.nogari.nogari.api.request.PostNotionToGithubDto;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
@@ -51,9 +54,9 @@ public class ContentController {
 	private ContentServiceImpl contentService;
 
 	@ResponseBody
-	@GetMapping("/sort")
-	@Operation(summary = "티스토리 발행 내역 리스트 조회")
-	public BaseResponse<Object> getTistoryListByFilter(@RequestParam String filter,
+	@GetMapping("/tistory")
+	@Operation(summary = "티스토리 무한스크롤 발행 내역 리스트 검색 및 조회")
+	public BaseResponse<Object> getTistoryListByFilter(@RequestBody PaginationDto paginationDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		// security session에 있는 유저 정보를 가져온다
@@ -71,7 +74,7 @@ public class ContentController {
 
 		try {
 			return BaseResponse.builder()
-				.result(contentService.getTistoryList(filter, member))
+				.result(contentService.getTistoryList(paginationDto, member))
 				.resultCode(HttpStatus.OK.value())
 				.resultMsg("정상적으로 티스토리 발행 내역 조회 성공")
 				.build();
@@ -173,7 +176,7 @@ public class ContentController {
 	@GetMapping("/git/upload")
 	@Operation(summary = "github upload")
 	public void gitUpload() throws GitAPIException, IOException {
-		contentService.upload();
+		// contentService.upload();
 	}
 
 	@ResponseBody
@@ -221,9 +224,11 @@ public class ContentController {
 	@ResponseBody
 	@GetMapping("/git/repoList")
 	@Operation(summary = "get github repo list")
-	public List<Repository> gitRepoList() throws GitAPIException, IOException {
-		// Create a GitHub client and set the access token
-		String ATK = "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";
+	public List<String> gitRepoList(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) throws GitAPIException, IOException {
+
+		Member member = customUserDetails.getMember();
+		String ATK = member.getToken().getGithubToken();
 
 		GitHubClient client = new GitHubClient();
 		client.setOAuth2Token(ATK);
@@ -231,15 +236,16 @@ public class ContentController {
 		// RepositoryService 생성
 		RepositoryService repoService = new RepositoryService(client);
 
+		List<String> repositoryList = new ArrayList<>();
 		// 유저의 repositories 리스트 가져오기
 		List<Repository> repositories = repoService.getRepositories();
 		for (Repository repo : repositories) {
 			System.out.println(repo.getName());
+			repositoryList.add(repo.getName());
 		}
 
-		return repoService.getRepositories();
+		return repositoryList;
 	}
-
 	@ResponseBody
 	@PostMapping("/post")
 	@Operation(summary = "노션 게시글 티스토리 발행")
@@ -262,6 +268,39 @@ public class ContentController {
 			return BaseResponse.builder()
 				.result(contentService.postNotionToTistoryMultiThread(postNotionToTistoryDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
+				.resultMsg("Nogari Tistory POST API가 정상적으로 실행되었습니다.")
+				.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("Nogari Tistory POST API가 실행되는 과정에서 오류가 발생했습니다.")
+				.build();
+		}
+	}
+
+	@ResponseBody
+	@PostMapping("/git/post")
+	@Operation(summary = "깃허브 게시글 티스토리 발행")
+	public BaseResponse<Object> postNotionToGithub(
+		@RequestBody List<PostNotionToGithubDto> postNotionToGithubDtoList,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+		Optional<Member> member;
+		try {
+			member = Optional.ofNullable(customUserDetails.getMember());
+		} catch (Exception e) {
+			return BaseResponse.builder()
+				.result(null)
+				.resultCode(HttpStatus.BAD_REQUEST.value())
+				.resultMsg("로그인된 사용자가 없습니다.")
+				.build();
+		}
+		try {
+			return BaseResponse.builder()
+				.result(contentService.postNotionToGithubMultiThread(postNotionToGithubDtoList, member.get()))
+				.resultCode(HttpStatus.OK.value())
 				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
 				.build();
 		} catch (Exception e) {
@@ -272,15 +311,5 @@ public class ContentController {
 				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다.")
 				.build();
 		}
-	}
-
-	@GetMapping("/tistory")
-	public BaseResponse<Object> getTistoryContents(@RequestParam Long lastTistoryId, @RequestParam int pageSize) {
-
-		return BaseResponse.builder()
-			.result(contentService.getTistoryContents(lastTistoryId, pageSize))
-			.resultCode(HttpStatus.OK.value())
-			.resultMsg("무한스크롤 조회 성공")
-			.build();
 	}
 }
