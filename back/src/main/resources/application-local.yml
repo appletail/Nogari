@@ -15,7 +15,7 @@ spring:
         format_sql: true # JPA의 구현체인 Hibernate가 동작하면서 발생한 SQL의 가독성을 높여준다.
     open-in-view: false
   redis:
-    host: k8c206.p.ssafy.io
+    host: www.nogari.me
     port: 6379
   session:
     store-type: redis
@@ -43,8 +43,8 @@ server:
 app:
   auth:
     kakao:
-       redirect-uri: http://localhost:8080/api/vi/oauth/tistory    # Token 받을 Uri 지정
-#      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
+      redirect-uri: http://localhost:8080/api/vi/oauth/tistory    # Token 받을 Uri 지정
+    #      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
     github:
       redirect-uri: https://github.com/login/oauth/access_token    # access token 발급 요청 uri
 
@@ -53,4 +53,3 @@ logging:
     web: INFO
     com: INFO
     root: INFO
-

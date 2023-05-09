@@ -49,7 +49,7 @@ public class Tistory extends BaseTimeEntity {
 	@Column(name = "request_link", length = 300, nullable = false)
 	private String requestLink;
 
-	@Column(name = "response_link", length = 300)
+	@Column(name = "response_link", length = 300, unique=true)
 	private String responseLink;
 
 	@Column(name = "tag_list", length = 300)

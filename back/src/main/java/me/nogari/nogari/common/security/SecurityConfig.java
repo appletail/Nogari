@@ -69,8 +69,10 @@ public class SecurityConfig {
 			.antMatchers("/user/**").hasRole("USER")
 			.antMatchers("/members/logout").hasRole("USER")
 			.antMatchers("/contents/tistory").hasRole("USER")
-			.antMatchers("/oauth/**").permitAll()
-			.antMatchers("/contents/**").permitAll()
+			.antMatchers("/members/user/get").hasRole("USER")
+			.antMatchers("/members/admin/get").hasRole("ADMIN")
+			.antMatchers("/oauth/**").hasRole("USER")
+			.antMatchers("/contents/**").hasRole("USER")
 			.antMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
 			.anyRequest().denyAll()
 			.and()
@@ -94,6 +96,8 @@ public class SecurityConfig {
 				@Override
 				public void commence(HttpServletRequest request, HttpServletResponse response,
 					AuthenticationException authException) throws IOException, ServletException {
+
+					System.out.println(request.getHeader("Authorization"));
 					// 인증문제가 발생했을 때 이 부분을 호출한다.
 					response.setStatus(401);
 					response.setCharacterEncoding("utf-8");
