@@ -4,16 +4,17 @@ import RegisterLayout from './layouts/register/RegisterLayout'
 import RootLayout from './layouts/root/RootLayout'
 import Home from './pages/Home'
 import LoginPage from './pages/LoginPage'
-import NewTistoryPage from './pages/NewTistoryPage'
 import GithubOAuth from './pages/oauth/GithubOAuth'
 import NotionOAuth from './pages/oauth/NotionOAuth'
 import TistoryOAuth from './pages/oauth/TistoryOAuth'
+import Page404 from './pages/Page404'
 import SignupPage from './pages/SignupPage'
 import TistoryPage from './pages/TistoryPage'
 
 const routers = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <Page404 />,
     children: [
       {
         path: '/test',
@@ -21,12 +22,13 @@ const routers = createBrowserRouter([
       },
       {
         path: '/tistory',
-        element: <NewTistoryPage />,
+        element: <TistoryPage />,
       },
     ],
   },
   {
     element: <RegisterLayout />,
+    errorElement: <Page404 />,
     children: [
       {
         path: '/',

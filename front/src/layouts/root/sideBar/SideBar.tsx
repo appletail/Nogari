@@ -1,17 +1,20 @@
 // @mui
 import { useEffect, useState } from 'react'
 
+import { useQuery } from 'react-query'
+
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 
 // mock
 import { navConfig, settingConfig, connectedConfig } from './config'
 
-import { NavContent, NavConnectedSite } from './styles'
+import { StyledNavContent, StyledNavConnectedSite } from './styles'
 
 import account from '@/_mock/account'
 
 // hooks
+import { getOauthStatus } from '@/apis/OauthApis'
 import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
@@ -34,25 +37,7 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
-  const [isLogins, setIsLogins] = useState({
-    notion: false,
-    tistory: false,
-    github: false,
-  })
-
-  useEffect(() => {
-    const notion = sessionStorage.getItem('notion')
-    const tistory = sessionStorage.getItem('tistory')
-    const github = sessionStorage.getItem('github')
-
-    const isLogin = {
-      notion: notion ? true : false,
-      tistory: tistory ? true : false,
-      github: github ? true : false,
-    }
-
-    setIsLogins(isLogin)
-  }, [])
+  const { data } = useQuery('oauths', getOauthStatus)
 
   const renderContent = (
     <>
@@ -77,20 +62,20 @@ export default function Nav() {
           </StyledAccount>
         </Link>
       </Box>
-      <NavContent>
+      <StyledNavContent>
         <NavSection data={navConfig} />
         <div>
           <div style={{ padding: '0 22px' }}>
             <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
-            <NavConnectedSite>
+            <StyledNavConnectedSite>
               <ConnectedSection
                 data={connectedConfig(
-                  isLogins.notion,
-                  isLogins.tistory,
-                  isLogins.github
+                  data?.data.result.notion,
+                  data?.data.result.tistory,
+                  data?.data.result.github
                 )}
               />
-            </NavConnectedSite>
+            </StyledNavConnectedSite>
           </div>
           <div
             style={{
@@ -102,7 +87,7 @@ export default function Nav() {
           ></div>
           <SettingSection data={settingConfig} />
         </div>
-      </NavContent>
+      </StyledNavContent>
     </>
   )
 

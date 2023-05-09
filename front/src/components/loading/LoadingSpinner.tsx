@@ -21,7 +21,7 @@ function LoadingSpinner() {
     <div className={style.Wrapper}>
       <div>
         <Loading_spinner className={style.BingGleBingGle} />
-        <p className={style.Text}>발행 중입니다...</p>
+        <p className={style.Text}>잠시만 기다려주세요...</p>
       </div>
       <p className={style.Tips}>{tip}</p>
     </div>

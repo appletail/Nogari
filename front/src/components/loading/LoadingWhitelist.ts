@@ -1,1 +1,6 @@
-export const whiteList: any = ['/contents/post']
+export const whiteList: any = [
+  '/contents/post',
+  '/oauth/notion',
+  '/oauth/tistory',
+  '/oauth/github',
+]

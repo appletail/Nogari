@@ -41,13 +41,13 @@ function LoginForm() {
       if (response.data.resultCode === 200) {
         sessionStorage.setItem(
           'accessToken',
-          JSON.stringify(response.data.result.token.access_token)
+          response.data.result.token.access_token
         )
         sessionStorage.setItem(
           'refreshToken',
-          JSON.stringify(response.data.result.token.refresh_token)
+          response.data.result.token.refresh_token
         )
-        navigate('/test', { replace: true })
+        navigate('/tistory', { replace: true })
       }
     } catch (error: any) {
       console.log(error)
