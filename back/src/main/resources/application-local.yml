@@ -17,7 +17,7 @@ spring:
   redis:
     host: www.nogari.me
     port: 6379
-    password: nogari
+    password: regari
   session:
     store-type: redis
 

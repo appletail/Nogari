@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -48,7 +47,6 @@ import me.nogari.nogari.api.request.PostNotionToGithubDto;
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
-import me.nogari.nogari.api.response.TistoryResponseInterface;
 import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Tistory;
@@ -60,10 +58,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.google.gson.JsonParseException;
-import com.querydsl.core.Tuple;
-import com.querydsl.jpa.impl.JPAQuery;
 
 import me.nogari.nogari.repository.TistoryRepositoryCust;
 
