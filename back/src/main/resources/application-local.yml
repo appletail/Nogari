@@ -20,6 +20,8 @@ spring:
     password: regari
   session:
     store-type: redis
+  main:
+    lazy-initialization: true
 
 springdoc:
   packages-to-scan: me.nogari.nogari # swagger를 적용하기 위해 스캔할 패키지를 지정합니다.
