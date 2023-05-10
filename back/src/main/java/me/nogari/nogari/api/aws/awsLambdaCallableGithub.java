@@ -27,14 +27,12 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 	private PostNotionToGithubDto post;
 	private Github github;
 	private Member member;
-	private String filePath;
 
 	public awsLambdaCallableGithub(int index, PostNotionToGithubDto post, Github github, Member member) {
 		this.index = index;
 		this.post = post;
 		this.github = github;
 		this.member = member;
-		this.filePath = null;
 	}
 
 	public LambdaResponse githubAwsLambda(int index, PostNotionToGithubDto post, Github github,
@@ -45,6 +43,10 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		Map<String, Object> data = awsLambdaResponse(post, member);
 		String title = (String)data.get("title"); // github에 게시될 게시글 제목
 		String content = (String)data.get("content"); // github에 게시될 게시글 내용
+		
+		//filePath 생성
+		String filePath = member.getGithubId() + "/" + post.getRepository() + "/contents/" +post.getCategoryName() +"/"+ title + "_" + fileDate + "."+ post.getType();
+		System.out.println("githubAwsLambda filePath : " +  filePath );
 
 		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
 		HttpEntity<Map<String, String>> httpGithubRequest = getHttpLambdaRequest(title, content, github,
@@ -95,17 +97,13 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String fileContent = Base64.getEncoder().encodeToString(content.getBytes());
 
 		Map<String, String> body = new LinkedHashMap<>();
-		body.put("message", "[UPLOAD] " + title);
+		body.put("message", title);
 		body.put("content", fileContent);
 		if (github.getStatus().equals("수정요청")) {
 			body.put("sha", github.getSha());
 		}
 		HttpEntity<Map<String, String>> httpLambdaRequest = new HttpEntity<>(body, headers);
 
-		//filePath 생성
-		String filePath = member.getGithubId() + "/" + post.getRepository() + "/contents/" +post.getCategoryName() +"/"+ title + "_" + fileDate + "."+ post.getType();
-		System.out.println("awsLambdaCallableGithub filePath : " +  filePath );
-		this.filePath = filePath;
 
 		return httpLambdaRequest;
 	}
