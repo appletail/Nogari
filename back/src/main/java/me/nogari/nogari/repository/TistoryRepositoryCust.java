@@ -93,10 +93,10 @@ public class TistoryRepositoryCust {
 		}
 
 		if(!Objects.isNull(paginationDto.getFilter())){
-			if(paginationDto.getFilter().equals("최신순")){
-				return tistory.tistoryId.lt(lastTistoryId); // 오름차순 asc
+			if(paginationDto.getFilter().equals("오래된순")){
+				return tistory.tistoryId.gt(lastTistoryId); // 오름차순
 			} else{
-				return tistory.tistoryId.gt(lastTistoryId); // 내림차순 dasc
+				return tistory.tistoryId.lt(lastTistoryId); // 내림차순
 			}
 		}
 		// default는 최신순
