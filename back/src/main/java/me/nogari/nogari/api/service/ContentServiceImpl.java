@@ -590,7 +590,7 @@ public class ContentServiceImpl implements ContentService {
 						github.setRequestLink(post.getRequestLink());
 						github.setStatus("수정요청");
 
-						Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, github, member);
+						Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallableGithub(i, post, github, member);
 						Future<?> future = completionService.submit(awsLambdaCallable);
 						futureList.add(future);
 					} catch(Exception e){
@@ -659,7 +659,7 @@ public class ContentServiceImpl implements ContentService {
 		for(int i=0; i<lambdaResponses.length; i++){
 			Map<String, Object> responseBody = new HashMap<>();
 			ResponseEntity<String> response = null;
-			String tistoryRequestURL = "";
+			String githubRequestURL = "";
 			rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 
 			// 조건검사에 위배되거나, 예외가 발생한 요청에 해당한다.
@@ -667,7 +667,8 @@ public class ContentServiceImpl implements ContentService {
 				continue;
 			}
 
-			// STEP5-1. Tistory Post API
+			upload(lambdaResponses[i], member);
+			// STEP5-1. github Post API
 			if(lambdaResponses[i].getTistory().getStatus().equals("발행요청")){
 				tistoryRequestURL = "https://www.tistory.com/apis/post/write";
 				try{
@@ -757,6 +758,68 @@ public class ContentServiceImpl implements ContentService {
 		});
 
 		return new ResponseEntity<>(responseList, HttpStatus.OK);
+	}
+
+	private void upload(LambdaResponse lambdaResponse, Member member) {
+		// TODO Auto-generated method stub
+		System.out.println("upload 시작");
+		System.out.println("upload title : " + lambdaResponse.getGithubRequest().getBody().get("title"));
+		RestTemplate rt = new RestTemplate();
+		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+
+		//파일명 중복 방지를 위한 현재 날짜, 시간
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+		Date nowDate = new Date();
+		String fileDate = simpleDateFormat.format(nowDate);
+		System.out.println("upload filedate : " + fileDate);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Accept", "application/vnd.github+json");
+		headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
+		headers.add("X-GitHub-Api-Version", "2022-11-28");
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		// String dirPath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
+		// 	File gitDir = new File(dirPath);
+		// 	// 업로드할 파일의 내용을 읽어옵니다.
+		// 	byte[] fileBytes = Files.readAllBytes(gitDir.toPath());
+		// 	String fileContent = Base64.getEncoder().encodeToString(fileBytes);
+
+		String fileContent = Base64.getEncoder().encodeToString(content.getBytes());
+
+		Map<String, String> body = new LinkedHashMap<>();
+		body.put("message", "[UPLOAD] " + title);
+		body.put("content", fileContent);
+
+		//수정요청
+		// if(githubPosting.getStatus().equals("수정요청")){
+		// 	body.put("sha", githubPosting.getn);
+		// }
+
+
+		//committer 주석 처리
+		// Map<String, String> address = new LinkedHashMap<>();
+		// address.put("name", "encoreKwang");
+		// address.put("email", "dnflrhkddyd@naver.com");
+		// body.add("committer", address);
+
+		HttpEntity<Map<String, String>> uploadRequest = new HttpEntity<>(body, headers);
+		// String filePath = "C:\\nogari-git-test\\git-clone-test\\upload.txt";
+		;
+		String filePath = member.getGithubId() + "/" + githubPosting.getRepository() + "/contents/" +githubPosting.getCategoryName() +"/"+ title + "_" + fileDate + "."+ githubPosting.getType();
+		System.out.println("filePath : " +  filePath );
+		// String filePath = "/nogari2/titletmp2.txt";
+
+		ResponseEntity<String> response = rt.exchange(
+			// "https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
+			"https://api.github.com/repos/" + filePath,
+			HttpMethod.PUT,
+			uploadRequest,
+			String.class
+		);
+
+		String body1 = response.getBody();
+		System.out.println(body1);
 	}
 
 	public boolean conditionCheck(PostNotionToTistoryDto p){

@@ -34,6 +34,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		this.post = post;
 		this.github = github;
 		this.member = member;
+		this.filePath = null;
 	}
 
 	public LambdaResponse githubAwsLambda(int index, PostNotionToGithubDto post, Github github,
@@ -46,9 +47,9 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String content = (String)data.get("content"); // github에 게시될 게시글 내용
 
 		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
-		HttpEntity<Map<String, String>> httpTistoryRequest = getHttpLambdaRequest(title, content, github,
+		HttpEntity<Map<String, String>> httpGithubRequest = getHttpLambdaRequest(title, content, github,
 			post, member);
-		lambdaResponse.setGithubRequest(httpTistoryRequest);
+		lambdaResponse.setGithubRequest(httpGithubRequest);
 
 		return lambdaResponse;
 	}
@@ -103,7 +104,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 
 		//filePath 생성
 		String filePath = member.getGithubId() + "/" + post.getRepository() + "/contents/" +post.getCategoryName() +"/"+ title + "_" + fileDate + "."+ post.getType();
-		System.out.println("filePath : " +  filePath );
+		System.out.println("awsLambdaCallableGithub filePath : " +  filePath );
 		this.filePath = filePath;
 
 		return httpLambdaRequest;
@@ -111,6 +112,6 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 
 	@Override
 	public LambdaResponse call() throws Exception {
-		return tistoryAwsLambda(index, post, tistory, member);
+		return githubAwsLambda(index, post, github, member);
 	}
 }
