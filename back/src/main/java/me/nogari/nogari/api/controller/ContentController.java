@@ -54,7 +54,7 @@ public class ContentController {
 	private ContentServiceImpl contentService;
 
 	@ResponseBody
-	@GetMapping("/tistory")
+	@PostMapping("/tistory")
 	@Operation(summary = "티스토리 무한스크롤 발행 내역 리스트 검색 및 조회")
 	public BaseResponse<Object> getTistoryListByFilter(@RequestBody PaginationDto paginationDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
