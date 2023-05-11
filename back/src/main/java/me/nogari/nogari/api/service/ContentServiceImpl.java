@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.core.ParameterizedTypeReference;
@@ -103,15 +104,18 @@ public class ContentServiceImpl implements ContentService {
 
 				String line;
 				if ((line = blogInfoIn.readLine()) != null) {
-					JSONArray blogInfoList = new JSONObject(line)
+					JSONObject item = new JSONObject(line)
 						.getJSONObject("tistory")
-						.getJSONObject("item")
-						.getJSONArray("blogs");
+						.getJSONObject("item");
 
-					int cnt = 0;
-					while (blogInfoList.length() > cnt) {
-						JSONObject blog = (JSONObject)blogInfoList.get(cnt++);
-						blogNameList.add(blog.getString("name"));
+					if(item.get("blogs")!=null){
+						JSONArray blogInfoList = item.getJSONArray("blogs");
+
+						int cnt = 0;
+						while (blogInfoList.length() > cnt) {
+							JSONObject blog = (JSONObject)blogInfoList.get(cnt++);
+							blogNameList.add(blog.getString("name"));
+						}
 					}
 				}
 
@@ -146,36 +150,44 @@ public class ContentServiceImpl implements ContentService {
 					HttpURLConnection blogInfo = (HttpURLConnection)url.openConnection();
 
 					int responseCode = blogInfo.getResponseCode();
-					System.out.println("========getBlogInfo responsecode = " + responseCode);
+					System.out.println("getBlogInfo responsecode = " + responseCode);
 
 					BufferedReader blogInfoIn = new BufferedReader(new InputStreamReader(blogInfo.getInputStream()));
 
 					String line;
 					if ((line = blogInfoIn.readLine()) != null) {
-						JSONArray cateInfoList = new JSONObject(line)
+
+						JSONObject item = new JSONObject(line)
 							.getJSONObject("tistory")
-							.getJSONObject("item")
-							.getJSONArray("categories");
+							.getJSONObject("item");
 
-						List<TistoryCateDto> cate = new ArrayList<>();
+						// 블로그에 카테고리가 있는 경우
+						if(item.get("categories")!=null){
+							JSONArray cateInfoList = item.getJSONArray("categories");
 
-						int cnt = 0;
-						while (cateInfoList.length() > cnt) {
-							JSONObject category = (JSONObject)cateInfoList.get(cnt++);
+							List<TistoryCateDto> cate = new ArrayList<>();
 
-							cate.add(new TistoryCateDto(
-								category.getString("id").toString(),
-								category.getString("name").toString(),
-								category.getString("parent").toString(),
-								category.getString("label").toString(),
-								category.getString("entries").toString()
-							));
+							int cnt = 0;
+							while (cateInfoList.length() > cnt) {
+								JSONObject category = (JSONObject)cateInfoList.get(cnt++);
+
+								cate.add(new TistoryCateDto(
+									category.getString("id").toString(),
+									category.getString("name").toString(),
+									category.getString("parent").toString(),
+									category.getString("label").toString(),
+									category.getString("entries").toString()
+								));
+							}
+							categoriesList.add(cate);
 						}
-
-						categoriesList.add(cate);
 					}
 				}
 
+			} catch (JSONException x) {
+				// throw new JSONException();
+				List<TistoryCateDto> cate = new ArrayList<>();
+				categoriesList.add(cate);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
