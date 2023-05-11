@@ -309,14 +309,14 @@ public class ContentController {
 			return BaseResponse.builder()
 				.result(contentService.postNotionToGithubMultiThread(postNotionToGithubDtoList, member.get()))
 				.resultCode(HttpStatus.OK.value())
-				.resultMsg("노션 게시글을 티스토리로 정상적으로 발행했습니다.")
+				.resultMsg("노션 게시글을 깃허브로 정상적으로 발행했습니다.")
 				.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				.resultCode(HttpStatus.BAD_REQUEST.value())
-				.resultMsg("노션 게시글을 티스토리로 발행하는데 실패했습니다.")
+				.resultMsg("노션 게시글을 깃허브로 발행하는데 실패했습니다.")
 				.build();
 		}
 	}

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -658,51 +659,41 @@ public class ContentServiceImpl implements ContentService {
 		RestTemplate rt = new RestTemplate();
 		for(int i=0; i<lambdaResponses.length; i++){
 			Map<String, Object> responseBody = new HashMap<>();
-			ResponseEntity<String> response = null;
-			String githubRequestURL = "";
+			ResponseEntity<Map<String, Object>> response = null;
+			String githubRequestURL = "https://api.github.com/repos/";
 			rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 
 			// 조건검사에 위배되거나, 예외가 발생한 요청에 해당한다.
 			if(lambdaResponses[i]==null){
 				continue;
 			}
-////////////////////////////////////////////////////////////////////////////////////////////
-			
+
 			// STEP5-1. github Post API
 			if(lambdaResponses[i].getGithub().getStatus().equals("발행요청")){
-				githubRequestURL = "https://api.github.com/repos/";
-				String title = lambdaResponses[i].getGithubRequest().getBody().get("message");
 				try{
 					response = rt.exchange(
 						// "https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
-						"https://api.github.com/repos/" + filePath,
+						githubRequestURL + lambdaResponses[i].getFilePath(),
 						HttpMethod.PUT,
-						uploadRequest,
-						String.class
+						lambdaResponses[i].getGithubRequest(),
+						new ParameterizedTypeReference<Map<String, Object>>() {}
 					);
 
-					String body1 = response.getBody();
-					System.out.println(body1);
-					
-					
-					response = rt.exchange(
-						tistoryRequestURL,
-						HttpMethod.POST,
-						lambdaResponses[i].getTistoryRequest(),
-						String.class
-					);
+					String name = (String) response.getBody().get("content.name");
+					String sha = (String) response.getBody().get("content.sha");
+					String htmlUrl = (String) response.getBody().get("content.html_url");
 
-					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
-					String tistoryResponse = response.toString(); // Tistory API의 응답
-					Document doc = Jsoup.parse(tistoryResponse);
-					lambdaResponses[i].getTistory().setResponseLink(doc.select("url").text()); // Tistory에 게시된 게시글 링크
-					lambdaResponses[i].getTistory().setPostId(Long.parseLong(doc.select("postId").text())); // Tistory에 게시된 게시글 번호
-					lambdaResponses[i].getTistory().setStatus("발행완료");
+////////////////////////////////////////////////////////////////////////////////////////////
+					// STEP6. [발행완료] Github 발행 상태 DB 갱신
+					lambdaResponses[i].getGithub().setFilename(name);
+					lambdaResponses[i].getGithub().setSha(sha);
+					lambdaResponses[i].getGithub().setResponseLink(htmlUrl);
+					lambdaResponses[i].getGithub().setStatus("발행완료");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 200);
-					responseBody.put("resultMessage", "[발행완료] Tistory 게시물 발행이 정상적으로 완료되었습니다."
-						+ lambdaResponses[i].getTistory().getPostId());
+					responseBody.put("resultMessage", "[발행완료] Github 게시물 발행이 정상적으로 완료되었습니다."
+						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
 				} catch(HttpClientErrorException e){
 					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
@@ -715,37 +706,36 @@ public class ContentServiceImpl implements ContentService {
 					responseList.add(responseBody);
 				}
 			}
-			// STEP5-2. Tistory Modify API
-			// [Exception] 사용자가 동일한 Tistory 게시글에 여러번 수정요청을 날리는 경우
-			// 프론트엔드 테이블 구조상 하나의 Tistory 게시글에 대한 수정요청은 한번만 가능하므로, 해당 경우에 대해서는 고려하지 않아도 된다.
-			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Tistory Modify API에 전달되지 않는다.
+			// STEP5-2. Github Modify API
+			// [Exception] 사용자가 동일한 Github 게시글에 여러번 수정요청을 날리는 경우
+			// 프론트엔드 테이블 구조상 하나의 Github 게시글에 대한 수정요청은 한번만 가능하므로, 해당 경우에 대해서는 고려하지 않아도 된다.
+			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Github Modify API에 전달되지 않는다.
 			else if(lambdaResponses[i].getTistory().getStatus().equals("수정요청")){
-				tistoryRequestURL = "https://www.tistory.com/apis/post/modify";
 				try{
 					response = rt.exchange(
-						tistoryRequestURL,
-						HttpMethod.POST,
-						lambdaResponses[i].getTistoryRequest(),
-						String.class
+						// "https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
+						githubRequestURL + lambdaResponses[i].getFilePath(),
+						HttpMethod.PUT,
+						lambdaResponses[i].getGithubRequest(),
+						new ParameterizedTypeReference<Map<String, Object>>() {}
 					);
 
-					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
-					lambdaResponses[i].getTistory().setStatus("발행완료");
+					// STEP6. [발행완료] Github 발행 상태 DB 갱신
+					lambdaResponses[i].getGithub().setStatus("발행완료");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 200);
-					responseBody.put("resultMessage", "[발행완료] Tistory 게시물 수정이 정상적으로 완료되었습니다."
-						+ lambdaResponses[i].getTistory().getPostId());
+					responseBody.put("resultMessage", "[발행완료] Github 게시물 발행이 정상적으로 완료되었습니다."
+						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
 				} catch(HttpClientErrorException e){
-					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
-					// Case1. BlogName Error (HttpClientErrorException)
-					lambdaResponses[i].getTistory().setStatus("발행실패");
+					// STEP6. [발행실패] Github 발행 상태 DB 갱신
+					lambdaResponses[i].getGithub().setStatus("발행실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);
-					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 블로그 이름이 일치하지 않습니다.)"
-						+ lambdaResponses[i].getTistory().getPostId());
+					responseBody.put("resultMessage", "[발행실패] Github 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 레포지토리 이름이 일치하지 않습니다.)"
+						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
 				}
 			}
@@ -756,7 +746,7 @@ public class ContentServiceImpl implements ContentService {
 				System.out.println((i+1) + " " + "에러가 발생한 게시글");
 			}
 			else{
-				System.out.println((i+1) + " " + lambdaResponses[i].getTistory().getResponseLink());
+				System.out.println((i+1) + " " + lambdaResponses[i].getGithub().getResponseLink());
 			}
 		}
 

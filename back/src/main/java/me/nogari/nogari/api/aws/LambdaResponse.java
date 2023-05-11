@@ -15,6 +15,7 @@ public class LambdaResponse {
 	private HttpEntity<MultiValueMap<String, String>> tistoryRequest;
 	private Github github;
 	private HttpEntity<Map<String, String>> githubRequest;
+	private String filePath; //깃허브 포스팅 path
 
 
 	public LambdaResponse() {
@@ -23,6 +24,7 @@ public class LambdaResponse {
 		this.tistoryRequest = null;
 		this.github = null;
 		this.githubRequest = null;
+		this.filePath = null;
 	}
 
 	public LambdaResponse(int index, Tistory tistory) {
@@ -31,6 +33,14 @@ public class LambdaResponse {
 		this.tistoryRequest = null;
 		this.github = null;
 		this.githubRequest = null;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 	public LambdaResponse(int index, Github github) {

@@ -45,8 +45,15 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String content = (String)data.get("content"); // github에 게시될 게시글 내용
 		
 		//filePath 생성
+
+		//파일명 중복 방지를 위한 현재 날짜, 시간
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss");
+		Date nowDate = new Date();
+		String fileDate = simpleDateFormat.format(nowDate);
+
 		String filePath = member.getGithubId() + "/" + post.getRepository() + "/contents/" +post.getCategoryName() +"/"+ title + "_" + fileDate + "."+ post.getType();
 		System.out.println("githubAwsLambda filePath : " +  filePath );
+		lambdaResponse.setFilePath(filePath);
 
 		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
 		HttpEntity<Map<String, String>> httpGithubRequest = getHttpLambdaRequest(title, content, github,
@@ -82,12 +89,6 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String title, String content, Github github, PostNotionToGithubDto post, Member member) {
 
 		HttpHeaders headers = new HttpHeaders();
-
-		//파일명 중복 방지를 위한 현재 날짜, 시간
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-		Date nowDate = new Date();
-		String fileDate = simpleDateFormat.format(nowDate);
-		System.out.println("upload filedate : " + fileDate);
 
 		headers.add("Accept", "application/vnd.github+json");
 		headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
