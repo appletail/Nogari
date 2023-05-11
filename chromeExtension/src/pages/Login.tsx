@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 
-import { postEmailLogin } from '../apis/authApis'
+import { postEmailLogin } from '../apis/apis'
 import style from '../styles/Login.module.css'
 
 function Login() {
@@ -22,8 +22,8 @@ function Login() {
       // response 요청 성공시
       if (response.data.resultCode === 200) {
         localStorage.setItem('user', response.data.result.email)
-        localStorage.setItem('refresh_token', response.data.result.token.refresh_token)
-        localStorage.setItem('access_token', response.data.result.token.access_token)
+        localStorage.setItem('refreshToken', response.data.result.token.refresh_token)
+        localStorage.setItem('accessToken', response.data.result.token.access_token)
         navigate('/', { replace: true })
       }
     } catch (error: any) {

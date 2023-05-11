@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { connectedConfig } from './config'
+import { getConnectedSite } from '../apis/apis'
 import { axAuth } from '../apis/axiosInstance'
 import refresh from '../assets/refresh.svg'
 
@@ -23,15 +24,14 @@ function ServiceLayout() {
     handleRefresh()
   }, [])
 
-  const handleRefresh = () => {
-    axAuth({
-      url: '/oauth/check',
-    })
-      .then((res) => {
-        const refresh_result = res.data.result
-        setIsLogins(refresh_result)
-      })
-      .catch((err) => console.log(err))
+  const handleRefresh = async () => {
+    try {
+      const response = await getConnectedSite()
+      const refresh_result = response.data.result
+      setIsLogins(refresh_result)
+    } catch (error: any) {
+      console.log(error)
+    }
   }
 
   return (

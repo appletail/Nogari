@@ -1,1 +1,1 @@
-export const whiteList: string[] = ['/oauth/check']
+export const whiteList: any = ['/oauth/check']

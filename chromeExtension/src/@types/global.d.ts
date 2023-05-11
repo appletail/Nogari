@@ -11,11 +11,14 @@ interface ConnectedSite {
 
 interface TistorySetting {
   blogName: string
-  visibility: 0 | 3
-  categoryName: Tcategory
+  visibility: '0' | '3'
+  categoryName: string
 }
 
 interface Tcategory {
-  id: number
+  id: string
   name: string
+  parent?: string | undefined
+  label?: string
+  entries?: string
 }
