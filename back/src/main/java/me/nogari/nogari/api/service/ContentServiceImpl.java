@@ -131,21 +131,22 @@ public class ContentServiceImpl implements ContentService {
 		String accessToken = member.getToken().getTistoryToken();
 
 		if (!"".equals(accessToken) && accessToken != null) {
-			String blogInfoUrl = "https://www.tistory.com/apis/category/list?"
-				+ "access_token=" + accessToken
-				+ "&output=json"
-				+ "&blogName=";
 
 			try {
 				// 각 블로그에 등록된 카테고리 리스트 저장 후 반환
 				for (String blogName : blogNameList) {
+					String blogInfoUrl = "https://www.tistory.com/apis/category/list?"
+						+ "access_token=" + accessToken
+						+ "&output=json"
+						+ "&blogName=";
+
 					blogInfoUrl += blogName;
 
 					URL url = new URL(blogInfoUrl);
 					HttpURLConnection blogInfo = (HttpURLConnection)url.openConnection();
 
 					int responseCode = blogInfo.getResponseCode();
-					// System.out.println("getBlogInfo responsecode = " + responseCode);
+					System.out.println("========getBlogInfo responsecode = " + responseCode);
 
 					BufferedReader blogInfoIn = new BufferedReader(new InputStreamReader(blogInfo.getInputStream()));
 
