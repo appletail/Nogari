@@ -42,7 +42,7 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.tistory.kakao}") private String KAKAO_RESTAPI;
 	@Value("${app.auth.tistory.client-id}") private String TISTORY_CLIENT_ID;
 	@Value("${app.auth.tistory.client-secret}") private String TISTORY_CLIENT_SECRETKEY;
-	@Value("${app.auth.kakao.redirect-uri}") private String REDIRECT_URI;
+	@Value("${app.auth.tistory.redirect-uri}") private String REDIRECT_URI;
 	@Value("${app.auth.github.redirect-uri}") private String ACCESS_TOKEN_URL;
 	@Value("${app.auth.github.client-id}") private String CLIENT_ID;
 	@Value("${app.auth.github.client-secret}") private String CLIENT_SECRET;
@@ -67,7 +67,8 @@ public class OauthServiceImpl implements OauthService {
 				+ "client_secret="
 				+ TISTORY_CLIENT_SECRETKEY
 				+ "&"
-				+ "redirect_uri=http://localhost:3000/oauth/tistory"
+				+ "redirect_uri="
+				+ REDIRECT_URI
 				+ "&"
 				+ "code="+code
 				+ "&"
