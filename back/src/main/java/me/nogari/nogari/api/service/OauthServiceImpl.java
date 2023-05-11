@@ -85,7 +85,7 @@ public class OauthServiceImpl implements OauthService {
 		// System.out.println(accessToken);
 
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
-		    () -> new IllegalArgumentException()
+			() -> new IllegalArgumentException()
 		);
 		token.setTistoryToken(accessToken);
 
@@ -155,10 +155,10 @@ public class OauthServiceImpl implements OauthService {
 	@Transactional
 	void setGitHubId(Member member, String ATK) {
 		System.out.println("setGitHubId");
-		
+
 		RestTemplate rt = new RestTemplate();
 		rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-		
+
 		// USER 정보
 		HttpHeaders headersTest = new HttpHeaders();
 		headersTest.add("Accept", "application/vnd.github+json");
@@ -168,10 +168,10 @@ public class OauthServiceImpl implements OauthService {
 		HttpEntity entity = new HttpEntity<>(headersTest);
 
 		ResponseEntity<Map<String, Object>> responseTest = rt.exchange(
-				"https://api.github.com/user",
-				HttpMethod.GET,
-				entity,
-				new ParameterizedTypeReference<Map<String, Object>>() {}
+			"https://api.github.com/user",
+			HttpMethod.GET,
+			entity,
+			new ParameterizedTypeReference<Map<String, Object>>() {}
 		);
 
 		String githubId = (String) responseTest.getBody().get("login");
