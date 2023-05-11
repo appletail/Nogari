@@ -183,21 +183,6 @@ public class ContentServiceImpl implements ContentService {
 		return categoriesList;
 	}
 
-	// @Override
-	// public List<TistoryContentResponseDto> getTistoryContents(Long lastTistoryId, int pageSize) {
-	//
-	// 	// 무한스크롤 최초 id는 알 수 없으므로 -1을 받아, null로 처리
-	// 	if (lastTistoryId == -1) {
-	// 		lastTistoryId = null;
-	// 	}
-	//
-	// 	List<Tistory> contents = tistoryRepositoryCust.tistoryPaginationNoOffset(lastTistoryId, pageSize);
-	//
-	// 	return contents.stream()
-	// 		.map(content -> new TistoryContentResponseDto(content))
-	// 		.collect(Collectors.toList());
-	// }
-
 	@Override
 	public List<Object> getTistoryList(PaginationDto paginationDto, Member member) {
 

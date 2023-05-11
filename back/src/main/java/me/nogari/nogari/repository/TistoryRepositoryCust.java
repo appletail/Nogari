@@ -6,8 +6,11 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.stereotype.Repository;
+
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -52,11 +55,22 @@ public class TistoryRepositoryCust {
 			.where(
 				tistory.title.contains(searchWord),
 				tistory.member.eq(member),
-				ltTistoryId(paginationDto)   // 마지막 id보다 크거나 작은 것
+				ltTistoryId(paginationDto),  // 마지막 id보다 크거나 작은 것
+				statusContain(statusList)		// 다중선택한 상태에 맞는 것
 			)
 			.orderBy(ORDERS.stream().toArray(OrderSpecifier[]::new))
 			.limit(paginationDto.getPageSize())            // 조회할 size
 			.fetch();
+	}
+
+	// 다중 선택한 발행상태에 맞는것
+	private BooleanBuilder statusContain(List<String> statusList) {
+		if(statusList.isEmpty()) return null;
+		BooleanBuilder booleanBuilder = new BooleanBuilder();
+		for(String s : statusList){
+			booleanBuilder.or(tistory.status.eq(s));
+		}
+		return booleanBuilder;
 	}
 
 	// 정렬 필터 : modifiedDate 최신순, 오래된순
@@ -87,16 +101,7 @@ public class TistoryRepositoryCust {
 			return null; // BooleanExpression 자리에 null이 반환되면 조건문에서 자동으로 제거된다
 		}
 
-		// if(!Objects.isNull(paginationDto.getFilter())){
-		// 	if(paginationDto.getFilter().equals("오래된순")){
-		// 		return tistory.tistoryId.gt(lastTistoryId); // 오름차순
-		// 	} else{
-		// 		return tistory.tistoryId.lt(lastTistoryId); // 내림차순
-		// 	}
-		// }
-
-		// default는 오름차순
+		// lastTistoryId 보다 큰 데이터 리턴
 		return tistory.tistoryId.gt(lastTistoryId);
-
 	}
 }
