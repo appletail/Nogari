@@ -149,8 +149,8 @@ public class ContentServiceImpl implements ContentService {
 					URL url = new URL(blogInfoUrl);
 					HttpURLConnection blogInfo = (HttpURLConnection)url.openConnection();
 
-					int responseCode = blogInfo.getResponseCode();
-					System.out.println("getBlogInfo responsecode = " + responseCode);
+					// int responseCode = blogInfo.getResponseCode();
+					// System.out.println("getBlogInfo responsecode = " + responseCode);
 
 					BufferedReader blogInfoIn = new BufferedReader(new InputStreamReader(blogInfo.getInputStream()));
 
