@@ -16,7 +16,7 @@ function LoadingSpinner() {
 
   return (
     <div className={style.Wrapper}>
-      <div>
+      <div className={style.SvgWrapper}>
         <Loading_spinner className={style.BingGleBingGle} />
         <p className={style.Text}>잠시만 기다려주세요...</p>
       </div>
