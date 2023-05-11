@@ -1,9 +1,9 @@
 import { useState } from 'react'
 
 import { loadingTips } from './LoadingTips'
+import Loading_spinner from '../../assets/logos/nogari_spinner.svg'
 
-import { ReactComponent as Loading_spinner } from '@/assets/logos/nogari_spinner.svg'
-import style from '@/styles/components/loading/LoadingSpinner.module.css'
+import style from '../../styles/LoadingSpinner.module.css'
 
 function LoadingSpinner() {
   const randomNum = Math.floor(Math.random() * loadingTips.length)
@@ -16,11 +16,9 @@ function LoadingSpinner() {
 
   return (
     <div className={style.Wrapper}>
-      <div>
-        <Loading_spinner className={style.BingGleBingGle} />
-        <p className={style.Text}>잠시만 기다려주세요...</p>
-      </div>
-      <p className={style.Tips}>{tip}</p>
+      <img className={style.BingGleBingGle} src={Loading_spinner} />
+      <p className={style.Text}>로딩중입니다...</p>
+      <div>{tip}</div>
     </div>
   )
 }
