@@ -3,11 +3,8 @@ import axios, { AxiosInstance } from 'axios'
 export const interceptors = (instance: AxiosInstance) => {
   instance.interceptors.request.use(
     (config) => {
-      // access token 헤더 삽입 코드
-      chrome.storage.sync.get(['accessToken'], function (storage) {
-        const token = storage.accessToken
-        config.headers.Authorization = `Bearer ${token}`
-      })
+      const token = localStorage.getItem('access_token')
+      config.headers.Authorization = `Bearer ${token}`
 
       return config
     },

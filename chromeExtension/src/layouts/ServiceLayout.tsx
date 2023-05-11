@@ -17,31 +17,28 @@ function ServiceLayout() {
   })
 
   const [loading, setLoading] = useState(false)
-  useEffect(() => {
-    loadingInterceptors(setLoading)
-  }, [])
 
   useEffect(() => {
-    chrome.storage.sync.get(['notion', 'tistory', 'github'], (storage) => {
-      const isLogin = {
-        notion: storage.notion ? true : false,
-        tistory: storage.tistory ? true : false,
-        github: storage.github ? true : false,
-      }
-      setIsLogins(isLogin)
-    })
+    loadingInterceptors(setLoading)
+    handleRefresh()
   }, [])
 
   const handleRefresh = () => {
     axAuth({
       url: '/oauth/check',
     })
-      .then((res) => console.log(res))
+      .then((res) => {
+        const refresh_result = res.data.result
+        setIsLogins(refresh_result)
+      })
       .catch((err) => console.log(err))
   }
 
   return (
     <div>
+      <p>
+        <b>연결된 사이트</b>
+      </p>
       <div className={style.Icons}>
         {connectedConfig(isLogins).map((config) => {
           return (
@@ -55,17 +52,17 @@ function ServiceLayout() {
               <img
                 alt={config.title}
                 src={config.icon}
-                style={{ width: 50, height: 50, opacity: config.isLogin ? '1' : '0.2' }}
+                style={{ width: 40, height: 40, opacity: config.isLogin ? '1' : '0.2' }}
               />
             </a>
           )
         })}
         <div className={style.Refresh} onClick={handleRefresh}>
-          <img alt="refresh" src={refresh} />
+          <img alt="refresh" src={refresh} style={{ width: 20, height: 20 }} />
         </div>
       </div>
       <hr />
-      <Outlet />
+      <Outlet context={isLogins} />
       {loading && <LoadingSpinner />}
     </div>
   )
