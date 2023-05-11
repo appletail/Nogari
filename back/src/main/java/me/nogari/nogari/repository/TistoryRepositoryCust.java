@@ -87,15 +87,16 @@ public class TistoryRepositoryCust {
 			return null; // BooleanExpression 자리에 null이 반환되면 조건문에서 자동으로 제거된다
 		}
 
-		if(!Objects.isNull(paginationDto.getFilter())){
-			if(paginationDto.getFilter().equals("오래된순")){
-				return tistory.tistoryId.gt(lastTistoryId); // 오름차순
-			} else{
-				return tistory.tistoryId.lt(lastTistoryId); // 내림차순
-			}
-		}
-		// default는 최신순
-		return tistory.tistoryId.lt(lastTistoryId);
+		// if(!Objects.isNull(paginationDto.getFilter())){
+		// 	if(paginationDto.getFilter().equals("오래된순")){
+		// 		return tistory.tistoryId.gt(lastTistoryId); // 오름차순
+		// 	} else{
+		// 		return tistory.tistoryId.lt(lastTistoryId); // 내림차순
+		// 	}
+		// }
+
+		// default는 오름차순
+		return tistory.tistoryId.gt(lastTistoryId);
 
 	}
 }
