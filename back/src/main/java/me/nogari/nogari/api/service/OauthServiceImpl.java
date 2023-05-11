@@ -43,7 +43,7 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.tistory.client-id}") private String TISTORY_CLIENT_ID;
 	@Value("${app.auth.tistory.client-secret}") private String TISTORY_CLIENT_SECRETKEY;
 	@Value("${app.auth.tistory.redirect-uri}") private String REDIRECT_URI;
-	@Value("${app.auth.github.redirect-uri}") private String ACCESS_TOKEN_URL;
+	@Value("${app.auth.notion.redirect-uri}") private String REDIRECT_URI_NOTION;
 	@Value("${app.auth.github.client-id}") private String CLIENT_ID;
 	@Value("${app.auth.github.client-secret}") private String CLIENT_SECRET;
 	@Value("${app.auth.notion.oauth-client-id}") private String NOTION_CLIENT_ID;
@@ -130,16 +130,14 @@ public class OauthServiceImpl implements OauthService {
 	@Override
 	@Transactional
 	public OAuthAccessTokenResponse getGithubAccessToken(String code, Member member) {
-		ResponseEntity<OAuthAccessTokenResponse> response = restTemplate.exchange("https://github.com/login/oauth/access_token",
+		ResponseEntity<OAuthAccessTokenResponse> response = restTemplate.exchange(
+			"https://github.com/login/oauth/access_token",
 			HttpMethod.POST,
 			getGitHubParams(code),
 			OAuthAccessTokenResponse.class);
 		String accessToken = response.getBody().getAccessToken();
 
 		System.out.println("github response.getBody().getAccessToken() : " + response.getBody().getAccessToken());
-		System.out.println("github bot : "  +response.getBody().getBot_id());
-
-		System.out.println(response.getBody().getWorkspace_name());
 
 		String ATK = response.getBody().getAccessToken();
 
@@ -175,7 +173,7 @@ public class OauthServiceImpl implements OauthService {
 				entity,
 				new ParameterizedTypeReference<Map<String, Object>>() {}
 		);
-		System.out.println("restTemplate 완료");
+
 		String githubId = (String) responseTest.getBody().get("login");
 		System.out.println("githubId : " + githubId);
 
@@ -207,7 +205,7 @@ public class OauthServiceImpl implements OauthService {
 		MultiValueMap<String, String> params= new LinkedMultiValueMap<>();
 		params.add("grant_type", "authorization_code");
 		params.add("code", code);
-		params.add("redirect_uri", "http://localhost:3000/oauth/notion");
+		params.add("redirect_uri", REDIRECT_URI_NOTION);
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 

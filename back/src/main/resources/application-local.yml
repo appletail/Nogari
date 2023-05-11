@@ -48,8 +48,8 @@ app:
     tistory:
       redirect-uri: https://www.nogari.me/oauth/tistory    # Token 받을 Uri 지정
     #      redirect-uri: http://localhost:3000/oauth/tistory     # Token 받을 Uri 지정
-    github:
-      redirect-uri: https://github.com/login/oauth/access_token    # access token 발급 요청 uri
+    notion:
+      redirect-uri: https://www.nogari.me/oauth/notion    # notion access token 발급 요청 uri
 
 logging:
   level:
