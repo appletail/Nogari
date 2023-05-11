@@ -2,7 +2,6 @@ package me.nogari.nogari.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -49,9 +48,6 @@ public class Member {
 	@Column(name = "notionToken")
 	private String notionToken;
 
-	@Column(name = "refreshToken")
-	private String refreshToken;
-
 	@Column(name = "github_id")
 	private String githubId;
 
@@ -71,17 +67,12 @@ public class Member {
 	@JoinColumn(name = "token_id", referencedColumnName = "token_id")
 	private Token token;
 
-
 	public void setRoles(List<Authority> role) {
 		this.roles = role;
 		role.forEach(o -> o.setMember(this));
 	}
 
-	public void setRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-	}
-
-	public void setGithubId(String githubId){
+	public void setGithubId(String githubId) {
 		this.githubId = githubId;
 	}
 

@@ -43,8 +43,6 @@ public class MemberServiceImpl implements MemberService {
 			throw new BadCredentialsException("잘못된 계정정보입니다.");
 		}
 
-		member.setRefreshToken(createRefreshToken(member));
-
 		return SignResponseDto.builder()
 			.memberId(member.getMemberId())
 			.email(member.getEmail())
@@ -53,10 +51,9 @@ public class MemberServiceImpl implements MemberService {
 			.roles(member.getRoles())
 			.token(JWTDto.builder()
 				.access_token(jwtProvider.createToken(member.getEmail(), member.getRoles()))
-				.refresh_token(member.getRefreshToken())
+				.refresh_token(createRefreshToken(member)) // refreshToken 생성
 				.build())
 			.build();
-
 	}
 
 	@Override
