@@ -1,33 +1,63 @@
-import axios, { AxiosInstance } from 'axios'
+import axios from 'axios'
 
-export const interceptors = (instance: AxiosInstance) => {
-  instance.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem('access_token')
-      config.headers.Authorization = `Bearer ${token}`
-
-      return config
-    },
-    (error) => Promise.reject(error.response)
-  )
-  return instance
-}
-
-const BASE_URL = `https://www.nogari.me/api/v1`
+import { BASE_URL } from './urls'
 
 // 단순 get요청으로 인증값이 필요없는 경우
-const axiosApi = (url: string, options?: object) => {
-  const instance = axios.create({ baseURL: url, ...options })
-  return instance
-}
+export const axBase = axios.create({ baseURL: BASE_URL })
 
 // post, delete등 api요청 시 인증값이 필요한 경우
-const axiosAuthApi = (url: string, options?: object) => {
-  const instance = axios.create({ baseURL: url, ...options })
-  interceptors(instance)
+export const axAuth = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+  },
+})
 
-  return instance
+// refresh token 으로 갱신 필요한 경우
+function postRefreshToken() {
+  const response = axBase.post('/members/refresh', {
+    access_token: localStorage.getItem('accessToken'),
+    refresh_token: localStorage.getItem('refreshToken'),
+  })
+  return response
 }
 
-export const axBase = axiosApi(BASE_URL)
-export const axAuth = axiosAuthApi(BASE_URL)
+axAuth.interceptors.response.use(
+  async (response) => {
+    return response
+  },
+  async (error) => {
+    const {
+      config,
+      response: { status },
+    } = error
+    const originRequest = config
+    if (status === 401) {
+      try {
+        const tokenResponse = await postRefreshToken()
+        const responseCode = tokenResponse.data.resultCode
+
+        // refresh token이 유효한 경우, refresh token으로 access token 재발급
+        if (responseCode === 200) {
+          const newAccessToken = tokenResponse.data.result.access_token
+          localStorage.setItem('accessToken', tokenResponse.data.result.access_token)
+          axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
+          originRequest.headers.Authorization = `Bearer ${newAccessToken}`
+          return axios(originRequest)
+        }
+
+        // refresh token이 만료되어 다시 로그인이 필요함
+        else if (responseCode === 408) {
+          alert(tokenResponse.data.resultMessage)
+          localStorage.clear()
+          window.location.replace('/index.html')
+        }
+      } catch (error) {
+        // console.log('=======axios error==========')
+        console.log(error)
+      }
+    }
+
+    return Promise.reject(error.response)
+  }
+)

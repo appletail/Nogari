@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useGetUrl } from '../utils/useGetUrl'
+import { useGetUrl } from '../customHook/useGetUrl'
 
 function Home() {
   const navigate = useNavigate()
