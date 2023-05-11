@@ -10,7 +10,7 @@ import TistoryOAuth from './pages/oauth/TistoryOAuth'
 import Page404 from './pages/Page404'
 import SignupPage from './pages/SignupPage'
 import TistoryPage from './pages/TistoryPage'
-import PrivateRouter from './routers/privateRouter'
+import PrivateRouter from './routers/PrivateRouter'
 
 const routers = createBrowserRouter([
   // Tistory, Gihub 페이지는 로그인 후에만 이동할 수 있도록 처리
