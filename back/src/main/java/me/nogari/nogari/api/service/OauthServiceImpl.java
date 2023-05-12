@@ -77,7 +77,7 @@ public class OauthServiceImpl implements OauthService {
 			null,
 			Object.class
 		);
-		System.out.println("response: "+response);
+		// System.out.println("response: "+response);
 
 		accessToken = response.getBody().toString().split("=")[1];
 		accessToken = accessToken.split("}")[0];

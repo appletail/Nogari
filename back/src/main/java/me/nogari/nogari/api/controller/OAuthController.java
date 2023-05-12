@@ -39,7 +39,7 @@ public class OAuthController {
 		String code = codeDto.getCode();
 		// security session에 있는 유저 정보를 가져온다
 		Optional<Member> member;
-		System.out.println(customUserDetails);
+		// System.out.println(customUserDetails);
 		try {
 			member = Optional.ofNullable(customUserDetails.getMember());
 		} catch (Exception e) {
@@ -77,7 +77,7 @@ public class OAuthController {
 	public BaseResponse<Object> getGithubAccessToken(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		String code = codeDto.getCode();
-		System.out.println("code: " + code);
+		// System.out.println("code: " + code);
 
 		// 깃허브 서버에 엑세스토큰 (access token) 받기
 		try {
@@ -106,7 +106,7 @@ public class OAuthController {
 	public BaseResponse<Object> getNotionAccessToken(@RequestBody CodeRequestDto codeDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		String code = codeDto.getCode();
-		System.out.println("notion code: " + code);
+		// System.out.println("notion code: " + code);
 
 		try {
 			Member member = customUserDetails.getMember();
