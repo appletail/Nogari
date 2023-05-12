@@ -1,9 +1,9 @@
 import { axAuth, axBase } from './axiosInstance'
 
 
-// 회원 관리
+// Login
 
-// 회원가입 이메일 중복확인 api
+// 회원가입 이메일 중복확인
 export async function getCheckEmail(email: string) {
   const response = await axBase.get(`/members/duplicate`, {
     params: {
@@ -12,8 +12,7 @@ export async function getCheckEmail(email: string) {
   })
   return response
 }
-
-// 회원가입 api
+// 회원가입
 export async function postRegister({ email, password }: Login) {
   const response = await axBase.post(`/members/signup`, {
     email,
@@ -21,7 +20,7 @@ export async function postRegister({ email, password }: Login) {
   })
   return response
 }
-// 로그인(Sign in) api
+// 로그인(Sign in)
 export async function postEmailLogin({ email, password }: Login) {
   const response = await axBase.post(`/members/login`, {
     email,
@@ -29,7 +28,21 @@ export async function postEmailLogin({ email, password }: Login) {
   })
   return response
 }
+// 로그아웃
+export async function postLogout() {
+  const response = await axAuth({
+    method: 'post',
+    url: '/members/logout',
+    data: {
+      access_token: localStorage.getItem('accessToken'),
+      refresh_token: localStorage.getItem('refreshToken')
+    }
+  })
 
+  return response
+}
+
+// Settings
 
 // 사이트 연결
 export async function getConnectedSite() {
@@ -38,16 +51,42 @@ export async function getConnectedSite() {
   return response
 
 }
-
-
 // tistory
-export async function getBlogNames() {
+export async function getBlogInfos() {
   const response = await axAuth({
     method: 'post',
     url: '/contents/tistory',
     data: {
       lastTistoryId: -1,
       pageSize: 1,
+    },
+  })
+
+  return response
+}
+
+
+// Home
+
+// 게시글 발행
+export async function postTistory(data: Tpost) {
+  const response = await axAuth({
+    method: 'post',
+    url: '/contents/post',
+    data: [data]
+  })
+
+  return response
+}
+// 최신 발행 현황
+export async function getLog() {
+  const response = await axAuth({
+    method: 'post',
+    url: '/contents/tistory',
+    data: {
+      lastTistoryId: -1,
+      pageSize: 1,
+      filter: '최신순'
     },
   })
 

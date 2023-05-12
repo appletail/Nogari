@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,8 +15,10 @@ function Login() {
     formState: { errors },
   } = useForm<Login>()
 
+  useEffect(() => {
+    if (localStorage.getItem('accessToken')) navigate('/', { replace: true })
+  }, [])
   const submitHandler = async (data: Login) => {
-    // console.log(data);
     try {
       const response = await postEmailLogin(data)
       // response 요청 성공시

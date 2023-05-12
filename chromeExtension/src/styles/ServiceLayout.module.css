@@ -11,3 +11,16 @@
 .Refresh {
   cursor: pointer;
 }
+
+.TitleNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.Nav {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  gap: 10px;
+}

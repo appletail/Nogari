@@ -2,11 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { sortCategory } from './utils'
-import { getBlogNames } from '../../../apis/apis'
+import { getBlogInfos } from '../../../apis/apis'
 import style from '../../../styles/Settings.module.css'
-
-// 블로그 변경 시 그게 몇 번째 블로그인지 확인
-// 블로그 존재하는지 확인 몇 번째 블로그의 카테고리 이름이 같은지
 
 function TistorySettings({ isConnected }: { isConnected: boolean }) {
   const [settings, setSettings] = useState<TistorySetting>({
@@ -26,7 +23,7 @@ function TistorySettings({ isConnected }: { isConnected: boolean }) {
     setUser(email)
 
     if (isConnected) {
-      const response = getBlogNames()
+      const response = getBlogInfos()
       response
         .then((res) => {
           const blogName = res.data.result[1]

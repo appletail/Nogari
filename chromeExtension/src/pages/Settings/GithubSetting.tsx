@@ -5,7 +5,7 @@ import style from '../../styles/Settings.module.css'
 function GithubSetting({ isConnected }: { isConnected: boolean }) {
   return (
     <div style={{ position: 'relative' }}>
-      {!isConnected && <div className={style.Wrapper}>깃허브와 연결해 주세요.</div>}
+      <div className={style.Wrapper}>추후 업데이트 예정입니다.</div>
       <p>Gihub</p>
       <div>
         <label htmlFor="T-blog">블로그 선택</label>

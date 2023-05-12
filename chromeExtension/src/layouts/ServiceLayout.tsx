@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation, useOutlet } from 'react-router-dom'
 
 import { connectedConfig } from './config'
 import { getConnectedSite } from '../apis/apis'
-import { axAuth } from '../apis/axiosInstance'
-import refresh from '../assets/refresh.svg'
+import refresh from '../assets/icons/refresh.svg'
 
 import LoadingSpinner from '../components/loading'
 import { loadingInterceptors } from '../components/loading/LoadingInterceptors'
+import Logout from '../components/Logout'
+import ToHome from '../components/ToHome'
+import ToSetting from '../components/ToSettings'
 import style from '../styles/ServiceLayout.module.css'
 
 function ServiceLayout() {
@@ -16,8 +18,9 @@ function ServiceLayout() {
     tistory: false,
     github: false,
   })
-
+  const location = useLocation()
   const [loading, setLoading] = useState(false)
+  const outlet = useOutlet()
 
   useEffect(() => {
     loadingInterceptors(setLoading)
@@ -36,9 +39,15 @@ function ServiceLayout() {
 
   return (
     <div>
-      <p>
-        <b>연결된 사이트</b>
-      </p>
+      <div className={style.TitleNav}>
+        <p>
+          <b>연결된 사이트</b>
+        </p>
+        <div className={style.Nav}>
+          {outlet?.props.children.props.match.pathname === '/' ? <ToSetting /> : <ToHome />}
+          <Logout />
+        </div>
+      </div>
       <div className={style.Icons}>
         {connectedConfig(isLogins).map((config) => {
           return (
