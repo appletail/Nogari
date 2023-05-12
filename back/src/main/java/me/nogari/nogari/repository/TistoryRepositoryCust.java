@@ -77,7 +77,7 @@ public class TistoryRepositoryCust {
 	private List<OrderSpecifier> getAllOrdersSpecifier(PaginationDto paginationDto) {
 
 		List<OrderSpecifier> ORDERS = new ArrayList<>();
-		System.out.println(paginationDto.getFilter());
+		// System.out.println(paginationDto.getFilter());
 
 		if(!Objects.isNull(paginationDto.getFilter())) {
 			// 최신순, 오래된순
