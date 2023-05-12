@@ -20,5 +20,4 @@ public class PostNotionToGithubDto {
 	private String requestLink;
 	private String responseLink;
 	private String filename;
-	private String title;
 }

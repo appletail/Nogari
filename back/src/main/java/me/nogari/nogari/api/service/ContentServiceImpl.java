@@ -653,7 +653,7 @@ public class ContentServiceImpl implements ContentService {
 		// 서브 스레드별 연산 결과를 모두 반환 받을때까지 메인 스레드의 실행 흐름을 잠시 Block한다.
 		// 멀티스레드의 비동기 연산에 따른 무작위 발행을 막기 위해, 먼저 Http Response 패킷만 전부 받아두고, 순차적으로 발행 및 수정한다.
 		for (Future<?> f : futureList) {
-			Map<String, Object> responseBody = new HashMap<>();
+			// Map<String, Object> responseBody = new HashMap<>();
 			try {
 				Future<LambdaResponse> completedFuture = completionService.take();
 				lambdaResponses[completedFuture.get().getIndex()] = completedFuture.get();
@@ -686,10 +686,11 @@ public class ContentServiceImpl implements ContentService {
 						lambdaResponses[i].getGithubRequest(),
 						new ParameterizedTypeReference<Map<String, Object>>() {}
 					);
-
-					String name = (String) response.getBody().get("content.name");
-					String sha = (String) response.getBody().get("content.sha");
-					String htmlUrl = (String) response.getBody().get("content.html_url");
+					responseBody= response.getBody();
+					Map<String, String> content = (Map<String, String>) responseBody.get("content");
+					String name = content.get("name");
+					String sha = content.get("sha");
+					String htmlUrl = content.get("html_url");
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
@@ -697,6 +698,11 @@ public class ContentServiceImpl implements ContentService {
 					lambdaResponses[i].getGithub().setSha(sha);
 					lambdaResponses[i].getGithub().setResponseLink(htmlUrl);
 					lambdaResponses[i].getGithub().setStatus("발행완료");
+
+					System.out.println("-------------------------------------------");
+					System.out.println(lambdaResponses[i].getGithub().getFilename());
+					System.out.println(lambdaResponses[i].getGithub().getSha());
+					System.out.println(lambdaResponses[i].getGithub().getResponseLink());
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 200);
@@ -718,7 +724,7 @@ public class ContentServiceImpl implements ContentService {
 			// [Exception] 사용자가 동일한 Github 게시글에 여러번 수정요청을 날리는 경우
 			// 프론트엔드 테이블 구조상 하나의 Github 게시글에 대한 수정요청은 한번만 가능하므로, 해당 경우에 대해서는 고려하지 않아도 된다.
 			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Github Modify API에 전달되지 않는다.
-			else if(lambdaResponses[i].getTistory().getStatus().equals("수정요청")){
+			else if(lambdaResponses[i].getGithub().getStatus().equals("수정요청")){
 				try{
 					response = rt.exchange(
 						// "https://api.github.com/repos/encoreKwang/PullRequestTest/contents" + filePath,
@@ -727,6 +733,16 @@ public class ContentServiceImpl implements ContentService {
 						lambdaResponses[i].getGithubRequest(),
 						new ParameterizedTypeReference<Map<String, Object>>() {}
 					);
+
+					responseBody= response.getBody();
+					Map<String, String> content = (Map<String, String>) responseBody.get("content");
+					String sha = content.get("sha");
+
+					////////////////////////////////////////////////////////////////////////////////////////////
+					// STEP6. [발행완료] Github 발행 상태 DB 갱신
+					//수정일 땐 DB의 sha 필드값만 변경한다.
+					lambdaResponses[i].getGithub().setSha(sha);
+					lambdaResponses[i].getGithub().setStatus("발행완료");
 
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					lambdaResponses[i].getGithub().setStatus("발행완료");
