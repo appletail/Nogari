@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
@@ -33,7 +34,7 @@ public class Tistory extends BaseTimeEntity {
 	@Column(name = "blog_name", length = 300, nullable = false)
 	private String blogName;
 
-	@Column(name = "title", length = 300, nullable = false)
+	@Column(name = "title", length = 300)
 	private String title;
 
 	@Column(name = "category_name", length = 50)
@@ -48,7 +49,7 @@ public class Tistory extends BaseTimeEntity {
 	@Column(name = "request_link", length = 300, nullable = false)
 	private String requestLink;
 
-	@Column(name = "response_link", length = 300)
+	@Column(name = "response_link", length = 300, unique=true)
 	private String responseLink;
 
 	@Column(name = "tag_list", length = 300)

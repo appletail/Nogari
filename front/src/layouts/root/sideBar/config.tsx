@@ -6,7 +6,6 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { ReactComponent as Github } from '@/assets/logos/github-mark.svg'
 import { ReactComponent as Notion } from '@/assets/logos/Notion-logo.svg'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
-import { ReactComponent as Velog } from '@/assets/logos/velog.svg'
 
 // ----------------------------------------------------------------------
 
@@ -18,22 +17,12 @@ export const navConfig = [
   },
   {
     title: 'Github',
-    path: '/',
+    path: '/test',
     icon: <Github style={{ width: 26, height: 26 }} />,
-  },
-  {
-    title: 'Velog',
-    path: '/',
-    icon: <Velog style={{ width: 26, height: 26, fill: '#20C997' }} />,
   },
 ]
 
 export const settingConfig = [
-  {
-    title: 'settings',
-    path: '/settings',
-    icon: <SettingsOutlinedIcon sx={{ width: 1, height: 1 }} />,
-  },
   {
     title: 'Notice',
     path: '/notice',
@@ -46,29 +35,29 @@ export const settingConfig = [
   },
 ]
 
-export const connectedConfig = [
-  {
-    title: 'notion',
-    path: '/notion',
-    icon: <Notion style={{ width: 35, height: 35 }} />,
-    isLogin: false,
-  },
-  {
-    title: 'github',
-    path: '/github',
-    icon: <Github style={{ width: 35, height: 35 }} />,
-    isLogin: false,
-  },
-  {
-    title: 'kakao',
-    path: '/kakao',
-    icon: <Tistory style={{ width: 35, height: 35 }} />,
-    isLogin: false,
-  },
-  {
-    title: 'velog',
-    path: '/velog',
-    icon: <Velog style={{ width: 35, height: 35, fill: '#20C997' }} />,
-    isLogin: false,
-  },
-]
+export const connectedConfig = (
+  notion: boolean,
+  tistory: boolean,
+  github: boolean
+) => {
+  return [
+    {
+      title: 'notion',
+      path: `${import.meta.env.VITE_NOTION_OAUTH_URL}`,
+      icon: <Notion style={{ width: 35, height: 35 }} />,
+      isLogin: notion,
+    },
+    {
+      title: 'tistory',
+      path: `${import.meta.env.VITE_TISTORY_OAUTH_URL}`,
+      icon: <Tistory style={{ width: 35, height: 35 }} />,
+      isLogin: tistory,
+    },
+    {
+      title: 'github',
+      path: `${import.meta.env.VITE_GITHUB_OAUTH_URL}`,
+      icon: <Github style={{ width: 35, height: 35 }} />,
+      isLogin: github,
+    },
+  ]
+}

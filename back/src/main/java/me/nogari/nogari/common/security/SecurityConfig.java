@@ -1,13 +1,11 @@
 package me.nogari.nogari.common.security;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import me.nogari.nogari.config.CorsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +21,10 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
+import me.nogari.nogari.common.RedisUtil;
+import me.nogari.nogari.config.CorsConfig;
 
 @Configuration
 @RequiredArgsConstructor
@@ -34,9 +32,10 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	private final JwtProvider jwtProvider;
-
+	private final RedisUtil redisUtil;
 	@Autowired
 	private CorsConfig corsConfig;
+
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.addFilter(corsConfig.corsFilter())
@@ -45,21 +44,21 @@ public class SecurityConfig {
 			// 쿠키 기반이 아닌 JWT 기반이므로 사용하지 않음
 			.csrf().disable()
 			// CORS 설정
-//			.cors(c -> {
-//					CorsConfigurationSource source = request -> {
-//						// Cors 허용 패턴
-//						CorsConfiguration config = new CorsConfiguration();
-//						config.setAllowedOrigins(
-//							List.of("*")
-//						);
-//						config.setAllowedMethods(
-//							List.of("*")
-//						);
-//						return config;
-//					};
-//					c.configurationSource(source);
-//				}
-//			)
+			//			.cors(c -> {
+			//					CorsConfigurationSource source = request -> {
+			//						// Cors 허용 패턴
+			//						CorsConfiguration config = new CorsConfiguration();
+			//						config.setAllowedOrigins(
+			//							List.of("*")
+			//						);
+			//						config.setAllowedMethods(
+			//							List.of("*")
+			//						);
+			//						return config;
+			//					};
+			//					c.configurationSource(source);
+			//				}
+			//			)
 			// Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
 			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			.and()
@@ -68,13 +67,18 @@ public class SecurityConfig {
 			.antMatchers("/members/signup", "/members/login", "/members/duplicate", "/members/refresh").permitAll()
 			.antMatchers("/admin/**").hasRole("ADMIN")
 			.antMatchers("/user/**").hasRole("USER")
-			.antMatchers("/oauth/**").permitAll()
-			.antMatchers("/contents/**").permitAll()
+			.antMatchers("/members/logout").hasRole("USER")
+			.antMatchers("/contents/tistory").hasRole("USER")
+			.antMatchers("/members/user/get").hasRole("USER")
+			.antMatchers("/members/admin/get").hasRole("ADMIN")
+			.antMatchers("/oauth/**").hasRole("USER")
+			.antMatchers("/contents/**").hasRole("USER")
 			.antMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
 			.anyRequest().denyAll()
 			.and()
 			// JWT 인증 필터 적용
-			.addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisUtil),
+				UsernamePasswordAuthenticationFilter.class)
 			// 에러 핸들링
 			.exceptionHandling()
 			.accessDeniedHandler(new AccessDeniedHandler() {
@@ -92,6 +96,8 @@ public class SecurityConfig {
 				@Override
 				public void commence(HttpServletRequest request, HttpServletResponse response,
 					AuthenticationException authException) throws IOException, ServletException {
+
+					// System.out.println(request.getHeader("Authorization"));
 					// 인증문제가 발생했을 때 이 부분을 호출한다.
 					response.setStatus(401);
 					response.setCharacterEncoding("utf-8");

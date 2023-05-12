@@ -19,5 +19,8 @@ COPY --from=MAVEN_BUILD /build/target/${JAR_FILE} ./app.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "app.jar", \
+#CMD ["java", "-jar", "app.jar", \
+#"--spring.config.location=/config/application.yml"]
+
+CMD ["java", "-jar", "-noverify", "-XX:TieredStopAtLevel=1", "app.jar", \
 "--spring.config.location=/config/application.yml"]

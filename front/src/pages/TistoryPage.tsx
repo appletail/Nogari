@@ -1,305 +1,278 @@
-import { json } from 'stream/consumers'
-
-import React, { useState } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 
+import { faker } from '@faker-js/faker'
+import LoginIcon from '@mui/icons-material/Login'
+import { Card, Stack, Button, Typography } from '@mui/material'
 import {
-  Card,
-  Table,
-  Stack,
-  Paper,
-  Avatar,
-  Grid,
-  Button,
-  Popover,
-  Checkbox,
-  TableRow,
-  MenuItem,
-  Link,
-  TableBody,
-  TableCell,
-  Container,
-  Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  TextField,
-} from '@mui/material'
+  DataGrid,
+  GridColDef,
+  GridRowsProp,
+  GridCellParams,
+  GridCellModesModel,
+  GridCellModes,
+} from '@mui/x-data-grid'
 
-// lodash
-import { filter } from 'lodash'
+import { sample, sampleSize } from 'lodash'
 
-// components
-import POSTLIST from '../_mock/tistory'
+import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 
-import Iconify from '@/components/iconify'
-// import Label from '@/components/label'
-import Scrollbar from '@/components/scrollbar'
-import TistoryListHead from '@/sections/home/table/TistoryListHead'
+import Scrollbar from '@/components/scrollbar/Scrollbar'
 
-const TABLE_HEAD = [
-  { id: 'blog_name', label: '블로그 선택', alignRight: false },
-  { id: 'request_link', label: '요청페이지 링크', alignRight: false },
-  { id: 'visibility', label: '공개여부', alignRight: false },
-  { id: 'category_name', label: '카테고리', alignRight: false },
-  { id: 'tags', label: '태그', alignRight: false },
-  { id: 'modified_at', label: '발행일자', alignRight: false },
-  { id: 'status', label: '발행상태', alignRight: false },
-  { id: 'title', label: '제목', alignRight: false },
-  { id: '' },
-]
+// ------------------------------------------------------------------
 
-interface ITistoryPost {
-  id: string
-  visibility: number
-  status: string
-  title: string
-  category_name: string
-  modified_at: string
-  blog_name: string
-  request_link: string
-  response_link: string
-  tags: string
-}
+function NewTistoryPage() {
+  const [rows, setRows] = useState(predefinedRows)
+  const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
-function TistoryPage() {
-  const [open, setOpen] = useState(null)
-
-  const [page, setPage] = useState(0)
-
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc')
-
-  const [selected, setSelected] = useState<string[]>([])
-
-  const [orderBy, setOrderBy] = useState('title')
-
-  const [filterName, setFilterName] = useState('')
-
-  const [rowsPerPage, setRowsPerPage] = useState(5)
-
-  const handleRequestSort = (event: any, property: any) => {
-    const isAsc = orderBy === property && order === 'asc'
-    setOrder(isAsc ? 'desc' : 'asc')
-    setOrderBy(property)
-  }
-
-  const handleSelectAllClick = (event: any) => {
-    if (event.target.checked) {
-      const newSelecteds = POSTLIST.map((n) => n.title)
-      setSelected(newSelecteds)
-      return
-    }
-    setSelected([])
-  }
-
-  const handleClick = (event: any, title: any) => {
-    const selectedIndex = selected.indexOf(title)
-    let newSelected: any = []
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, title)
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1))
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1))
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      )
-    }
-    setSelected(newSelected)
-  }
-  const handleOpenMenu = (event: any) => {
-    setOpen(event.currentTarget)
-  }
-  const handleCloseMenu = () => {
-    setOpen(null)
-  }
-
-  const handleChangePage = (event: any, newPage: any) => {
-    setPage(newPage)
-  }
-
-  const handleChangeRowsPerPage = (event: any) => {
-    setPage(0)
-    setRowsPerPage(parseInt(event.target.value, 10))
-  }
-  //------------------------------------------------------------------------
-  function descendingComparator(a: any, b: any, orderBy: any) {
-    if (b[orderBy] < a[orderBy]) {
-      return -1
-    }
-    if (b[orderBy] > a[orderBy]) {
-      return 1
-    }
-    return 0
-  }
-
-  function getComparator(order: any, orderBy: any) {
-    return order === 'desc'
-      ? (a: any, b: any) => descendingComparator(a, b, orderBy)
-      : (a: any, b: any) => -descendingComparator(a, b, orderBy)
-  }
-
-  function applySortFilter(array: any, comparator: any, query: any) {
-    const stabilizedThis = array.map((el: any, index: any) => [el, index])
-    stabilizedThis.sort((a: any, b: any) => {
-      const order = comparator(a[0], b[0])
-      if (order !== 0) return order
-      return a[1] - b[1]
+  // 행이 수정될 때 사용하는 함수
+  const processRowUpdate = (newRow: any, oldRow: any) => {
+    setRows((prevRows) => {
+      const newRows = [...prevRows].map((row) => {
+        if (row.id === newRow.id) return newRow
+        return row
+      })
+      return newRows
     })
-    if (query) {
-      return filter(
-        array,
-        (_user) => _user.title.toLowerCase().indexOf(query.toLowerCase()) !== -1
-      )
-    }
-    return stabilizedThis.map((el: any) => el[0])
+    // the DataGrid expects the newRow as well
+    return newRow
   }
 
-  const filteredPosts = applySortFilter(
-    POSTLIST,
-    getComparator(order, orderBy),
-    filterName
-  )
+  // data 제출 시에 사용하는 함수
+  const onClickHandler = () => {
+    console.log(rows)
+  }
+
+  // 더블클릭 > 클릭 시 수정으로 변경
+  const handleCellClick = useCallback((params: GridCellParams) => {
+    setCellModesModel((prevModel: any) => {
+      return {
+        ...Object.keys(prevModel).reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: Object.keys(prevModel[id]).reduce(
+              (acc2, field) => ({
+                ...acc2,
+                [field]: { mode: GridCellModes.View },
+              }),
+              {}
+            ),
+          }),
+          {}
+        ),
+        [params.id]: {
+          ...Object.keys(prevModel[params.id] || {}).reduce(
+            (acc, field) => ({ ...acc, [field]: { mode: GridCellModes.View } }),
+            {}
+          ),
+          [params.field]: { mode: GridCellModes.Edit },
+        },
+      }
+    })
+  }, [])
+
+  const handleCellModesModelChange = useCallback((newModel: any) => {
+    setCellModesModel(newModel)
+  }, [])
+
+  // tistory 연결 여부에 따라 Button 다르게 보이는 부분 설정
+  const [tistoryLoggedIn, setTistoryLoggedIn] = useState(false)
 
   return (
     <>
       <Helmet>
-        <title> Tistory Page </title>
+        <title> Tistory </title>
       </Helmet>
 
-      <Container>
-        <Stack
-          alignItems="center"
-          direction="row"
-          justifyContent="space-between"
-          mb={5}
-        >
+      <Stack alignItems="center" direction="row" mb={5}>
+        <Stack alignItems="center" direction="row" spacing={1}>
+          <Tistory style={{ width: 24, height: 24 }} />
           <Typography gutterBottom variant="h4">
             Tistory
           </Typography>
         </Stack>
-        <Card>
-          <Scrollbar>
-            <TableContainer
-            // style={{ overflowX: 'initial' }}
-            // sx={{ minWidth: 800 }}
-            >
-              <Table stickyHeader>
-                <TistoryListHead
-                  headLabel={TABLE_HEAD}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  rowCount={POSTLIST.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
 
-                <TableBody>
-                  {filteredPosts
-                    // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row: any) => {
-                      const {
-                        id,
-                        visibility,
-                        status,
-                        title,
-                        category_name,
-                        modified_at,
-                        blog_name,
-                        request_link,
-                        response_link,
-                        tags,
-                      } = row
-                      const selectedUser = selected.indexOf(title) !== -1
-
-                      return (
-                        <TableRow
-                          key={id}
-                          hover
-                          // role="checkbox"
-                          selected={selectedUser}
-                          tabIndex={-1}
-                        >
-                          <TableCell align="left">{blog_name}</TableCell>
-                          <TableCell align="left">{request_link}</TableCell>
-
-                          <TableCell align="left">
-                            {visibility === 0 ? '비공개' : '공개'}
-                            {/* <TextField /> */}
-                          </TableCell>
-
-                          <TableCell align="left">{category_name}</TableCell>
-                          <TableCell align="left">{tags}</TableCell>
-                          <TableCell align="center">
-                            {JSON.stringify(modified_at)}
-                          </TableCell>
-                          <TableCell align="left">{status}</TableCell>
-                          <TableCell align="left">
-                            <Link href={response_link}>{title}</Link>
-                          </TableCell>
-
-                          <TableCell align="right">
-                            <IconButton
-                              color="inherit"
-                              size="large"
-                              onClick={handleOpenMenu}
-                            >
-                              <Iconify icon={'eva:more-vertical-fill'} />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Scrollbar>
-          <TablePagination
-            component="div"
-            count={POSTLIST.length}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Card>
-      </Container>
-
-      <Popover
-        anchorEl={open}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        open={Boolean(open)}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-        onClose={handleCloseMenu}
-      >
-        <MenuItem>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Edit
-        </MenuItem>
-
-        {/* 미추 : 발행기록 삭제 */}
-        {/* <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Delete
-        </MenuItem> */}
-      </Popover>
+        <Button color="primary" startIcon={<LoginIcon />} variant="contained">
+          로그인
+        </Button>
+        <Button onClick={onClickHandler}>Get data</Button>
+      </Stack>
+      <Card>
+        <Scrollbar>
+          <div style={{ height: 'auto' }}>
+            <DataGrid
+              cellModesModel={cellModesModel}
+              columns={columns}
+              experimentalFeatures={{}}
+              pageSizeOptions={[100]}
+              processRowUpdate={processRowUpdate}
+              rows={rows}
+              onCellClick={handleCellClick}
+              onCellModesModelChange={handleCellModesModelChange}
+            />
+          </div>
+        </Scrollbar>
+      </Card>
     </>
   )
 }
 
-export default TistoryPage
+const visibilityOptions = [
+  { value: 0, label: '비공개' },
+  { value: 3, label: '공개' },
+]
+
+const columns: GridColDef[] = [
+  {
+    field: 'blog_name',
+    headerName: '블로그 선택',
+    width: 180,
+    editable: true,
+    disableColumnMenu: true,
+    hideSortIcons: true,
+  },
+  {
+    field: 'request_link',
+    headerName: '요청페이지 링크',
+    width: 220,
+    editable: true,
+    disableColumnMenu: true,
+    hideSortIcons: true,
+  },
+  {
+    field: 'visibility',
+    headerName: '공개여부',
+    editable: true,
+    type: 'singleSelect',
+    valueOptions: visibilityOptions,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'category_name',
+    headerName: '카테고리',
+    type: 'singleSelect',
+    valueOptions: ['cate1', 'cate2', 'cate3'],
+    editable: true,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'tags',
+    headerName: '태그',
+    editable: true,
+    disableColumnMenu: true,
+    hideSortIcons: true,
+  },
+  {
+    field: 'modified_at',
+    headerName: '발행일자',
+    type: 'date',
+    width: 120,
+    editable: true,
+    hideable: false,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'status',
+    headerName: '발행상태',
+    type: 'singleSelect',
+    width: 100,
+    editable: true,
+    hideable: false,
+    valueOptions: ['발행요청', '발행완료', '수정요청'],
+    disableColumnMenu: true,
+  },
+  {
+    field: 'title',
+    headerName: '제목',
+    disableColumnMenu: true,
+    hideSortIcons: true,
+    editable: false,
+  },
+]
+
+const POST_TITLES = [
+  'Whiteboard Templates By Industry Leaders',
+  'Tesla Cybertruck-inspired camper trailer for Tesla fans who can’t just wait for the truck!',
+  'Designify Agency Landing Page Design',
+  '✨What is Done is Done ✨',
+  'Fresh Prince',
+  'Six Socks Studio',
+  'vincenzo de cotiis’ crossing over showcases a research on contamination',
+  'Simple, Great Looking Animations in Your Project | Video Tutorial',
+  '40 Free Serif Fonts for Digital Designers',
+  'Examining the Evolution of the Typical Web Design Client',
+  'Katie Griffin loves making that homey art',
+  'The American Dream retold through mid-century railroad graphics',
+  'Illustration System Design',
+  'CarZio-Delivery Driver App SignIn/SignUp',
+  'How to create a client-serverless Jamstack app using Netlify, Gatsby and Fauna',
+  'Tylko Organise effortlessly -3D & Motion Design',
+  'RAYO ?? A expanded visual arts festival identity',
+  'Anthony Burrill and Wired mag’s Andrew Diprose discuss how they made January’s Change Everything cover',
+  'Inside the Mind of Samuel Day',
+  'Portfolio Review: Is This Portfolio Too Creative?',
+  'Akkers van Margraten',
+  'Gradient Ticket icon',
+  'Here’s a Dyson motorcycle concept that doesn’t ‘suck’!',
+  'How to Animate a SVG with border-image',
+]
+
+const TAGS = [
+  'python',
+  'react',
+  'java',
+  'javascript',
+  'ssafy',
+  '조퇴',
+  '설렁탕',
+  '딘딘',
+  '알고리즘',
+  'algorithm',
+  'n2t',
+  'notion',
+  'md',
+  'markdown',
+  '퍼레이드',
+  'jennifer',
+  'brad',
+  'eddy',
+  'daniel',
+  'sally',
+  'spring',
+  '김영한',
+  '자율프로젝트',
+  '특화프로젝트',
+  '공통프로젝트',
+  '개발자',
+  'pm',
+  'FE',
+  '백엔드',
+  '데브옵스',
+]
+
+const BLOG_NAMES = [
+  '딘딘의 재롱잔치',
+  '팬더의 공학일기',
+  '통계학 세상',
+  '뉴비코의 코딩일기',
+  '개발자 뭄뭄',
+  '기억보단 기록을',
+  '노션 투 티스토리',
+  '미미가 양꼬치',
+  '사랑해요 제로딘딘',
+]
+
+const predefinedRows: GridRowsProp = [...Array(23)].map((_, index) => ({
+  id: faker.datatype.uuid(),
+  visibility: sample([0, 3]),
+  status: sample(['발행완료', '발행요청', '수정요청', '발행오류']),
+  title: POST_TITLES[index + 1],
+  category_name: sample(['cate1', 'cate2', 'cate3']),
+  modified_at: faker.date.past(),
+  blog_name: sample(BLOG_NAMES),
+  request_link: faker.internet.domainName(),
+  response_link: faker.internet.domainName(),
+  tags: sampleSize(TAGS, sample([2, 4, 5, 6, 8])).toString(),
+}))
+
+export default NewTistoryPage

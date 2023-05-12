@@ -1,16 +1,21 @@
 // @mui
+import { useEffect, useState } from 'react'
+
+import { useQuery } from 'react-query'
+
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 
 // mock
 import { navConfig, settingConfig, connectedConfig } from './config'
 
-import { NavContent, NavConnectedSite } from './styles'
+import { StyledNavContent, StyledNavConnectedSite } from './styles'
 
 import account from '@/_mock/account'
 
 // hooks
-import { ReactComponent as Logo } from '@/assets/logo/nogari.svg'
+import { getOauthStatus } from '@/apis/OauthApis'
+import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
 import SettingSection from '@/components/setting-section'
@@ -32,6 +37,8 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
+  const { data } = useQuery('oauths', getOauthStatus)
+
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
@@ -55,14 +62,20 @@ export default function Nav() {
           </StyledAccount>
         </Link>
       </Box>
-      <NavContent>
+      <StyledNavContent>
         <NavSection data={navConfig} />
         <div>
           <div style={{ padding: '0 22px' }}>
             <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
-            <NavConnectedSite>
-              <ConnectedSection data={connectedConfig} />
-            </NavConnectedSite>
+            <StyledNavConnectedSite>
+              <ConnectedSection
+                data={connectedConfig(
+                  data?.data.result.notion,
+                  data?.data.result.tistory,
+                  data?.data.result.github
+                )}
+              />
+            </StyledNavConnectedSite>
           </div>
           <div
             style={{
@@ -74,7 +87,7 @@ export default function Nav() {
           ></div>
           <SettingSection data={settingConfig} />
         </div>
-      </NavContent>
+      </StyledNavContent>
     </>
   )
 

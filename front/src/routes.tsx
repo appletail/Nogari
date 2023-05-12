@@ -4,34 +4,67 @@ import RegisterLayout from './layouts/register/RegisterLayout'
 import RootLayout from './layouts/root/RootLayout'
 import Home from './pages/Home'
 import LoginPage from './pages/LoginPage'
-import NewTistoryPage from './pages/NewTistoryPage'
+import GithubOAuth from './pages/oauth/GithubOAuth'
+import NotionOAuth from './pages/oauth/NotionOAuth'
+import TistoryOAuth from './pages/oauth/TistoryOAuth'
+import Page404 from './pages/Page404'
 import SignupPage from './pages/SignupPage'
 import TistoryPage from './pages/TistoryPage'
+import PrivateRouter from './routers/PrivateRouter'
 
 const routers = createBrowserRouter([
+  // Tistory, Gihub 페이지는 로그인 후에만 이동할 수 있도록 처리
+
+  // Oauth 페이지 또한 로그인 후에만 이동할 수 있도록 처리
   {
-    element: <RootLayout />,
+    element: <PrivateRouter authentication={true} />,
+    errorElement: <Page404 />,
     children: [
       {
-        path: '/test',
-        element: <Home />,
+        element: <RootLayout />,
+        children: [
+          {
+            path: '/test',
+            element: <Home />,
+          },
+          {
+            path: '/tistory',
+            element: <TistoryPage />,
+          },
+        ],
       },
       {
-        path: '/tistory',
-        element: <NewTistoryPage />,
+        path: '/oauth/notion',
+        element: <NotionOAuth />,
+      },
+      {
+        path: '/oauth/tistory',
+        element: <TistoryOAuth />,
+      },
+      {
+        path: '/oauth/github',
+        element: <GithubOAuth />,
       },
     ],
   },
+
+  // 회원가입, 로그인은 로그인 하지 않은 유저만 접근가능하도록 처리
   {
-    element: <RegisterLayout />,
+    element: <PrivateRouter authentication={false} />,
+    errorElement: <Page404 />,
     children: [
       {
-        path: '/',
-        element: <LoginPage />,
-      },
-      {
-        path: '/signup',
-        element: <SignupPage />,
+        element: <RegisterLayout />,
+        children: [
+          {
+            path: '/',
+            element: <LoginPage />,
+          },
+          {
+            path: '/signup',
+            element: <SignupPage />,
+          },
+        ],
       },
     ],
   },

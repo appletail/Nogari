@@ -15,10 +15,13 @@ spring:
         format_sql: true # JPA의 구현체인 Hibernate가 동작하면서 발생한 SQL의 가독성을 높여준다.
     open-in-view: false
   redis:
-    host: k8c206.p.ssafy.io
+    host: www.nogari.me
     port: 6379
+    password: regari
   session:
     store-type: redis
+  main:
+    lazy-initialization: true
 
 springdoc:
   packages-to-scan: me.nogari.nogari # swagger를 적용하기 위해 스캔할 패키지를 지정합니다.
@@ -42,15 +45,14 @@ server:
 
 app:
   auth:
-    kakao:
-       redirect-uri: http://localhost:8080/api/vi/oauth/tistory    # Token 받을 Uri 지정
-#      redirect-uri: http://localhost:3000/token/kakao     # Token 받을 Uri 지정
-    github:
-      redirect-uri: https://github.com/login/oauth/access_token    # access token 발급 요청 uri
+    tistory:
+      redirect-uri: https://www.nogari.me/oauth/tistory    # Token 받을 Uri 지정
+    #      redirect-uri: http://localhost:3000/oauth/tistory     # Token 받을 Uri 지정
+    notion:
+      redirect-uri: https://www.nogari.me/oauth/notion    # notion access token 발급 요청 uri
 
 logging:
   level:
     web: INFO
     com: INFO
     root: INFO
-
