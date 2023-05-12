@@ -14,7 +14,7 @@ export async function postTistoryCategory() {
 export async function postTistoryPostList() {
   const response = await axAuth.post(`/contents/tistory`, {
     lastTistoryId: -1,
-    pageSize: 1,
+    pageSize: 100,
   })
   return response
 }
