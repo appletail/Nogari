@@ -22,3 +22,15 @@ interface Tcategory {
   label?: string
   entries?: string
 }
+
+interface Tpost {
+  type: 'html'
+  blogName: string
+  requestLink: string
+  responseLink?: string
+  visibility: '0' | '3'
+  categoryName: string
+  tagList?: string
+  status: '발행요청' | '수정요청' | '발행완료' | '발행실패' | '수정실패'
+  title: string
+}
