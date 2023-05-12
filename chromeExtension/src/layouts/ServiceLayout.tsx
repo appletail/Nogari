@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Outlet, useLocation, useOutlet } from 'react-router-dom'
+import { Outlet, useOutlet } from 'react-router-dom'
 
 import { connectedConfig } from './config'
 import { getConnectedSite } from '../apis/apis'
@@ -18,7 +18,7 @@ function ServiceLayout() {
     tistory: false,
     github: false,
   })
-  const location = useLocation()
+
   const [loading, setLoading] = useState(false)
   const outlet = useOutlet()
 

@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
 
 import { checkUrl } from './utils'
 import { getLog, postTistory } from '../../apis/apis'
 import { loadingInterceptors } from '../../components/loading/LoadingInterceptors'
 import LoadingSpinner from '../../components/loading/LoadingSpinner'
-import style from '../styles/Home.module.css'
 
 function Home() {
-  const navigate = useNavigate()
   const [log, setLog] = useState({
     title: '',
     status: '발행 이력 확인 중',
