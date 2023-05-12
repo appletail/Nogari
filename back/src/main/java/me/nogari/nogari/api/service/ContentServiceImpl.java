@@ -736,6 +736,16 @@ public class ContentServiceImpl implements ContentService {
 						new ParameterizedTypeReference<Map<String, Object>>() {}
 					);
 
+					responseBody= response.getBody();
+					Map<String, String> content = (Map<String, String>) responseBody.get("content");
+					String sha = content.get("sha");
+
+					////////////////////////////////////////////////////////////////////////////////////////////
+					// STEP6. [발행완료] Github 발행 상태 DB 갱신
+					//수정일 땐 DB의 sha 필드값만 변경한다.
+					lambdaResponses[i].getGithub().setSha(sha);
+					lambdaResponses[i].getGithub().setStatus("발행완료");
+
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					lambdaResponses[i].getGithub().setStatus("발행완료");
 

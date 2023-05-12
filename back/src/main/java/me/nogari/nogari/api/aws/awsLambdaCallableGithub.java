@@ -6,19 +6,13 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Member;
-
 
 public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 	private LambdaCallFunction lambdaCallFunction;
@@ -45,7 +39,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String content = (String)data.get("content"); // github에 게시될 게시글 내용
 		
 		//filePath 생성
-		if (github.getStatus().equals("수정요청")) {
+		if (github.getStatus().equals("수정요청") || github.getStatus().equals("수정실패")) {
 			String filePath =
 				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/" + post.getFilename();
 			System.out.println("githubAwsLambda 수정요청 filePath : " + filePath);
