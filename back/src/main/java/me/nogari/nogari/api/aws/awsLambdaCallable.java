@@ -79,7 +79,7 @@ public class awsLambdaCallable implements Callable<LambdaResponse> {
 		params.add("blogName", post.getBlogName()); // 블로그 이름
 		params.add("title", title); // 글 제목
 		params.add("content", content); // 글 내용
-		params.add("visibility", "3"); // 발행 상태 : 기본값(발행)
+		params.add("visibility", Integer.toString(post.getVisibility())); // 발행 상태 : 기본값(발행)
 		params.add("category", post.getCategoryName()); // 카테고리 아이디
 		params.add("published", ""); // 발행 시간
 		params.add("slogan", ""); // 문자 주소
