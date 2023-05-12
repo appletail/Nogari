@@ -14,13 +14,11 @@ public class PostNotionToTistoryDto {
 	private String type;
 
 	// Tistory
+	private Long tistoryId;
 	private String blogName;
 	private String requestLink;
-	private String responseLink;
 	private Byte visibility;
 	private String categoryName;
 	private String tagList;
 	private String status;
-	private String title;
-
 }

@@ -268,53 +268,114 @@ public class ContentServiceImpl implements ContentService {
 
 		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
 		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToTistoryDtoList.size()];
-
-		// Response 응답에 각 제출에 대한 순서 관리를 위한 인덱스 리스트
-		List<Integer> responseIndexList = new ArrayList<>();
 		
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
 
 			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
+			Tistory tistory = null;
 			boolean testFlag = false;
+			boolean statusFlag = true;
 
-			// 발행상태 변화도 : 발행요청, 발행실패 -> 발행완료 <-> 수정요청 <- 수정실패
-			// 1. [발행요청]은 사용자가 신규로 생성한 튜플에 대해서만 가능하다. -> requestLink를 검사한다.
-			// 2. [발행실패]는 [발행요청]에 실패한 튜플로, 다시 [발행요청]을 시도한다. -> requestLink를 검사한다.
-			// 3. [발행완료]는 [발행요청] 및 [발행실패]에 대해 발행이 완료된 상태로, [수정요청]이 가능하다. -> 아무 작업도 수행하지 않는다.
-			// 4. [수정요청]은 사용자가 이미 발행했던 [발행완료] 튜플에 대해서만 가능하다. -> requestLink, responseLink를 검사한다.
-			// 5. [수정실패]는 [수정요청]에 실패한 튜플로, 다시 [수정요청]을 시도한다. -> requestLink, responseLink를 검사한다.
+			// 발행상태 변화도 : 발행실패 <-> 발행요청 -> 발행완료 <-> 수정요청 <-> 수정실패
+			// 1. [발행요청]은 사용자가 신규로 발행요청을 했거나, [발행실패]이력에 대해 발행요청을 하는 경우이다.
+			// (1). 클라이언트로부터 전달받은 tistoryId를 검사한다.
+			// 1). tistoryId가 ""일 경우, 신규 발행요청으로 간주한다.
+			// 2). tistoryId가 "숫자값"일 경우, 발행실패 이력에 대한 재발행요청으로 간주하고, Tistory 객체를 조회한다.
+			//
+			// 2. [발행실패]는 [발행요청]에 실패한 튜플로, 브라우저에서 사용자가 [발행요청]으로 요청상태를 변경해야한다.
+			// (1). 아무 작업도 수행하지 않는다.
+			//
+			// 3. [발행완료]는 [발행요청] 및 [수정요청]에 대해 발행이 완료된 상태이다.
+			// (1). 아무 작업도 수행하지 않는다.
+			//
+			// 4. [수정요청]은 사용자가 이미 발행했던 [발행완료] 혹은 [수정실패] 튜플에 대해서만 가능하다.
+			// (1). [수정요청]은 사용자가 [발행완료]된 튜플에 수정요청을 했거나, [수정실패]된 튜플에 수정요청을 하는 경우이다.
+			// (2). 클라이언트로부터 전달받은 tistoryId를 통해 Tistory 객체를 조회한다.
+			// 1). 조회한 Tistory 객체의 상태(status)는 반드시 "발행완료" 혹은 "수정실패"여야한다.
+			//
+			// 5. [수정실패]는 [수정요청]에 실패한 튜플로, 브라우저에서 사용자가 [수정요청]으로 요청상태를 변경해야한다.
+			// (1). 아무 작업도 수행하지 않는다.
+			//
+			// 브라우저에서 보이는 각 상태별 드롭다운 리스트
+			// 1. 최초발행 튜플 : 발행요청
+			// 2. 발행실패 튜플 : 발행실패, 발행요청
+			// 3. 수정실패 튜플 : 수정실패, 수정요청
+			// 4. 발행완료 튜플 : 발행완료, 수정요청
 
-			if(post.getStatus().equals("발행요청") || post.getStatus().equals("발행실패")){
-				// STEP2. 클라이언트의 발행요청을 데이터베이스에 저장한다.
-				Tistory tistory = Tistory.builder()
-					.blogName(post.getBlogName())
-					.requestLink(post.getRequestLink())
-					.visibility(post.getVisibility())
-					.categoryName(post.getCategoryName())
-					.tagList(post.getTagList())
-					.status("발행요청")
-					.title(post.getTitle())
-					.member(member)
-					.build();
-				tistoryRepository.save(tistory);
-
-				// STEP3. 클라이언트로부터 전달받은 입력값을 검사한다.
+			if(post.getStatus().equals("발행요청")){
+				// STEP2. 클라이언트로부터 전달받은 입력값을 검사한다.
 				testFlag = conditionCheck(post);
 
-				// STEP4-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
+				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
-					try{
-						Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
-						Future<?> future = completionService.submit(postLambdaCallable);
-						futureList.add(future);
-					} catch(Exception e){
-						// Exception : 기타 예외의 경우
-						e.printStackTrace();
+					// STEP4-1. 최초 발행요청에 해당하는 경우
+					if(post.getTistoryId()==null || post.getTistoryId().equals("")){
+						// STEP4-1-1. 클라이언트의 발행요청을 데이터베이스에 저장한다.
+						tistory = Tistory.builder()
+							.blogName(post.getBlogName())
+							.requestLink(post.getRequestLink())
+							.visibility(post.getVisibility())
+							.categoryName(post.getCategoryName())
+							.tagList(post.getTagList())
+							.status("발행요청")
+							.title("")
+							.member(member)
+							.build();
+						tistoryRepository.save(tistory);
+					}
+					// STEP4-2. 발행실패 이력에 대한 재발행요청에 해당하는 경우
+					else{
+						// STEP4-2-1. 데이터베이스에 저장되어 있는 기존 이력을 조회한다.
+						try{
+							tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+
+							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
+							if(tistory.getStatus().equals("발행실패")){
+								tistory.setCategoryName(post.getCategoryName());
+								tistory.setRequestLink(post.getRequestLink());
+								tistory.setTagList(post.getTagList());
+								tistory.setVisibility(post.getVisibility());
+
+								statusFlag = true;
+								tistory.setStatus("발행요청");
+							}
+							else{
+								statusFlag = false;
+
+								responseBody.put("requestIndex", (i+1));
+								responseBody.put("resultCode", 400);
+								responseBody.put("resultMessage", "[발행실패] 입력 값이 올바르지 않습니다.");
+								responseList.add(responseBody);
+
+								// 해당 경우에 대해서는 tistory의 상태를 변경해서는 안된다.
+								// tistory.setStatus("발행실패");
+							}
+						}catch(NullPointerException e){
+							// NullPointerException : 데이터베이스에 존재하지 않는 tistoryId를 입력한 경우
+							statusFlag = false;
+
+							responseBody.put("requestIndex", (i+1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[발행실패] 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+						}
+					}
+
+					// STEP5-1. 조건검사와 상태검사를 모두 통과했다면 AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
+					if(statusFlag){
+						try{
+							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
+							Future<?> future = completionService.submit(postLambdaCallable);
+							futureList.add(future);
+						} catch(Exception e){
+							// Exception : 기타 예외의 경우
+							e.printStackTrace();
+						}
 					}
 				}
-				// STEP4-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
+				// STEP5-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
 				else{
 					responseBody.put("requestIndex", (i+1));
 					responseBody.put("resultCode", 400);
@@ -324,36 +385,75 @@ public class ContentServiceImpl implements ContentService {
 					tistory.setStatus("발행실패");
 				}
 			}
+			else if(post.getStatus().equals("발행실패")){
+				responseBody.put("requestIndex", (i+1));
+				responseBody.put("resultCode", 200);
+				responseBody.put("resultMessage", "[발행실패] 발행 실패된 페이지입니다. 요청에 대한 처리를 하지 않습니다. ");
+				responseList.add(responseBody);
+			}
 			else if(post.getStatus().equals("발행완료")){
 				responseBody.put("requestIndex", (i+1));
 				responseBody.put("resultCode", 200);
-				responseBody.put("resultMessage", "[발행완료] 이미 발행 완료된 페이지입니다.");
+				responseBody.put("resultMessage", "[발행완료] 발행 완료된 페이지입니다. 요청에 대한 처리를 하지 않습니다.");
 				responseList.add(responseBody);
 			}
-			else if(post.getStatus().equals("수정요청") || post.getStatus().equals("수정실패")){
+			else if(post.getStatus().equals("수정요청")){
 				// STEP2. 클라이언트로부터 전달받은 입력값을 검사한다.
 				testFlag = conditionCheck(post);
 
 				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 				if(testFlag){
-					// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
 					try{
-						Tistory tistory = tistoryRepository.findByResponseLink(post.getResponseLink());
-						tistory.setRequestLink(post.getRequestLink());
-						tistory.setStatus("수정요청");
+						tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
 
-						Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
-						Future<?> future = completionService.submit(awsLambdaCallable);
-						futureList.add(future);
-					} catch(Exception e){
-						// HttpClientErrorException : 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
-						// JsonParseException : 입력값이 정상적으로 입력되지 않은 경우
-						// NullPointerException : responseLink가 잘못 입력된 경우
-						// Exception : 기타 예외의 경우
+						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
+						if(tistory.getStatus().equals("발행완료") || tistory.getStatus().equals("수정실패")){
+							tistory.setCategoryName(post.getCategoryName());
+							tistory.setRequestLink(post.getRequestLink());
+							tistory.setTagList(post.getTagList());
+							tistory.setVisibility(post.getVisibility());
+
+							statusFlag = true;
+							tistory.setStatus("수정요청");
+						}
+						else{
+							statusFlag = false;
+
+							responseBody.put("requestIndex", (i+1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[수정실패] 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+
+							// 해당 경우에 대해서는 tistory의 상태를 변경해서는 안된다.
+							// tistory.setStatus("발행실패");
+						}
+					} catch(NullPointerException e){
+						// NullPointerException : 데이터베이스에 존재하지 않는 tistoryId를 입력한 경우
+						statusFlag = false;
+
 						responseBody.put("requestIndex", (i+1));
 						responseBody.put("resultCode", 400);
-						responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+						responseBody.put("resultMessage", "[수정실패] 입력 값이 올바르지 않습니다.");
 						responseList.add(responseBody);
+					}
+
+					// STEP4-2. 최초 수정요청 혹은 수정실패에 이력에 대한 수정요청에 해당하는 경우
+					if(statusFlag){
+						// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
+						try{
+							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
+							Future<?> future = completionService.submit(awsLambdaCallable);
+							futureList.add(future);
+						} catch(Exception e){
+							// HttpClientErrorException : 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
+							// JsonParseException : 입력값이 정상적으로 입력되지 않은 경우
+							// NullPointerException : responseLink가 잘못 입력된 경우
+							// Exception : 기타 예외의 경우
+							responseBody.put("requestIndex", (i+1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[수정실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+						}
 					}
 				}
 				// STEP3-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
@@ -361,15 +461,20 @@ public class ContentServiceImpl implements ContentService {
 					try{
 						responseBody.put("requestIndex", (i+1));
 						responseBody.put("resultCode", 400);
-						responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+						responseBody.put("resultMessage", "[수정실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
 						responseList.add(responseBody);
 
-						Tistory tistory = tistoryRepository.findByResponseLink(post.getResponseLink());
 						tistory.setStatus("수정실패");
 					} catch(NullPointerException e){
 						// NullPointerException : responseLink가 잘못 입력된 경우
 					}
 				}
+			}
+			else if(post.getStatus().equals("수정실패")){
+				responseBody.put("requestIndex", (i+1));
+				responseBody.put("resultCode", 200);
+				responseBody.put("resultMessage", "[수정실패] 수정 실패된 페이지입니다. 요청에 대한 처리를 하지 않습니다. ");
+				responseList.add(responseBody);
 			}
 			else{
 				responseBody.put("requestIndex", (i+1));
@@ -432,6 +537,7 @@ public class ContentServiceImpl implements ContentService {
 					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
 					String tistoryResponse = response.toString(); // Tistory API의 응답
 					Document doc = Jsoup.parse(tistoryResponse);
+					lambdaResponses[i].getTistory().setTitle(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
 					lambdaResponses[i].getTistory().setResponseLink(doc.select("url").text()); // Tistory에 게시된 게시글 링크
 					lambdaResponses[i].getTistory().setPostId(Long.parseLong(doc.select("postId").text())); // Tistory에 게시된 게시글 번호
 					lambdaResponses[i].getTistory().setStatus("발행완료");
@@ -444,11 +550,13 @@ public class ContentServiceImpl implements ContentService {
 				} catch(HttpClientErrorException e){
 					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
 					// Case1. BlogName Error (HttpClientErrorException)
+					// Case2. Not Acceptable (HttpClientErrorException)
+					e.printStackTrace();
 					lambdaResponses[i].getTistory().setStatus("발행실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);
-					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 작성중 에러가 발생했습니다. (페이지 접근 권한이 없거나, 블로그 이름이 일치하지 않습니다.)");
+					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 작성중 에러가 발생했습니다. (페이지 접근 권한이 없거나, 블로그 이름이 일치하지 않거나, 하루 최대 발행개수를 초과했습니다.)");
 					responseList.add(responseBody);
 				}
 			}
@@ -467,6 +575,7 @@ public class ContentServiceImpl implements ContentService {
 					);
 
 					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
+					lambdaResponses[i].getTistory().setTitle(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
 					lambdaResponses[i].getTistory().setStatus("발행완료");
 
 					responseBody.put("requestIndex", i+1);
@@ -475,13 +584,13 @@ public class ContentServiceImpl implements ContentService {
 						+ lambdaResponses[i].getTistory().getPostId());
 					responseList.add(responseBody);
 				} catch(HttpClientErrorException e){
-					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
+					// STEP6. [수정실패] Tistory 발행 상태 DB 갱신
 					// Case1. BlogName Error (HttpClientErrorException)
-					lambdaResponses[i].getTistory().setStatus("발행실패");
+					lambdaResponses[i].getTistory().setStatus("수정실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);
-					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 블로그 이름이 일치하지 않습니다.)"
+					responseBody.put("resultMessage", "[수정실패] Tistory 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 블로그 이름이 일치하지 않습니다.)"
 						+ lambdaResponses[i].getTistory().getPostId());
 					responseList.add(responseBody);
 				}
@@ -791,13 +900,13 @@ public class ContentServiceImpl implements ContentService {
 		boolean testResult = false;
 
 		if(p.getStatus().equals("발행요청") || p.getStatus().equals("발행실패")){
-			// STEP1-1. 발행요청, 발행실패의 경우 blogName은 공백이 아니어야한다.
+			// STEP1-1. 발행요청, 발행실패의 경우 blogName은 공백이 아니어야한다. tistoryId는 공백일수도 있다.
 			if(!p.getBlogName().equals("")){
 				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
 				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
 					// STEP3-1. 발행요청, 발행실패의 경우 responseLink에 대해서는 검사하지 않는다.
-					// STEP4. visibility는 공개발행(3)이어야한다.
-					if(p.getVisibility()==3){
+					// STEP4. visibility는 비공개(0) 혹은 공개발행(3)이어야한다.
+					if(p.getVisibility()==0 || p.getVisibility()==3){
 						// STEP5. type은 'md' 혹은 'html'이어야한다.
 						if(p.getType().equals("md") || p.getType().equals("html")){
 							// STEP6. categoryName, tagList는 별도의 조건이 없다.
@@ -808,19 +917,16 @@ public class ContentServiceImpl implements ContentService {
 			}
 		}
 		else if(p.getStatus().equals("수정요청") || p.getStatus().equals("수정실패")){
-			// STEP1-2. 수정요청, 수정실패의 경우 title ,blogName은 공백이 아니어야한다.
-			if(!p.getType().equals("") && !p.getBlogName().equals("")){
+			// STEP1-2. 수정요청, 수정실패의 경우 title ,blogName, tistoryId는 공백이 아니어야한다.
+			if(!p.getType().equals("") && !p.getBlogName().equals("") && p.getTistoryId()!=null && !p.getTistoryId().equals("")){
 				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
 				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
-					// STEP3-2. 수정요청, 수정실패에 대해서는 responseLink가 공백이 아닌지 검사한다.
-					if(!p.getResponseLink().equals("")){
-						// STEP4. visibility는 공개발행(3)이어야한다.
-						if(p.getVisibility()==3){
-							// STEP5. type은 'md' 혹은 'html'이어야한다.
-							if(p.getType().equals("md") || p.getType().equals("html")){
-								// STEP6. categoryName, tagList는 별도의 조건이 없다.
-								testResult = true;
-							}
+					// STEP3. visibility는 비공개(0) 혹은 공개발행(3)이어야한다.
+					if(p.getVisibility()==0 || p.getVisibility()==3){
+						// STEP4. type은 'md' 혹은 'html'이어야한다.
+						if(p.getType().equals("md") || p.getType().equals("html")){
+							// STEP5. categoryName, tagList는 별도의 조건이 없다.
+							testResult = true;
 						}
 					}
 				}

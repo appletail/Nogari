@@ -34,7 +34,7 @@ public class Tistory extends BaseTimeEntity {
 	@Column(name = "blog_name", length = 300, nullable = false)
 	private String blogName;
 
-	@Column(name = "title", length = 300, nullable = false)
+	@Column(name = "title", length = 300)
 	private String title;
 
 	@Column(name = "category_name", length = 50)
