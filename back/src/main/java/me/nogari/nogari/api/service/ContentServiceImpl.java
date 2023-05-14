@@ -310,8 +310,10 @@ public class ContentServiceImpl implements ContentService {
 
 				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
-					// STEP4-1. 최초 발행요청에 해당하는 경우
-					if(post.getTistoryId()==null || post.getTistoryId().equals("")){
+					tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+
+					// STEP4-1. 최초 발행요청(tistoryId="데이터베이스에 존재하지 않는 ID")에 해당하는 경우
+					if(tistory==null){
 						// STEP4-1-1. 클라이언트의 발행요청을 데이터베이스에 저장한다.
 						tistory = Tistory.builder()
 							.blogName(post.getBlogName())
@@ -325,12 +327,10 @@ public class ContentServiceImpl implements ContentService {
 							.build();
 						tistoryRepository.save(tistory);
 					}
-					// STEP4-2. 발행실패 이력에 대한 재발행요청에 해당하는 경우
+					// STEP4-2. 발행실패 이력에 대한 재발행요청(tistoryId="데이터베이스에 존재하는 ID")에 해당하는 경우
 					else{
 						// STEP4-2-1. 데이터베이스에 저장되어 있는 기존 이력을 조회한다.
 						try{
-							tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
-
 							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 							if(tistory.getStatus().equals("발행실패")){
 								tistory.setCategoryName(post.getCategoryName());
