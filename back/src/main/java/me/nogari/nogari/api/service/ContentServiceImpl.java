@@ -268,7 +268,7 @@ public class ContentServiceImpl implements ContentService {
 
 		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
 		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToTistoryDtoList.size()];
-		
+
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
@@ -310,7 +310,11 @@ public class ContentServiceImpl implements ContentService {
 
 				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
-					tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+					try{
+						tistory = tistoryRepository.findByTistoryId(Long.parseLong(post.getTistoryId()));
+					} catch(NumberFormatException e){
+						tistory = null;
+					}
 
 					// STEP4-1. 최초 발행요청(tistoryId="데이터베이스에 존재하지 않는 ID")에 해당하는 경우
 					if(tistory==null){
@@ -333,6 +337,7 @@ public class ContentServiceImpl implements ContentService {
 						try{
 							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 							if(tistory.getStatus().equals("발행실패")){
+								tistory.setBlogName(post.getBlogName());
 								tistory.setCategoryName(post.getCategoryName());
 								tistory.setRequestLink(post.getRequestLink());
 								tistory.setTagList(post.getTagList());
@@ -404,10 +409,11 @@ public class ContentServiceImpl implements ContentService {
 				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 				if(testFlag){
 					try{
-						tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+						tistory = tistoryRepository.findByTistoryId(Long.parseLong(post.getTistoryId()));
 
 						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 						if(tistory.getStatus().equals("발행완료") || tistory.getStatus().equals("수정실패")){
+							tistory.setBlogName(post.getBlogName());
 							tistory.setCategoryName(post.getCategoryName());
 							tistory.setRequestLink(post.getRequestLink());
 							tistory.setTagList(post.getTagList());
@@ -801,7 +807,7 @@ public class ContentServiceImpl implements ContentService {
 					String sha = content.get("sha");
 					String htmlUrl = content.get("html_url");
 
-////////////////////////////////////////////////////////////////////////////////////////////
+					////////////////////////////////////////////////////////////////////////////////////////////
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					lambdaResponses[i].getGithub().setFilename(name);
 					lambdaResponses[i].getGithub().setSha(sha);
@@ -944,11 +950,11 @@ public class ContentServiceImpl implements ContentService {
 				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
 				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
 					// STEP3-1. 발행요청, 발행실패의 경우 responseLink에 대해서는 검사하지 않는다.
-						// STEP5. type은 'md' 혹은 'html'이어야한다.
-						if(p.getType().equals("md") || p.getType().equals("html")){
-							// STEP6. categoryName, tagList는 별도의 조건이 없다.
-							testResult = true;
-						}
+					// STEP5. type은 'md' 혹은 'html'이어야한다.
+					if(p.getType().equals("md") || p.getType().equals("html")){
+						// STEP6. categoryName, tagList는 별도의 조건이 없다.
+						testResult = true;
+					}
 				}
 			}
 		}
@@ -959,11 +965,11 @@ public class ContentServiceImpl implements ContentService {
 				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
 					// STEP3-2. 수정요청, 수정실패에 대해서는 responseLink가 공백이 아닌지 검사한다.
 					if(!p.getResponseLink().equals("")){
-							// STEP5. type은 'md' 혹은 'html'이어야한다.
-							if(p.getType().equals("md") || p.getType().equals("html")){
-								// STEP6. categoryName, tagList는 별도의 조건이 없다.
-								testResult = true;
-							}
+						// STEP5. type은 'md' 혹은 'html'이어야한다.
+						if(p.getType().equals("md") || p.getType().equals("html")){
+							// STEP6. categoryName, tagList는 별도의 조건이 없다.
+							testResult = true;
+						}
 					}
 				}
 			}
