@@ -268,7 +268,7 @@ public class ContentServiceImpl implements ContentService {
 
 		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
 		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToTistoryDtoList.size()];
-		
+
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
@@ -413,6 +413,7 @@ public class ContentServiceImpl implements ContentService {
 
 						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 						if(tistory.getStatus().equals("발행완료") || tistory.getStatus().equals("수정실패")){
+							tistory.setBlogName(post.getBlogName());
 							tistory.setCategoryName(post.getCategoryName());
 							tistory.setRequestLink(post.getRequestLink());
 							tistory.setTagList(post.getTagList());

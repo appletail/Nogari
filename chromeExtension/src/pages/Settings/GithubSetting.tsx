@@ -1,8 +1,6 @@
-import React from 'react'
-
 import style from '../../styles/Settings.module.css'
 
-function GithubSetting({ isConnected }: { isConnected: boolean }) {
+function GithubSetting() {
   return (
     <div style={{ position: 'relative' }}>
       <div className={style.Wrapper}>추후 업데이트 예정입니다.</div>
