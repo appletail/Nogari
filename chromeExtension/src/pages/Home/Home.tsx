@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { checkUrl } from './utils'
@@ -11,6 +11,7 @@ function Home() {
     title: '',
     status: '발행 이력 확인 중',
     responseLink: '발행 이력 없음',
+    date: '',
   })
   const { register, handleSubmit, reset } = useForm<Tpost>()
   const [loading, setLoading] = useState(false)
@@ -22,7 +23,6 @@ function Home() {
         ...saved[`${user}-tistory-setting`],
         type: 'html',
         status: '발행요청',
-        title: '곧 필요없어질 title 입니다.',
       }
       reset(requestData)
     })
@@ -32,10 +32,13 @@ function Home() {
       .then((res) => {
         const data = res.data.result[0][0]
         if (data) {
+          const date = new Date(data.modifiedDate)
+          date.setHours(date.getHours() + 9)
           const parsedLog = {
             title: data.title,
             status: data.status,
             responseLink: data.responseLink,
+            date: date.toISOString().split('T')[0] + ' / ' + date.toTimeString().split(' ')[0],
           }
           setLog(parsedLog)
         } else {
@@ -64,10 +67,13 @@ function Home() {
         if (response.data.result.body[0].resultCode === 200) {
           getLog().then((res) => {
             const data = res.data.result[0][0]
+            const date = new Date(data.modifiedDate)
+            date.setHours(date.getHours() + 9)
             const parsedLog = {
               title: data.title,
               status: data.status,
               responseLink: data.responseLink,
+              date: date.toISOString().split('T')[0] + ' / ' + date.toTimeString().split(' ')[0],
             }
             setLog(parsedLog)
           })
@@ -85,14 +91,15 @@ function Home() {
   return (
     <div>
       <h1>최신 발행 로그</h1>
-      <div>
-        <h2>
-          <span>{log.status} </span>
+      <p style={{ fontWeight: 'bold' }}>
+        <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
+        <div style={{ fontSize: '1rem' }}>
+          <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
           <span style={{ cursor: 'pointer', color: 'blue' }} onClick={openLink}>
             {log.title}
           </span>
-        </h2>
-      </div>
+        </div>
+      </p>
       <form onSubmit={handleSubmit(PublishHandler)}>
         <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label>
         <div>
