@@ -128,9 +128,7 @@ function TistoryPage() {
         submitArray.push(row)
       }
     })
-    console.log(submitArray)
     const response = await postTistoryPost(submitArray)
-    console.log(response)
   }
 
   // 더블클릭 > 클릭 시 수정으로 변경
