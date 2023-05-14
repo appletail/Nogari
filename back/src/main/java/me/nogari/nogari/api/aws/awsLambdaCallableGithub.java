@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
@@ -78,11 +79,9 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 	}
 
 	private static byte[] downloadImage(String imageUrl) throws IOException {
-		System.out.println("downloadImage method");
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder().url(imageUrl).build();
 		try (Response response = client.newCall(request).execute()) {
-			System.out.println("downloadImage try");
 			return response.body().bytes();
 		}
 	}
@@ -95,20 +94,42 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String githubRequestURL = "https://api.github.com/repos/";
 		RestTemplate rt = new RestTemplate();
 		String filePath = "";
+		String updateImageSha = null;
 		if (github.getStatus().equals("수정요청") || github.getStatus().equals("수정실패")) {
 			String filename = post.getFilename();
-			String splitFilename = filename.split(".")[0];
-			System.out.println("line 120 splitFilename : " +  splitFilename);
+			System.out.println("line98 filename : "  + filename);
+			String[] split = filename.split("\\.");
+			String splitFilename = split[0];
 			filePath =
 				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/imgs/"
 					+ splitFilename + "_" + idx + ".png";;
-			System.out.println("line 124 수정요청 일 때 img filepath : " + filePath);
+
+			//수정 요청일 때 이미 업로드되어있던 이미지의 sha 가져오기
+			HttpEntity<String> entity = new HttpEntity<>(null, headers);
+			try {
+				response = rt.exchange(
+					githubRequestURL + filePath,
+					HttpMethod.GET,
+					entity,
+					new ParameterizedTypeReference<Map<String, Object>>() {
+					}
+				);
+				responseBody= response.getBody();
+				if (responseBody != null) {
+					updateImageSha = (String) responseBody.get("sha");
+				} else {
+					System.out.println("line 124 : 이미지 file의 sha 찾지 못함");
+				}
+			} catch (HttpClientErrorException.NotFound e){
+				// 이미지 파일이 없는 경우에 대한 처리.
+				// response와 responseBody는 null 상태이므로 여기서는 다루지 않는다.
+				System.out.println("line 118 : 이미지 file 없음");
+			}
 		}
 		else {
 			filePath =
 				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/imgs/"
 					+ title + "_" + fileDate + "_" + idx + ".png";
-			System.out.println("line 130 발행요청 일 때 img filepath : " + filePath);
 		}
 
 		String fileContent = Base64.getEncoder().encodeToString(imageBytes);
@@ -116,6 +137,9 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		Map<String, String> body = new LinkedHashMap<>();
 		body.put("message", title + "_img_" + idx);
 		body.put("content", fileContent);
+		if(updateImageSha!=null){
+			body.put("sha", updateImageSha);
+		}
 
 		HttpEntity<Map<String, String>> githubImgHttpRequest = new HttpEntity<>(body, headers);
 
@@ -133,7 +157,6 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 
 		return newImageUrl;
 	}
-
 
 	// STEP2-1. AWS Lambda와 통신하여 JSON 응답값을 받아오는 메소드
 	public Map<String, Object> awsLambdaResponse(PostNotionToGithubDto post, Member member) throws Exception {
@@ -167,7 +190,6 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		headers.add("X-GitHub-Api-Version", "2022-11-28");
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		//////////////////////////////////////////////////
 		Pattern imagePattern = Pattern.compile("!\\[.*?\\]\\((https://s3\\.us-west-2\\.amazonaws\\.com/secure\\.notion-static\\.com/[^)]+)\\)");
 		StringBuilder newPostContent = new StringBuilder();
 		Matcher matcher = imagePattern.matcher(content);

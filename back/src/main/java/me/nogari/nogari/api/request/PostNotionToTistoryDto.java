@@ -14,7 +14,7 @@ public class PostNotionToTistoryDto {
 	private String type;
 
 	// Tistory
-	private Long tistoryId;
+	private String tistoryId;
 	private String blogName;
 	private String requestLink;
 	private Byte visibility;

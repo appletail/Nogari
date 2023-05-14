@@ -14,7 +14,7 @@ public class PostNotionToGithubDto {
 	private String type;
 
 	// Github
-	private Long githubId;
+	private String githubId;
 	private String repository;
 	private String categoryName;
 	private String status;

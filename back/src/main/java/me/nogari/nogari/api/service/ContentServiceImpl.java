@@ -310,7 +310,11 @@ public class ContentServiceImpl implements ContentService {
 
 				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
-					tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+					try{
+						tistory = tistoryRepository.findByTistoryId(Long.parseLong(post.getTistoryId()));
+					} catch(NumberFormatException e){
+						tistory = null;
+					}
 
 					// STEP4-1. 최초 발행요청(tistoryId="데이터베이스에 존재하지 않는 ID")에 해당하는 경우
 					if(tistory==null){
@@ -333,6 +337,7 @@ public class ContentServiceImpl implements ContentService {
 						try{
 							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 							if(tistory.getStatus().equals("발행실패")){
+								tistory.setBlogName(post.getBlogName());
 								tistory.setCategoryName(post.getCategoryName());
 								tistory.setRequestLink(post.getRequestLink());
 								tistory.setTagList(post.getTagList());
@@ -404,7 +409,7 @@ public class ContentServiceImpl implements ContentService {
 				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 				if(testFlag){
 					try{
-						tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+						tistory = tistoryRepository.findByTistoryId(Long.parseLong(post.getTistoryId()));
 
 						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 						if(tistory.getStatus().equals("발행완료") || tistory.getStatus().equals("수정실패")){
@@ -645,7 +650,7 @@ public class ContentServiceImpl implements ContentService {
 			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
 			Github github = null;
 			boolean testFlag = false;
-			boolean statusFlag = false;
+			boolean statusFlag = true;
 
 			if(post.getStatus().equals("발행요청")){
 				// STEP2. 클라이언트로부터 전달받은 입력값을 검사한다.
@@ -653,7 +658,11 @@ public class ContentServiceImpl implements ContentService {
 
 				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
-					github = githubRepository.findByGithubId(post.getGithubId());
+					try{
+						github = githubRepository.findByGithubId(Long.parseLong(post.getGithubId()));
+					} catch(NumberFormatException e){
+						github = null;
+					}
 					// STEP4-1. 최초 발행요청(tistoryId="데이터베이스에 존재하지 않는 ID")에 해당하는 경우
 					if(github == null){
 						github = Github.builder()
@@ -672,6 +681,7 @@ public class ContentServiceImpl implements ContentService {
 						try {
 							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 							if (github.getStatus().equals("발행실패")) {
+								github.setRepository(post.getRepository());
 								github.setCategoryName(post.getCategoryName());
 								github.setRequestLink(post.getRequestLink());
 
@@ -737,10 +747,11 @@ public class ContentServiceImpl implements ContentService {
 				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 				if(testFlag){
 					try{
-						github = githubRepository.findByGithubId(post.getGithubId());
+						github = githubRepository.findByGithubId(Long.parseLong(post.getGithubId()));
 
 						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 						if(github.getStatus().equals("발행완료") || github.getStatus().equals("수정실패")){
+							github.setRepository(post.getRepository());
 							github.setCategoryName(post.getCategoryName());
 							github.setRequestLink(post.getRequestLink());
 
@@ -761,6 +772,24 @@ public class ContentServiceImpl implements ContentService {
 						responseBody.put("resultCode", 400);
 						responseBody.put("resultMessage", "[수정실패] 입력 값이 올바르지 않습니다.");
 						responseList.add(responseBody);
+					}
+					// STEP4-2. 최초 수정요청 혹은 수정실패에 이력에 대한 수정요청에 해당하는 경우
+					if(statusFlag){
+						// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
+						try{
+							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallableGithub(i, post, github, member);
+							Future<?> future = completionService.submit(awsLambdaCallable);
+							futureList.add(future);
+						} catch(Exception e){
+							// HttpClientErrorException : 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
+							// JsonParseException : 입력값이 정상적으로 입력되지 않은 경우
+							// NullPointerException : responseLink가 잘못 입력된 경우
+							// Exception : 기타 예외의 경우
+							responseBody.put("requestIndex", (i+1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[수정실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+						}
 					}
 				}
 				// STEP3-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
@@ -847,7 +876,6 @@ public class ContentServiceImpl implements ContentService {
 					String sha = content.get("sha");
 					String htmlUrl = content.get("html_url");
 
-////////////////////////////////////////////////////////////////////////////////////////////
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					lambdaResponses[i].getGithub().setFilename(name);
 					lambdaResponses[i].getGithub().setSha(sha);
@@ -888,7 +916,6 @@ public class ContentServiceImpl implements ContentService {
 					Map<String, String> content = (Map<String, String>) responseBody.get("content");
 					String sha = content.get("sha");
 
-					////////////////////////////////////////////////////////////////////////////////////////////
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					//수정일 땐 DB의 sha 필드값만 변경한다.
 					lambdaResponses[i].getGithub().setSha(sha);
