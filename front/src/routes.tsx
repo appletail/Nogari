@@ -8,6 +8,7 @@ import GithubOAuth from './pages/oauth/GithubOAuth'
 import NotionOAuth from './pages/oauth/NotionOAuth'
 import TistoryOAuth from './pages/oauth/TistoryOAuth'
 import Page404 from './pages/Page404'
+import PrivacyPage from './pages/PrivacyPage'
 import SignupPage from './pages/SignupPage'
 import TistoryPage from './pages/TistoryPage'
 import PrivateRouter from './routers/PrivateRouter'
@@ -30,6 +31,10 @@ const routers = createBrowserRouter([
           {
             path: '/tistory',
             element: <TistoryPage />,
+          },
+          {
+            path: '/privacy',
+            element: <PrivacyPage />,
           },
         ],
       },

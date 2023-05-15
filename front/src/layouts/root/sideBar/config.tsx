@@ -23,8 +23,8 @@ export const navConfig = [
 
 export const settingConfig = [
   {
-    title: 'Notice',
-    path: '/notice',
+    title: '개인정보 처리방침',
+    path: '/privacy',
     icon: <CampaignOutlinedIcon sx={{ width: 1, height: 1 }} />,
   },
   {
