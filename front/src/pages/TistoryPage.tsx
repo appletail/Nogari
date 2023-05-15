@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { useQuery, useQueryClient, useMutation } from 'react-query'
 
 import { faker } from '@faker-js/faker'
 import LoginIcon from '@mui/icons-material/Login'
@@ -7,40 +8,136 @@ import { Card, Stack, Button, Typography } from '@mui/material'
 import {
   DataGrid,
   GridColDef,
-  GridRowsProp,
+  GridEditSingleSelectCellProps,
   GridCellParams,
+  GridEditSingleSelectCell,
   GridCellModesModel,
   GridCellModes,
+  useGridApiRef,
 } from '@mui/x-data-grid'
 
 import { sample, sampleSize } from 'lodash'
 
+import { getOauthStatus } from '@/apis/OauthApis'
+import { postTistoryPostList, postTistoryPost } from '@/apis/tistoryApis'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
 // ------------------------------------------------------------------
+interface posting {
+  id: string
+  visibility: number
+  status: string
+  title: string
+  categoryName: string
+  modifiedDate: string
+  blogName: string
+  requestLink: string
+  tagList: string
+}
 
-function NewTistoryPage() {
-  const [rows, setRows] = useState(predefinedRows)
+interface CustomTypeEditComponentProps extends GridEditSingleSelectCellProps {
+  setRows: React.Dispatch<React.SetStateAction<any[]>>
+}
+
+interface tistoryCategory {
+  id: string
+  name: string
+  parent: string
+  label: string
+  entries: string
+}
+
+function CustomTypeEditComponent(props: CustomTypeEditComponentProps) {
+  const { setRows, ...other } = props
+
+  const handleValueChange = () => {
+    setRows((prevRows) => {
+      // console.log(prevRows)
+      return prevRows.map((row) =>
+        row.id === props.id ? { ...row, categoryName: null } : row
+      )
+    })
+  }
+
+  return (
+    <GridEditSingleSelectCell onValueChange={handleValueChange} {...other} />
+  )
+}
+
+// ------------------------------------------------------------------
+
+function TistoryPage() {
+  // tistory 연결 여부에 따라 Button 다르게 보이는 부분 설정
+  // react query를 사용해서 sidebar에서 받은 로그인 정보 저장
+  // tistory가 연결되어 있을 때에만 tistoryInfo를 받아옵니다.
+
+  const apiRef = useGridApiRef()
+  const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
+  const { data: tistoryInfo, refetch } = useQuery(
+    'tistoryInfo',
+    postTistoryPostList,
+    {
+      enabled: !!oauth,
+    }
+  )
+
+  // data grid에서 사용하는 state
+  // row data and blog name
+  const [rows, setRows] = useState<any[]>([])
+  const [blogName, setBlogName] = useState(tistoryInfo?.data.result[1] || [''])
+
+  // cell mode : edit or view
   const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
-  // 행이 수정될 때 사용하는 함수
-  const processRowUpdate = (newRow: any, oldRow: any) => {
-    setRows((prevRows) => {
-      const newRows = [...prevRows].map((row) => {
-        if (row.id === newRow.id) return newRow
-        return row
-      })
-      return newRows
-    })
-    // the DataGrid expects the newRow as well
-    return newRow
+  useEffect(() => {
+    if (tistoryInfo) {
+      const RowData = tistoryInfo.data.result[0]
+      setRows(RowData)
+      setBlogName(tistoryInfo?.data.result[1])
+    }
+  }, [tistoryInfo])
+
+  // 새로운 행을 만드는 함수
+  const createNewRow = () => {
+    return {
+      tistoryId: faker.datatype.uuid(),
+      visibility: 3,
+      status: '발행요청',
+      title: '',
+      categoryName: '',
+      modifiedDate: '',
+      blogName: blogName[0],
+      requestLink: '',
+      tagList: '',
+    }
+  }
+
+  // add row 에 관련된 새로운 함수
+  const handleAddRow = () => {
+    const newRow = createNewRow()
+    const newRows = [newRow, ...rows]
+    setRows(newRows)
   }
 
   // data 제출 시에 사용하는 함수
-  const onClickHandler = () => {
-    console.log(rows)
+  const onClickHandler = async () => {
+    const rowModels = apiRef.current.getRowModels()
+    const submitArray: any[] = []
+    rowModels.forEach((row) => {
+      // 발행 할 데이터가 있고 발행요청인 경우에만 발행
+      if (row.requestLink && row.status === '발행요청') {
+        row['type'] = 'html'
+        submitArray.push(row)
+      }
+    })
+    const response = await postTistoryPost(submitArray)
+    if (response.data.resultCode === 200) {
+      refetch()
+      const newData = rows
+      apiRef.current.setRows(newData)
+    }
   }
 
   // 더블클릭 > 클릭 시 수정으로 변경
@@ -62,7 +159,10 @@ function NewTistoryPage() {
         ),
         [params.id]: {
           ...Object.keys(prevModel[params.id] || {}).reduce(
-            (acc, field) => ({ ...acc, [field]: { mode: GridCellModes.View } }),
+            (acc, field) => ({
+              ...acc,
+              [field]: { mode: GridCellModes.View },
+            }),
             {}
           ),
           [params.field]: { mode: GridCellModes.Edit },
@@ -75,8 +175,95 @@ function NewTistoryPage() {
     setCellModesModel(newModel)
   }, [])
 
-  // tistory 연결 여부에 따라 Button 다르게 보이는 부분 설정
-  const [tistoryLoggedIn, setTistoryLoggedIn] = useState(false)
+  const visibilityOptions = [
+    { value: 0, label: '비공개' },
+    { value: 3, label: '공개' },
+  ]
+
+  const columns: GridColDef[] = [
+    {
+      field: 'blogName',
+      headerName: '블로그 선택',
+      type: 'singleSelect',
+      valueOptions: blogName,
+      width: 180,
+      editable: true,
+      disableColumnMenu: true,
+      hideSortIcons: true,
+
+      renderEditCell: (params) => (
+        <CustomTypeEditComponent setRows={setRows} {...params} />
+      ),
+    },
+    {
+      field: 'requestLink',
+      headerName: '요청페이지 링크',
+      width: 220,
+      editable: true,
+      disableColumnMenu: true,
+      hideSortIcons: true,
+    },
+    {
+      field: 'visibility',
+      headerName: '공개여부',
+      editable: true,
+      type: 'singleSelect',
+      valueOptions: visibilityOptions,
+      disableColumnMenu: true,
+    },
+    {
+      field: 'categoryName',
+      headerName: '카테고리',
+      type: 'singleSelect',
+      valueOptions: ({ row }) => {
+        if (!row) {
+          return [{ value: '', label: '카테고리없음' }]
+        }
+
+        const index = blogName.indexOf(row.blogName)
+        const selectedCategories = tistoryInfo?.data.result[2][index]
+        return selectedCategories
+          ? selectedCategories.map((category: tistoryCategory) => {
+              return { value: category.id, label: category.name }
+            })
+          : [{ value: '', label: '카테고리없음' }]
+      },
+      editable: true,
+      disableColumnMenu: true,
+    },
+    {
+      field: 'tagList',
+      headerName: '태그',
+      editable: true,
+      disableColumnMenu: true,
+      hideSortIcons: true,
+    },
+    {
+      field: 'modifiedDate',
+      headerName: '발행일자',
+      width: 120,
+      editable: true,
+      hideable: false,
+      disableColumnMenu: true,
+    },
+    {
+      field: 'status',
+      headerName: '발행상태',
+      type: 'singleSelect',
+      width: 100,
+      editable: true,
+      hideable: false,
+      valueOptions: ['발행요청', '발행완료', '수정요청', '발행실패'],
+      disableColumnMenu: true,
+    },
+    {
+      field: 'title',
+      headerName: '제목',
+      disableColumnMenu: true,
+      hideSortIcons: true,
+      editable: false,
+    },
+  ]
 
   return (
     <>
@@ -91,188 +278,38 @@ function NewTistoryPage() {
             Tistory
           </Typography>
         </Stack>
-
-        <Button color="primary" startIcon={<LoginIcon />} variant="contained">
-          로그인
-        </Button>
-        <Button onClick={onClickHandler}>Get data</Button>
+        {oauth && oauth?.data.result.tistory ? (
+          <Button onClick={onClickHandler}>발행하기</Button>
+        ) : (
+          <Button color="primary" startIcon={<LoginIcon />} variant="contained">
+            로그인
+          </Button>
+        )}
       </Stack>
       <Card>
-        <Scrollbar>
-          <div style={{ height: 'auto' }}>
-            <DataGrid
-              cellModesModel={cellModesModel}
-              columns={columns}
-              experimentalFeatures={{}}
-              pageSizeOptions={[100]}
-              processRowUpdate={processRowUpdate}
-              rows={rows}
-              onCellClick={handleCellClick}
-              onCellModesModelChange={handleCellModesModelChange}
-            />
-          </div>
-        </Scrollbar>
+        {isLoading || tistoryInfo === undefined ? (
+          <div> 로딩중 ... </div>
+        ) : (
+          <Scrollbar>
+            <div style={{ height: 'auto' }}>
+              <Button onClick={handleAddRow}> 새로운 데이터 추가하기</Button>
+              <DataGrid
+                disableRowSelectionOnClick
+                apiRef={apiRef}
+                cellModesModel={cellModesModel}
+                columns={columns}
+                getRowId={(row) => row.tistoryId}
+                pageSizeOptions={[100]}
+                rows={rows}
+                onCellClick={handleCellClick}
+                onCellModesModelChange={handleCellModesModelChange}
+              />
+            </div>
+          </Scrollbar>
+        )}
       </Card>
     </>
   )
 }
 
-const visibilityOptions = [
-  { value: 0, label: '비공개' },
-  { value: 3, label: '공개' },
-]
-
-const columns: GridColDef[] = [
-  {
-    field: 'blog_name',
-    headerName: '블로그 선택',
-    width: 180,
-    editable: true,
-    disableColumnMenu: true,
-    hideSortIcons: true,
-  },
-  {
-    field: 'request_link',
-    headerName: '요청페이지 링크',
-    width: 220,
-    editable: true,
-    disableColumnMenu: true,
-    hideSortIcons: true,
-  },
-  {
-    field: 'visibility',
-    headerName: '공개여부',
-    editable: true,
-    type: 'singleSelect',
-    valueOptions: visibilityOptions,
-    disableColumnMenu: true,
-  },
-  {
-    field: 'category_name',
-    headerName: '카테고리',
-    type: 'singleSelect',
-    valueOptions: ['cate1', 'cate2', 'cate3'],
-    editable: true,
-    disableColumnMenu: true,
-  },
-  {
-    field: 'tags',
-    headerName: '태그',
-    editable: true,
-    disableColumnMenu: true,
-    hideSortIcons: true,
-  },
-  {
-    field: 'modified_at',
-    headerName: '발행일자',
-    type: 'date',
-    width: 120,
-    editable: true,
-    hideable: false,
-    disableColumnMenu: true,
-  },
-  {
-    field: 'status',
-    headerName: '발행상태',
-    type: 'singleSelect',
-    width: 100,
-    editable: true,
-    hideable: false,
-    valueOptions: ['발행요청', '발행완료', '수정요청'],
-    disableColumnMenu: true,
-  },
-  {
-    field: 'title',
-    headerName: '제목',
-    disableColumnMenu: true,
-    hideSortIcons: true,
-    editable: false,
-  },
-]
-
-const POST_TITLES = [
-  'Whiteboard Templates By Industry Leaders',
-  'Tesla Cybertruck-inspired camper trailer for Tesla fans who can’t just wait for the truck!',
-  'Designify Agency Landing Page Design',
-  '✨What is Done is Done ✨',
-  'Fresh Prince',
-  'Six Socks Studio',
-  'vincenzo de cotiis’ crossing over showcases a research on contamination',
-  'Simple, Great Looking Animations in Your Project | Video Tutorial',
-  '40 Free Serif Fonts for Digital Designers',
-  'Examining the Evolution of the Typical Web Design Client',
-  'Katie Griffin loves making that homey art',
-  'The American Dream retold through mid-century railroad graphics',
-  'Illustration System Design',
-  'CarZio-Delivery Driver App SignIn/SignUp',
-  'How to create a client-serverless Jamstack app using Netlify, Gatsby and Fauna',
-  'Tylko Organise effortlessly -3D & Motion Design',
-  'RAYO ?? A expanded visual arts festival identity',
-  'Anthony Burrill and Wired mag’s Andrew Diprose discuss how they made January’s Change Everything cover',
-  'Inside the Mind of Samuel Day',
-  'Portfolio Review: Is This Portfolio Too Creative?',
-  'Akkers van Margraten',
-  'Gradient Ticket icon',
-  'Here’s a Dyson motorcycle concept that doesn’t ‘suck’!',
-  'How to Animate a SVG with border-image',
-]
-
-const TAGS = [
-  'python',
-  'react',
-  'java',
-  'javascript',
-  'ssafy',
-  '조퇴',
-  '설렁탕',
-  '딘딘',
-  '알고리즘',
-  'algorithm',
-  'n2t',
-  'notion',
-  'md',
-  'markdown',
-  '퍼레이드',
-  'jennifer',
-  'brad',
-  'eddy',
-  'daniel',
-  'sally',
-  'spring',
-  '김영한',
-  '자율프로젝트',
-  '특화프로젝트',
-  '공통프로젝트',
-  '개발자',
-  'pm',
-  'FE',
-  '백엔드',
-  '데브옵스',
-]
-
-const BLOG_NAMES = [
-  '딘딘의 재롱잔치',
-  '팬더의 공학일기',
-  '통계학 세상',
-  '뉴비코의 코딩일기',
-  '개발자 뭄뭄',
-  '기억보단 기록을',
-  '노션 투 티스토리',
-  '미미가 양꼬치',
-  '사랑해요 제로딘딘',
-]
-
-const predefinedRows: GridRowsProp = [...Array(23)].map((_, index) => ({
-  id: faker.datatype.uuid(),
-  visibility: sample([0, 3]),
-  status: sample(['발행완료', '발행요청', '수정요청', '발행오류']),
-  title: POST_TITLES[index + 1],
-  category_name: sample(['cate1', 'cate2', 'cate3']),
-  modified_at: faker.date.past(),
-  blog_name: sample(BLOG_NAMES),
-  request_link: faker.internet.domainName(),
-  response_link: faker.internet.domainName(),
-  tags: sampleSize(TAGS, sample([2, 4, 5, 6, 8])).toString(),
-}))
-
-export default NewTistoryPage
+export default TistoryPage
