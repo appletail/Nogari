@@ -227,11 +227,7 @@ public class OauthServiceImpl implements OauthService {
 	}
 
 	@Override
-	public HashMap<String,Boolean> checkIfTokenIsEmpty(Member mem) {
-
-		Member member = memberRepository.findById(mem.getMemberId()).orElseThrow(
-			() -> new IllegalArgumentException()
-		);
+	public HashMap<String,Boolean> checkIfTokenIsEmpty(Member member) {
 
 		HashMap<String,Boolean> rslt = new HashMap<>();
 
