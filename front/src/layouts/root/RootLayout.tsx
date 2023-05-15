@@ -23,7 +23,7 @@ function RootLayout() {
       sessionStorage.clear()
       window.location.replace('/')
     }
-    console.log(response)
+    // console.log(response)
   }
 
   return (
@@ -31,14 +31,16 @@ function RootLayout() {
       {/* 좌측 패딩 */}
       <StyledLeftBodyPadding>
         {/* 검색, 로그아웃 */}
-        <Stack direction="row" justifyContent="space-between" width="100%">
-          <IconButton>
-            <Iconify icon={'ic:baseline-search'} />
-          </IconButton>
-          <IconButton onClick={logoutHandler}>
-            <Iconify icon={'ic:baseline-logout'} />
-          </IconButton>
-        </Stack>
+        <StyledIconPadding>
+          <Stack direction="row" justifyContent="space-between" width="100%">
+            <IconButton>
+              <Iconify icon={'ic:baseline-search'} />
+            </IconButton>
+            <IconButton onClick={logoutHandler}>
+              <Iconify icon={'ic:baseline-logout'} />
+            </IconButton>
+          </Stack>
+        </StyledIconPadding>
         <SideBar />
 
         {/* 아울렛, 전체적인 패딩 */}
@@ -50,6 +52,11 @@ function RootLayout() {
     </>
   )
 }
+
+const StyledIconPadding = styled('div')({
+  paddingLeft: '30px',
+  paddingRight: '30px',
+})
 
 const StyledLeftBodyPadding = styled('div')({
   paddingLeft: '280px',
