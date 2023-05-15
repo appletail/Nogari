@@ -1,10 +1,11 @@
 // ----------------------------------------------------------------------
 
+const rand_1_25 = Math.floor(Math.random() * 25 + 1)
+
 const account = {
-  displayName: 'Jaydon Frankie',
-  email: 'demo@minimals.cc',
-  photoURL: '/assets/images/avatars/avatar_default.jpg',
-  role: '이게뭐니 이게',
+  displayName: sessionStorage.getItem('email'),
+  photoURL: `/assets/images/avatars/avatar_${rand_1_25}.jpg`,
+  role: '일반회원',
 }
 
 export default account

@@ -15,7 +15,7 @@ import account from '@/_mock/account'
 
 // hooks
 import { getOauthStatus } from '@/apis/OauthApis'
-import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
+import { ReactComponent as Logo } from '@/assets/logos/nogari_logo.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
 import SettingSection from '@/components/setting-section'
@@ -42,7 +42,7 @@ export default function Nav() {
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
-        <Logo height={'40px'} width={'40px'} />
+        <Logo width={'150px'} />
       </Box>
 
       <Box sx={{ mb: 5, mx: 2.5 }}>
