@@ -10,9 +10,6 @@ export const axBase = axios.create({ baseURL: BASE_URL })
 // post, delete등 api요청 시 인증값이 필요한 경우
 export const axAuth = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
-  },
 })
 
 // refresh token 으로 갱신 필요한 경우
@@ -23,6 +20,15 @@ function postRefreshToken() {
   })
   return response
 }
+
+axAuth.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken')
+    config.headers.Authorization = `Bearer ${token}`
+    return config
+  },
+  (error) => Promise.reject(error.response)
+)
 
 axAuth.interceptors.response.use(
   async (response) => {

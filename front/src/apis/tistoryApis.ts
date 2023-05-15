@@ -26,6 +26,7 @@ export async function postTistoryPostList() {
   const response = await axAuth.post(`/contents/tistory`, {
     lastTistoryId: -1,
     pageSize: 100,
+    filter: '최신순',
   })
   return response
 }
