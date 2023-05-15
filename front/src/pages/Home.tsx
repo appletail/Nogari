@@ -7,9 +7,10 @@ function Home() {
   return (
     <div>
       <Helmet>
-        <title>Nogari</title>
+        <title>Github</title>
       </Helmet>
       {/* <TableSample /> */}
+      <div>준비중입니다...</div>
     </div>
   )
 }
