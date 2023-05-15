@@ -11,8 +11,6 @@ import { navConfig, settingConfig, connectedConfig } from './config'
 
 import { StyledNavContent, StyledNavConnectedSite } from './styles'
 
-import account from '@/_mock/account'
-
 // hooks
 import { getOauthStatus } from '@/apis/OauthApis'
 import { ReactComponent as Logo } from '@/assets/logos/nogari_logo.svg'
@@ -37,6 +35,10 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
+  const [avatarNum, setAvatarNum] = useState(1)
+  useEffect(() => {
+    setAvatarNum(Math.floor(Math.random() * 25 + 1))
+  }, [])
   const { data } = useQuery('oauths', getOauthStatus)
   const renderContent = (
     <>
@@ -49,9 +51,7 @@ export default function Nav() {
           <StyledAccount>
             <Avatar
               alt="photoURL"
-              src={`/assets/images/avatars/avatar_${Math.floor(
-                Math.random() * 25 + 1
-              )}.jpg`}
+              src={`/assets/images/avatars/avatar_${avatarNum}.jpg`}
             />
 
             <Box sx={{ ml: 2 }}>
