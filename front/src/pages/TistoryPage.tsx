@@ -244,7 +244,7 @@ function TistoryPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ['발행요청', '발행완료', '수정요청'],
+      valueOptions: ['발행요청', '발행완료', '수정요청', '발행실패'],
       disableColumnMenu: true,
     },
     {
