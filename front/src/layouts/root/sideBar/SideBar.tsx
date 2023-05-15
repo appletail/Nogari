@@ -11,11 +11,9 @@ import { navConfig, settingConfig, connectedConfig } from './config'
 
 import { StyledNavContent, StyledNavConnectedSite } from './styles'
 
-import account from '@/_mock/account'
-
 // hooks
 import { getOauthStatus } from '@/apis/OauthApis'
-import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
+import { ReactComponent as Logo } from '@/assets/logos/nogari_logo.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
 import SettingSection from '@/components/setting-section'
@@ -37,26 +35,32 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
+  const [avatarNum, setAvatarNum] = useState(1)
+  useEffect(() => {
+    setAvatarNum(Math.floor(Math.random() * 25 + 1))
+  }, [])
   const { data } = useQuery('oauths', getOauthStatus)
-
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
-        <Logo height={'40px'} width={'40px'} />
+        <Logo width={'150px'} />
       </Box>
 
       <Box sx={{ mb: 5, mx: 2.5 }}>
         <Link underline="none">
           <StyledAccount>
-            <Avatar alt="photoURL" src={account.photoURL} />
+            <Avatar
+              alt="photoURL"
+              src={`/assets/images/avatars/avatar_${avatarNum}.jpg`}
+            />
 
             <Box sx={{ ml: 2 }}>
               <Typography sx={{ color: 'text.primary' }} variant="subtitle2">
-                {account.displayName}
+                {sessionStorage.getItem('email')}
               </Typography>
 
               <Typography sx={{ color: 'text.secondary' }} variant="body2">
-                {account.role}
+                {'일반회원'}
               </Typography>
             </Box>
           </StyledAccount>

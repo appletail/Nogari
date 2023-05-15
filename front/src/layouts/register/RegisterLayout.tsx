@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 
 // components
-import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
+import { ReactComponent as Logo } from '@/assets/logos/nogari_logo.svg'
 
 // ----------------------------------------------------------------------
 
@@ -21,8 +21,8 @@ const StyledHeader = styled('header')(({ theme }) => ({
 }))
 
 const StyleLogoBox = styled('div')(({ theme }) => ({
-  width: '40px',
-  height: '40px',
+  width: '200px',
+  // height: '40px',
 }))
 
 // ----------------------------------------------------------------------

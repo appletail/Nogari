@@ -47,6 +47,7 @@ function LoginForm() {
           'refreshToken',
           response.data.result.token.refresh_token
         )
+        sessionStorage.setItem('email', response.data.result.email)
         navigate('/tistory', { replace: true })
       }
     } catch (error: any) {
