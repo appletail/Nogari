@@ -89,6 +89,7 @@ function TistoryPage() {
 
   useEffect(() => {
     if (tistoryInfo) {
+      console.log('언제 바뀔까요')
       setRows(tistoryInfo.data.result[0])
       setBlogName(tistoryInfo?.data.result[1])
     }
@@ -129,6 +130,7 @@ function TistoryPage() {
       }
     })
     const response = await postTistoryPost(submitArray)
+    // console.log(response)
   }
 
   // 더블클릭 > 클릭 시 수정으로 변경
