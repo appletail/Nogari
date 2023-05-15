@@ -75,9 +75,13 @@ function TistoryPage() {
 
   const apiRef = useGridApiRef()
   const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
-  const { data: tistoryInfo } = useQuery('tistoryInfo', postTistoryPostList, {
-    enabled: !!oauth,
-  })
+  const { data: tistoryInfo, refetch } = useQuery(
+    'tistoryInfo',
+    postTistoryPostList,
+    {
+      enabled: !!oauth,
+    }
+  )
 
   // data grid에서 사용하는 state
   // row data and blog name
@@ -89,8 +93,8 @@ function TistoryPage() {
 
   useEffect(() => {
     if (tistoryInfo) {
-      console.log('언제 바뀔까요')
-      setRows(tistoryInfo.data.result[0])
+      const RowData = tistoryInfo.data.result[0]
+      setRows(RowData)
       setBlogName(tistoryInfo?.data.result[1])
     }
   }, [tistoryInfo])
@@ -115,7 +119,6 @@ function TistoryPage() {
     const newRow = createNewRow()
     const newRows = [newRow, ...rows]
     setRows(newRows)
-    // apiRef.current.updateRows([newRow])
   }
 
   // data 제출 시에 사용하는 함수
@@ -130,7 +133,11 @@ function TistoryPage() {
       }
     })
     const response = await postTistoryPost(submitArray)
-    // console.log(response)
+    if (response.data.resultCode === 200) {
+      refetch()
+      const newData = rows
+      apiRef.current.setRows(newData)
+    }
   }
 
   // 더블클릭 > 클릭 시 수정으로 변경
