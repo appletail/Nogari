@@ -33,7 +33,6 @@ function Home() {
         const data = res.data.result[0][0]
         if (data) {
           const date = new Date(data.modifiedDate)
-          date.setHours(date.getHours() + 9)
           const parsedLog = {
             title: data.title,
             status: data.status,
