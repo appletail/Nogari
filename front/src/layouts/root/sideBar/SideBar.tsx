@@ -38,7 +38,6 @@ const StyledAccount = styled('div')(({ theme }) => ({
 
 export default function Nav() {
   const { data } = useQuery('oauths', getOauthStatus)
-
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
@@ -48,15 +47,20 @@ export default function Nav() {
       <Box sx={{ mb: 5, mx: 2.5 }}>
         <Link underline="none">
           <StyledAccount>
-            <Avatar alt="photoURL" src={account.photoURL} />
+            <Avatar
+              alt="photoURL"
+              src={`/assets/images/avatars/avatar_${Math.floor(
+                Math.random() * 25 + 1
+              )}.jpg`}
+            />
 
             <Box sx={{ ml: 2 }}>
               <Typography sx={{ color: 'text.primary' }} variant="subtitle2">
-                {account.displayName}
+                {sessionStorage.getItem('email')}
               </Typography>
 
               <Typography sx={{ color: 'text.secondary' }} variant="body2">
-                {account.role}
+                {'일반회원'}
               </Typography>
             </Box>
           </StyledAccount>
