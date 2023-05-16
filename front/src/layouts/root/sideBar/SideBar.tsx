@@ -43,7 +43,7 @@ export default function Nav() {
   const { data } = useQuery('oauths', getOauthStatus)
   const renderContent = (
     <>
-      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
+      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', paddingLeft: '25px' }}>
         <Logo width={'150px'} />
       </Box>
 
