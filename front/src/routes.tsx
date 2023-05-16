@@ -33,10 +33,6 @@ const routers = createBrowserRouter([
             path: '/tistory',
             element: <TistoryPage />,
           },
-          {
-            path: '/privacy',
-            element: <PrivacyPage />,
-          },
         ],
       },
       {
