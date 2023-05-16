@@ -127,17 +127,26 @@ function TistoryPage() {
     const rowModels = apiRef.current.getRowModels()
     const submitArray: any[] = []
     rowModels.forEach((row) => {
-      // 발행 할 데이터가 있고 발행요청인 경우에만 발행
-      if (row.requestLink && row.status === '발행요청') {
+      // 발행 할 데이터 링크가 있고 발행요청 혹은 수정요청인 경우에만 발행
+      if (
+        row.requestLink &&
+        (row.status === '발행요청' || row.status === '수정요청')
+      ) {
         row['type'] = 'html'
         submitArray.push(row)
       }
     })
-    const response = await postTistoryPost(submitArray)
-    if (response.data.resultCode === 200) {
-      refetch()
-      const newData = rows
-      apiRef.current.setRows(newData)
+
+    // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
+    if (submitArray.length !== 0) {
+      const response = await postTistoryPost(submitArray)
+      console.log(response)
+      // api 호출에 성공한 경우에만 refetch 진행
+      if (response.data.resultCode === 200) {
+        refetch()
+        const newData = rows
+        apiRef.current.setRows(newData)
+      }
     }
   }
 
