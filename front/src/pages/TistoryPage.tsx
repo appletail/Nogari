@@ -271,6 +271,8 @@ function TistoryPage() {
       hideSortIcons: true,
       editable: false,
       headerAlign: 'center',
+      flex: 1,
+      minWidth: 50,
     },
   ]
 
