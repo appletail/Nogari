@@ -21,19 +21,6 @@ export const navConfig = [
   },
 ]
 
-export const settingConfig = [
-  {
-    title: '공지사항',
-    path: '/notice',
-    icon: <CampaignOutlinedIcon sx={{ width: 1, height: 1 }} />,
-  },
-  {
-    title: '설문조사',
-    path: 'https://forms.gle/WeCasb6pJ1LdxkBp8',
-    icon: <RateReviewOutlinedIcon sx={{ width: 1, height: 1 }} />,
-  },
-]
-
 export const connectedConfig = (
   notion: boolean,
   tistory: boolean,
@@ -60,3 +47,20 @@ export const connectedConfig = (
     },
   ]
 }
+
+export const settingConfig = [
+  {
+    title: '공지사항',
+    path: '/notice',
+    icon: (
+      <CampaignOutlinedIcon
+        sx={{ width: 50, height: 26.5, paddingLeft: '4px' }}
+      />
+    ),
+  },
+  {
+    title: '설문조사',
+    path: 'https://forms.gle/WeCasb6pJ1LdxkBp8',
+    icon: <RateReviewOutlinedIcon sx={{ width: 56, height: 22 }} />,
+  },
+]
