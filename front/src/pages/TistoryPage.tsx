@@ -306,12 +306,14 @@ function TistoryPage() {
         {isLoading || tistoryInfo === undefined ? (
           <div> 로딩중 ... </div>
         ) : (
-          <Scrollbar>
-            <StyledContainer>
+          <StyledContainer>
+            <Scrollbar>
               {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
               {!oauth?.data.result.tistory ? (
                 <StyledWrapper>
-                  <div>티스토리 로그인을 먼저 해주세요.</div>
+                  <Typography variant="subtitle2">
+                    티스토리 로그인을 먼저 해주세요.
+                  </Typography>
                 </StyledWrapper>
               ) : (
                 <div></div>
@@ -328,8 +330,8 @@ function TistoryPage() {
                 onCellClick={handleCellClick}
                 onCellModesModelChange={handleCellModesModelChange}
               />
-            </StyledContainer>
-          </Scrollbar>
+            </Scrollbar>
+          </StyledContainer>
         )}
       </Card>
     </>
