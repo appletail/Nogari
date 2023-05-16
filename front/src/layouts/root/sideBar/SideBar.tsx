@@ -39,6 +39,7 @@ export default function Nav() {
   useEffect(() => {
     setAvatarNum(Math.floor(Math.random() * 25 + 1))
   }, [])
+
   const { data } = useQuery('oauths', getOauthStatus)
   const renderContent = (
     <>
@@ -54,8 +55,20 @@ export default function Nav() {
               src={`/assets/images/avatars/avatar_${avatarNum}.jpg`}
             />
 
-            <Box sx={{ ml: 2 }}>
-              <Typography sx={{ color: 'text.primary' }} variant="subtitle2">
+            <Box
+              sx={{
+                ml: 2,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: 'text.primary',
+                }}
+              >
                 {sessionStorage.getItem('email')}
               </Typography>
 

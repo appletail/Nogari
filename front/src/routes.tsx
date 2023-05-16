@@ -4,11 +4,12 @@ import RegisterLayout from './layouts/register/RegisterLayout'
 import RootLayout from './layouts/root/RootLayout'
 import Home from './pages/Home'
 import LoginPage from './pages/LoginPage'
+import Notice from './pages/Notice'
 import GithubOAuth from './pages/oauth/GithubOAuth'
 import NotionOAuth from './pages/oauth/NotionOAuth'
 import TistoryOAuth from './pages/oauth/TistoryOAuth'
 import Page404 from './pages/Page404'
-import PrivacyPage from './pages/PrivacyPage'
+import Privacy from './pages/Privacy'
 import SignupPage from './pages/SignupPage'
 import TistoryPage from './pages/TistoryPage'
 import PrivateRouter from './routers/PrivateRouter'
@@ -50,6 +51,10 @@ const routers = createBrowserRouter([
         path: '/oauth/github',
         element: <GithubOAuth />,
       },
+      {
+        path: '/notice',
+        element: <Notice />,
+      },
     ],
   },
 
@@ -70,6 +75,17 @@ const routers = createBrowserRouter([
             element: <SignupPage />,
           },
         ],
+      },
+    ],
+  },
+
+  // 모든 사용자가 접근 가능
+  {
+    errorElement: <Page404 />,
+    children: [
+      {
+        element: <Privacy />,
+        path: '/privacy',
       },
     ],
   },
