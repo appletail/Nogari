@@ -30,10 +30,10 @@ function RootLayout() {
     <>
       {/* 좌측 패딩 */}
       <StyledLeftBodyPadding>
-        {/* 검색, 로그아웃 */}
+        {/* 로그아웃 */}
         <StyledIconPadding>
           <Stack direction="row" justifyContent="end" width="100%">
-            <IconButton onClick={logoutHandler}>
+            <IconButton title="로그아웃" onClick={logoutHandler}>
               <Iconify icon={'ic:baseline-logout'} />
             </IconButton>
           </Stack>
