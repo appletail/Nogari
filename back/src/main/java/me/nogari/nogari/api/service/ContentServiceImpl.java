@@ -272,6 +272,7 @@ public class ContentServiceImpl implements ContentService {
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
+			System.out.println("★ 프론트로부터 전달된 값 "+post);
 
 			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
 			Tistory tistory = null;
