@@ -194,7 +194,6 @@ function TistoryPage() {
       renderEditCell: (params) => (
         <CustomTypeEditComponent setRows={setRows} {...params} />
       ),
-      headerAlign: 'center',
     },
     {
       field: 'requestLink',
@@ -203,7 +202,6 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      headerAlign: 'center',
     },
     {
       field: 'visibility',
@@ -212,7 +210,6 @@ function TistoryPage() {
       type: 'singleSelect',
       valueOptions: visibilityOptions,
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'categoryName',
@@ -234,7 +231,6 @@ function TistoryPage() {
       },
       editable: true,
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'tagList',
@@ -242,7 +238,6 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      headerAlign: 'center',
     },
     {
       field: 'modifiedDate',
@@ -251,7 +246,6 @@ function TistoryPage() {
       editable: true,
       hideable: false,
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'status',
@@ -262,7 +256,6 @@ function TistoryPage() {
       hideable: false,
       valueOptions: ['발행요청', '발행완료', '수정요청', '발행실패'],
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'title',
@@ -270,7 +263,6 @@ function TistoryPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       editable: false,
-      headerAlign: 'center',
       flex: 1,
       minWidth: 50,
     },
