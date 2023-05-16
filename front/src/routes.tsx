@@ -33,6 +33,11 @@ const routers = createBrowserRouter([
             path: '/tistory',
             element: <TistoryPage />,
           },
+
+          {
+            path: '/notice',
+            element: <Notice />,
+          },
         ],
       },
       {
@@ -46,10 +51,6 @@ const routers = createBrowserRouter([
       {
         path: '/oauth/github',
         element: <GithubOAuth />,
-      },
-      {
-        path: '/notice',
-        element: <Notice />,
       },
     ],
   },
