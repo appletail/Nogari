@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useQuery, useQueryClient, useMutation } from 'react-query'
 
 import { faker } from '@faker-js/faker'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
 import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -284,7 +285,12 @@ function TistoryPage() {
 
       {/* 티스토리 아이콘 & 로그인 */}
       <Stack alignItems="center" direction="row" mb={5}>
-        <Stack alignItems="center" direction="row" spacing={1}>
+        <Stack
+          alignItems="center"
+          direction="row"
+          spacing={1}
+          sx={{ marginRight: '1rem' }}
+        >
           <Tistory style={{ width: 24, height: 24 }} />
           <Typography gutterBottom variant="h4">
             Tistory
@@ -293,7 +299,18 @@ function TistoryPage() {
 
         {/* 티스토리 로그인 여부에 따라 로그인 / 발행하기 아이콘 변경 */}
         {oauth && oauth?.data.result.tistory ? (
-          <Button href="" onClick={onClickHandler}>
+          <Button
+            href=""
+            variant="contained"
+            sx={{
+              width: '70px',
+              height: '26px',
+              backgroundColor: '#007DFF',
+              fontSize: '0.1rem',
+              whiteSpace: 'nowrap',
+            }}
+            onClick={onClickHandler}
+          >
             발행하기
           </Button>
         ) : (
@@ -316,7 +333,13 @@ function TistoryPage() {
               ) : (
                 <div></div>
               )}
-              <Button onClick={handleAddRow}> 새로운 데이터 추가하기</Button>
+              <Button
+                sx={{ display: 'flex', gap: '5px' }}
+                onClick={handleAddRow}
+              >
+                <AddCircleOutlineIcon />
+                add row
+              </Button>
               <DataGrid
                 disableRowSelectionOnClick
                 apiRef={apiRef}
