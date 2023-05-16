@@ -128,17 +128,26 @@ function TistoryPage() {
     const rowModels = apiRef.current.getRowModels()
     const submitArray: any[] = []
     rowModels.forEach((row) => {
-      // 발행 할 데이터가 있고 발행요청인 경우에만 발행
-      if (row.requestLink && row.status === '발행요청') {
+      // 발행 할 데이터 링크가 있고 발행요청 혹은 수정요청인 경우에만 발행
+      if (
+        row.requestLink &&
+        (row.status === '발행요청' || row.status === '수정요청')
+      ) {
         row['type'] = 'html'
         submitArray.push(row)
       }
     })
-    const response = await postTistoryPost(submitArray)
-    if (response.data.resultCode === 200) {
-      refetch()
-      const newData = rows
-      apiRef.current.setRows(newData)
+
+    // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
+    if (submitArray.length !== 0) {
+      const response = await postTistoryPost(submitArray)
+      console.log(response)
+      // api 호출에 성공한 경우에만 refetch 진행
+      if (response.data.resultCode === 200) {
+        refetch()
+        const newData = rows
+        apiRef.current.setRows(newData)
+      }
     }
   }
 
@@ -195,7 +204,6 @@ function TistoryPage() {
       renderEditCell: (params) => (
         <CustomTypeEditComponent setRows={setRows} {...params} />
       ),
-      headerAlign: 'center',
     },
     {
       field: 'requestLink',
@@ -204,7 +212,6 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      headerAlign: 'center',
     },
     {
       field: 'visibility',
@@ -213,7 +220,6 @@ function TistoryPage() {
       type: 'singleSelect',
       valueOptions: visibilityOptions,
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'categoryName',
@@ -235,7 +241,6 @@ function TistoryPage() {
       },
       editable: true,
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'tagList',
@@ -243,7 +248,6 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      headerAlign: 'center',
     },
     {
       field: 'modifiedDate',
@@ -252,7 +256,6 @@ function TistoryPage() {
       editable: true,
       hideable: false,
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'status',
@@ -263,7 +266,6 @@ function TistoryPage() {
       hideable: false,
       valueOptions: ['발행요청', '발행완료', '수정요청', '발행실패'],
       disableColumnMenu: true,
-      headerAlign: 'center',
     },
     {
       field: 'title',
@@ -271,7 +273,8 @@ function TistoryPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       editable: false,
-      headerAlign: 'center',
+      flex: 1,
+      minWidth: 50,
     },
   ]
 
@@ -323,12 +326,14 @@ function TistoryPage() {
         {isLoading || tistoryInfo === undefined ? (
           <div> 로딩중 ... </div>
         ) : (
-          <Scrollbar>
-            <StyledContainer>
+          <StyledContainer>
+            <Scrollbar>
               {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
               {!oauth?.data.result.tistory ? (
                 <StyledWrapper>
-                  <div>티스토리 로그인을 먼저 해주세요.</div>
+                  <Typography variant="subtitle2">
+                    티스토리 로그인을 먼저 해주세요.
+                  </Typography>
                 </StyledWrapper>
               ) : (
                 <div></div>
@@ -351,8 +356,8 @@ function TistoryPage() {
                 onCellClick={handleCellClick}
                 onCellModesModelChange={handleCellModesModelChange}
               />
-            </StyledContainer>
-          </Scrollbar>
+            </Scrollbar>
+          </StyledContainer>
         )}
       </Card>
     </>
