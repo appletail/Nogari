@@ -69,7 +69,7 @@ export default function Nav() {
                   color: 'text.primary',
                 }}
               >
-                {sessionStorage.getItem('email')}
+                {sessionStorage.getItem('email')?.split('@')[0]}
               </Typography>
 
               <Typography sx={{ color: 'text.secondary' }} variant="body2">

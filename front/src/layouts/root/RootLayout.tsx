@@ -32,10 +32,7 @@ function RootLayout() {
       <StyledLeftBodyPadding>
         {/* 검색, 로그아웃 */}
         <StyledIconPadding>
-          <Stack direction="row" justifyContent="space-between" width="100%">
-            <IconButton>
-              <Iconify icon={'ic:baseline-search'} />
-            </IconButton>
+          <Stack direction="row" justifyContent="end" width="100%">
             <IconButton onClick={logoutHandler}>
               <Iconify icon={'ic:baseline-logout'} />
             </IconButton>
@@ -54,6 +51,7 @@ function RootLayout() {
 }
 
 const StyledIconPadding = styled('div')({
+  paddingTop: '30px',
   paddingLeft: '30px',
   paddingRight: '30px',
 })
@@ -63,7 +61,6 @@ const StyledLeftBodyPadding = styled('div')({
 })
 
 const StyledContainer = styled('div')(({ theme }) => ({
-  marginTop: '50px',
   marginLeft: '40px',
   marginRight: '40px',
 }))
