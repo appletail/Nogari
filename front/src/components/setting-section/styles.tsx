@@ -16,8 +16,6 @@ export const StyledSettingItem = styled((props: any) => (
 }))
 
 export const StyledSettingItemIcon = styled(ListItemIcon)({
-  width: 22,
-  height: 22,
   color: 'inherit',
   display: 'flex',
   alignItems: 'center',
