@@ -1,5 +1,3 @@
-import { relative } from 'path'
-
 import React, { useState, useCallback, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useQuery, useQueryClient, useMutation } from 'react-query'
