@@ -93,7 +93,6 @@ public class ContentController {
 	@Operation(summary = "깃허브 무한스크롤 발행 내역 리스트 검색 및 조회")
 	public BaseResponse<Object> getGithubListByFilter(@RequestBody PaginationDto paginationDto,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-
 		// security session에 있는 유저 정보를 가져온다
 		Member member;
 		try {
@@ -106,7 +105,6 @@ public class ContentController {
 				.resultMsg("로그인된 사용자가 없습니다!")
 				.build();
 		}
-
 		try {
 			return BaseResponse.builder()
 				.result(contentService.getGithubList(paginationDto, member))
@@ -120,7 +118,6 @@ public class ContentController {
 				.resultCode(HttpStatus.BAD_REQUEST.value())
 				.resultMsg("깃허브 발행 내역 조회 실패")
 				.build();
-
 		}
 	}
 

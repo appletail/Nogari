@@ -50,12 +50,14 @@ import me.nogari.nogari.api.aws.awsLambdaCallableGithub;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
+import me.nogari.nogari.api.response.GithubContentResponseDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
 import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Tistory;
 import me.nogari.nogari.repository.GithubRepository;
+import me.nogari.nogari.repository.GithubRepositoryCust;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 
@@ -83,6 +85,7 @@ public class ContentServiceImpl implements ContentService {
 	private LambdaCallFunction lambdaCallFunction;
 
 	private final TistoryRepositoryCust tistoryRepositoryCust;
+	private final GithubRepositoryCust githubRepositoryCust;
 
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList, Member member) {
@@ -237,7 +240,7 @@ public class ContentServiceImpl implements ContentService {
 		List<String> repositoryList = new ArrayList<>();
 
 		// 레포지토리별 카테고리 리스트
-		List<Object> categoriesList = new ArrayList<>();
+		List<ArrayList> categoriesList = new ArrayList<ArrayList>();
 
 		// 티스토리 발행 이력
 		// List<TistoryResponseInterface> tistoryList = new ArrayList<>();
@@ -249,28 +252,33 @@ public class ContentServiceImpl implements ContentService {
 			categoriesList = getGithubCates(repositoryList, categoriesList, member);
 		}
 
-		List<TistoryContentResponseDto> tistoryList = tistoryRepositoryCust.tistoryPaginationNoOffset(paginationDto, member);
+		List<GithubContentResponseDto> githubList = githubRepositoryCust.githubPaginationNoOffset(paginationDto, member);
 
 		List<Object> rslt = new ArrayList<>();
-		rslt.add(tistoryList);
-		rslt.add(blogNameList);
+		rslt.add(githubList);
+		rslt.add(repositoryList);
 		rslt.add(categoriesList);
 
 		return rslt;
 
 	}
 
-	private List<Object> getGithubCates(List<String> repositoryList, List<Object> categoriesList, Member member) {
+	private List<ArrayList> getGithubCates(List<String> repositoryList, List<ArrayList> categoriesList, Member member) {
 
 		// 토큰에서 github accesstoken 받아오기
 		String accessToken = member.getToken().getGithubToken();
 
 		if (!"".equals(accessToken) && accessToken != null) {
 
+			for(int i = 0; i < repositoryList.size(); i++){
+				categoriesList.add(new ArrayList<Object>());
+			}
+
 			try {
 				String githubRequestURL = "https://api.github.com/repos/" + member.getGithubId() + "/";
 				// 각 블로그에 등록된 카테고리 리스트 저장 후 반환
-				for (String repository : repositoryList) {
+				for (int i = 0; i < repositoryList.size(); i++) {
+					String repository = repositoryList.get(i);
 					ResponseEntity<List<Map<String, Object>>> response = null;
 					Map<String, Object> responseBody = new HashMap<>();
 
@@ -297,7 +305,7 @@ public class ContentServiceImpl implements ContentService {
 						if (response != null && response.getBody() != null) {
 							for (Map<String, Object> item : response.getBody()) {
 								if ("dir".equals(item.get("type"))) {
-									categoriesList.add(item);
+									categoriesList.get(i).add(item);
 								}
 							}
 						} else {
