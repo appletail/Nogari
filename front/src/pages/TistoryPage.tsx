@@ -4,7 +4,8 @@ import { useQuery, useQueryClient, useMutation } from 'react-query'
 
 import { faker } from '@faker-js/faker'
 import LoginIcon from '@mui/icons-material/Login'
-import { Card, Stack, Button, Typography } from '@mui/material'
+import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
@@ -265,12 +266,15 @@ function TistoryPage() {
     },
   ]
 
+  const tistoryLoginURL = import.meta.env.VITE_TISTORY_OAUTH_URL
+
   return (
     <>
       <Helmet>
         <title> Tistory </title>
       </Helmet>
 
+      {/* 티스토리 아이콘 & 로그인 */}
       <Stack alignItems="center" direction="row" mb={5}>
         <Stack alignItems="center" direction="row" spacing={1}>
           <Tistory style={{ width: 24, height: 24 }} />
@@ -278,12 +282,16 @@ function TistoryPage() {
             Tistory
           </Typography>
         </Stack>
+
+        {/* 티스토리 로그인 여부에 따라 로그인 / 발행하기 아이콘 변경 */}
         {oauth && oauth?.data.result.tistory ? (
-          <Button onClick={onClickHandler}>발행하기</Button>
-        ) : (
-          <Button color="primary" startIcon={<LoginIcon />} variant="contained">
-            로그인
+          <Button href="" onClick={onClickHandler}>
+            발행하기
           </Button>
+        ) : (
+          <IconButton href={tistoryLoginURL}>
+            <LoginIcon />
+          </IconButton>
         )}
       </Stack>
       <Card>
@@ -291,7 +299,15 @@ function TistoryPage() {
           <div> 로딩중 ... </div>
         ) : (
           <Scrollbar>
-            <div style={{ height: 'auto' }}>
+            <StyledContainer>
+              {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
+              {!oauth?.data.result.tistory ? (
+                <StyledWrapper>
+                  <div>티스토리 로그인을 먼저 해주세요.</div>
+                </StyledWrapper>
+              ) : (
+                <div></div>
+              )}
               <Button onClick={handleAddRow}> 새로운 데이터 추가하기</Button>
               <DataGrid
                 disableRowSelectionOnClick
@@ -304,7 +320,7 @@ function TistoryPage() {
                 onCellClick={handleCellClick}
                 onCellModesModelChange={handleCellModesModelChange}
               />
-            </div>
+            </StyledContainer>
           </Scrollbar>
         )}
       </Card>
@@ -313,3 +329,22 @@ function TistoryPage() {
 }
 
 export default TistoryPage
+
+// ---------------------------------------------------------------------
+const StyledContainer = styled('div')(({ theme }) => ({
+  position: 'relative',
+  height: 'auto',
+}))
+const StyledWrapper = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  top: '0px',
+  left: '0px',
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: '9999',
+}))
