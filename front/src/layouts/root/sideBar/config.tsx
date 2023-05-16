@@ -16,7 +16,7 @@ export const navConfig = [
   },
   {
     title: 'Github',
-    path: '/test',
+    path: '/github',
     icon: <Github style={{ width: 26, height: 26 }} />,
   },
 ]

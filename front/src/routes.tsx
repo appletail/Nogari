@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import RegisterLayout from './layouts/register/RegisterLayout'
 import RootLayout from './layouts/root/RootLayout'
-import Home from './pages/Home'
+import GithubPage from './pages/GithubPage'
 import LoginPage from './pages/LoginPage'
 import Notice from './pages/Notice'
 import GithubOAuth from './pages/oauth/GithubOAuth'
@@ -26,8 +26,8 @@ const routers = createBrowserRouter([
         element: <RootLayout />,
         children: [
           {
-            path: '/test',
-            element: <Home />,
+            path: '/github',
+            element: <GithubPage />,
           },
           {
             path: '/tistory',

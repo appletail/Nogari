@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 
 // import TableSample from '@/sections/home/table/TableSample'
 
-function Home() {
+function GithubPage() {
   return (
     <div>
       <Helmet>
@@ -15,4 +15,4 @@ function Home() {
   )
 }
 
-export default Home
+export default GithubPage
