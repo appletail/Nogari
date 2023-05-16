@@ -27,4 +27,6 @@ public interface ContentService {
 	Object postNotionToGithubMultiThread(List<PostNotionToGithubDto> postNotionToGithubDtoList, Member member);
 
 	void upload(PostNotionToGithubDto githubPosting, Member member, String title, String content) throws IOException;
+
+	List<Object> getGithubList(PaginationDto paginationDto, Member member);
 }

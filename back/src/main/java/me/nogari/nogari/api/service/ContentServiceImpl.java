@@ -21,7 +21,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.client.GitHubClient;
+import org.eclipse.egit.github.core.service.RepositoryService;
 import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -48,12 +50,14 @@ import me.nogari.nogari.api.aws.awsLambdaCallableGithub;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
+import me.nogari.nogari.api.response.GithubContentResponseDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
 import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Tistory;
 import me.nogari.nogari.repository.GithubRepository;
+import me.nogari.nogari.repository.GithubRepositoryCust;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 
@@ -81,6 +85,7 @@ public class ContentServiceImpl implements ContentService {
 	private LambdaCallFunction lambdaCallFunction;
 
 	private final TistoryRepositoryCust tistoryRepositoryCust;
+	private final GithubRepositoryCust githubRepositoryCust;
 
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList, Member member) {
@@ -225,6 +230,121 @@ public class ContentServiceImpl implements ContentService {
 		rslt.add(categoriesList);
 
 		return rslt;
+	}
+
+	@Override
+	public List<Object> getGithubList(PaginationDto paginationDto, Member member) {
+		Long lastGithubId = paginationDto.getLastGithubId();
+
+		// 멤버의 레포지토리 이름 리스트
+		List<String> repositoryList = new ArrayList<>();
+
+		// 레포지토리별 카테고리 리스트
+		List<ArrayList> categoriesList = new ArrayList<ArrayList>();
+
+		// 티스토리 발행 이력
+		// List<TistoryResponseInterface> tistoryList = new ArrayList<>();
+
+		// 첫 호출인 경우 블로그이름 리스트, 카테고리 리스트와 같이 반환
+		if (lastGithubId == -1) {
+			lastGithubId = null;
+			repositoryList = getGithubRepository(repositoryList, member);
+			categoriesList = getGithubCates(repositoryList, categoriesList, member);
+		}
+
+		List<GithubContentResponseDto> githubList = githubRepositoryCust.githubPaginationNoOffset(paginationDto, member);
+
+		List<Object> rslt = new ArrayList<>();
+		rslt.add(githubList);
+		rslt.add(repositoryList);
+		rslt.add(categoriesList);
+
+		return rslt;
+
+	}
+
+	private List<ArrayList> getGithubCates(List<String> repositoryList, List<ArrayList> categoriesList, Member member) {
+
+		// 토큰에서 github accesstoken 받아오기
+		String accessToken = member.getToken().getGithubToken();
+
+		if (!"".equals(accessToken) && accessToken != null) {
+
+			for(int i = 0; i < repositoryList.size(); i++){
+				categoriesList.add(new ArrayList<Object>());
+			}
+
+			try {
+				String githubRequestURL = "https://api.github.com/repos/" + member.getGithubId() + "/";
+				// 각 블로그에 등록된 카테고리 리스트 저장 후 반환
+				for (int i = 0; i < repositoryList.size(); i++) {
+					String repository = repositoryList.get(i);
+					ResponseEntity<List<Map<String, Object>>> response = null;
+					Map<String, Object> responseBody = new HashMap<>();
+
+					RestTemplate rt = new RestTemplate();
+					String filePath = repository + "/" + "contents";
+
+					HttpHeaders headers = new HttpHeaders();
+
+					headers.add("Accept", "application/vnd.github+json");
+					headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
+					headers.add("X-GitHub-Api-Version", "2022-11-28");
+					headers.setContentType(MediaType.APPLICATION_JSON);
+
+					HttpEntity<String> entity = new HttpEntity<>(null, headers);
+					try {
+
+						response = rt.exchange(
+							githubRequestURL + filePath,
+							HttpMethod.GET,
+							entity,
+							new ParameterizedTypeReference<List<Map<String, Object>>>(){}
+						);
+
+						if (response != null && response.getBody() != null) {
+							for (Map<String, Object> item : response.getBody()) {
+								if ("dir".equals(item.get("type"))) {
+									categoriesList.get(i).add(item);
+								}
+							}
+						} else {
+							System.out.println("해당 레포지토리는 카테고리가 없습니다.");
+						}
+					} catch (HttpClientErrorException.NotFound e){
+						// 이미지 파일이 없는 경우에 대한 처리.
+						// response와 responseBody는 null 상태이므로 여기서는 다루지 않는다.
+						System.out.println("line 118 : 이미지 file 없음");
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return categoriesList;
+	}
+
+	private List<String> getGithubRepository(List<String> repositoryList, Member member) {
+		String ATK = member.getToken().getGithubToken();
+
+		GitHubClient client = new GitHubClient();
+		client.setOAuth2Token(ATK);
+
+		// RepositoryService 생성
+		RepositoryService repoService = new RepositoryService(client);
+
+		// 유저의 repositories 리스트 가져오기
+		try {
+			List<Repository> repositories = repoService.getRepositories();
+			for (Repository repo : repositories) {
+				repositoryList.add(repo.getName());
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
+		return repositoryList;
+
 	}
 
 	// [Multi Thread] : 사용자가 N개의 발행 요청시, 작업이 동시에 수행되어 처리시간이 기존 N초에서 (1/N)초 수준으로 단축된다.
