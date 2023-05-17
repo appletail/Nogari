@@ -8,7 +8,7 @@ function Notice() {
         <title> Tistory </title>
       </Helmet>
       <div>
-        <p> 노가리 많이 이용해 주세요</p>
+        <p> 노가리 많이 이용해 주세요..</p>
       </div>
     </>
   )
