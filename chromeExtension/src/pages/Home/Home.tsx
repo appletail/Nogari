@@ -3,8 +3,6 @@ import { useForm } from 'react-hook-form'
 
 import { checkUrl } from './utils'
 import { getLog, postTistory } from '../../apis/apis'
-import { loadingInterceptors } from '../../components/loading/LoadingInterceptors'
-import LoadingSpinner from '../../components/loading/LoadingSpinner'
 
 function Home() {
   const [log, setLog] = useState({
@@ -14,7 +12,6 @@ function Home() {
     date: '',
   })
   const { register, handleSubmit, reset } = useForm<Tpost>()
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const user = localStorage.getItem('user')
@@ -51,7 +48,6 @@ function Home() {
     chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
       const tab = tabs[0]
       const requestLink = tab.url
-      loadingInterceptors(setLoading)
       if (!checkUrl(requestLink)) {
         alert('올바른 notion 페이지에서 발행해주세요.')
         return
@@ -90,7 +86,7 @@ function Home() {
   return (
     <div>
       <h1>최신 발행 로그</h1>
-      <p style={{ fontWeight: 'bold' }}>
+      <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
         <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
         <div style={{ fontSize: '1rem' }}>
           <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
@@ -98,7 +94,7 @@ function Home() {
             {log.title}
           </span>
         </div>
-      </p>
+      </div>
       <form onSubmit={handleSubmit(PublishHandler)}>
         <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label>
         <div>
@@ -106,7 +102,6 @@ function Home() {
           <button type="submit">발행하기</button>
         </div>
       </form>
-      {loading && <LoadingSpinner />}
     </div>
   )
 }
