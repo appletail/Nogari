@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import org.jasypt.encryption.StringEncryptor;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -49,6 +52,9 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.notion.oauth-client-id}") private String NOTION_CLIENT_ID;
 	@Value("${app.auth.notion.oauth-client-secret}") private String NOTION_CLIENT_SECRET;
 
+	@Value("{jasypt.encryptor.password}") private String ENCRYPT_KEY;
+	@Value("{jasypt.encryptor.algorithm}") private String ENCRYPT_ALGORITHM;
+
 	private final MemberTokenRepository memberTokenRepository;
 	private final MemberRepository memberRepository;
 
@@ -87,10 +93,23 @@ public class OauthServiceImpl implements OauthService {
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
 			() -> new IllegalArgumentException()
 		);
-		token.setTistoryToken(accessToken);
+
+		// 토큰 암호화
+		StringEncryptor newStringEncryptor = createEncryptor();
+		String resultText = newStringEncryptor.encrypt(accessToken);
+
+		System.out.println("resultText= "+resultText);
+		token.setTistoryToken(resultText);
+
+		// String encStr = encryptor.encrypt(str);
+		// String decStr = encryptor.decrypt(encStr);
+
+		// token.setTistoryToken(accessToken);
 
 		return accessToken;
+		// return resultText;
 	}
+
 
 	@Override
 	@Transactional
@@ -237,6 +256,23 @@ public class OauthServiceImpl implements OauthService {
 		rslt.put("github", !Objects.isNull(member.getToken().getGithubToken()));
 
 		return rslt;
+	}
+
+	// 토큰 암호화 설정 메서드
+	private StringEncryptor createEncryptor( ){
+
+		StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+		SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+		config.setPassword(ENCRYPT_KEY);
+		// config.setAlgorithm("PBEWithMD5AndTripleDES"); // 권장되는 기본 알고리즘
+		config.setAlgorithm(ENCRYPT_ALGORITHM);
+		config.setKeyObtentionIterations("1000");
+		config.setPoolSize("1");
+		config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
+		config.setStringOutputType("base64");
+		encryptor.setConfig(config);
+
+		return encryptor;
 	}
 
 }

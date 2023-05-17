@@ -62,6 +62,7 @@ public class OAuthController {
 				.build();
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				// .result(oauthService.getTistoryAccessToken(code, member.get()))

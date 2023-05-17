@@ -47,7 +47,7 @@ app:
   auth:
     tistory:
       redirect-uri: https://www.nogari.me/oauth/tistory    # Token 받을 Uri 지정
-    #      redirect-uri: http://localhost:3000/oauth/tistory     # Token 받을 Uri 지정
+#        redirect-uri: http://localhost:3000/oauth/tistory     # Token 받을 Uri 지정
     notion:
       redirect-uri: https://www.nogari.me/oauth/notion    # notion access token 발급 요청 uri
 
