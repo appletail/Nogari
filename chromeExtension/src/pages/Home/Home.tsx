@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { checkUrl } from './utils'
+import style from '../../../src/styles/ServiceLayout.module.css'
 import { getLog, postTistory } from '../../apis/apis'
 
 function Home() {
@@ -85,23 +86,41 @@ function Home() {
 
   return (
     <div>
-      <h1>최신 발행 로그</h1>
-      <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
-        <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
-        <div style={{ fontSize: '1rem' }}>
-          <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
-          <span style={{ cursor: 'pointer', color: 'blue' }} onClick={openLink}>
+      <h1>최근 발행 이력</h1>
+      <div className={style.postBox} style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
+        <div>
+          <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
+        </div>
+
+        <div>
+          <div style={{ cursor: 'pointer', color: 'blue' }} onClick={openLink}>
             {log.title}
-          </span>
+          </div>
+
+          <div style={{ fontSize: '1rem' }}>
+            <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
+          </div>
         </div>
       </div>
-      <form onSubmit={handleSubmit(PublishHandler)}>
-        <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label>
-        <div>
-          <input id="tistory-tag" type="text" {...register('tagList')} />
-          <button type="submit">발행하기</button>
-        </div>
-      </form>
+
+      <div>
+        <h1>간편 발행</h1>
+        <form onSubmit={handleSubmit(PublishHandler)}>
+          {/* <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label> */}
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <input
+              id="tistory-tag"
+              type="text"
+              {...register('tagList')}
+              placeholder="태그를 입력해주세요. 각 태그는 쉼표(,)로 구분합니다."
+              style={{ width: '70%' }}
+            />
+            <button className={style.postButton} type="submit">
+              발행하기
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
