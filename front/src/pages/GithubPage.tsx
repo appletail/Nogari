@@ -17,7 +17,6 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
-  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
@@ -111,7 +110,11 @@ function GithubPage() {
 
   useEffect(() => {
     if (githubInfo) {
-      const RowData = githubInfo.data.result[0]
+      const data = githubInfo.data.result[0]
+      const RowData = data.reduce((acc: any, value: any) => {
+        const row = { ...value, initStatus: value.status }
+        return [...acc, row]
+      }, [])
       setRows(RowData)
       setRepositoryName(githubInfo?.data.result[1])
     }
@@ -167,45 +170,45 @@ function GithubPage() {
 
   // 더블클릭 > 클릭 시 수정으로 변경
 
-  const handleCellClick = useCallback((params: GridCellParams) => {
-    if (!params.isEditable) return
-    if (params.cellMode === 'view') {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.Edit },
-          },
-        }
-      })
-    } else {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.View },
-          },
-        }
-      })
-    }
-    params.hasFocus = !params.hasFocus
-  }, [])
+  // const handleCellClick = useCallback((params: GridCellParams) => {
+  //   if (!params.isEditable) return
+  //   if (params.cellMode === 'view') {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.Edit },
+  //         },
+  //       }
+  //     })
+  //   } else {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.View },
+  //         },
+  //       }
+  //     })
+  //   }
+  //   params.hasFocus = !params.hasFocus
+  // }, [])
 
-  const handleCellModesModelChange = useCallback((newModel: any) => {
-    setCellModesModel(newModel)
-  }, [])
+  // const handleCellModesModelChange = useCallback((newModel: any) => {
+  //   setCellModesModel(newModel)
+  // }, [])
 
-  const columns: (GridColDef | GridSingleSelectColDef)[] = [
+  const columns: GridColDef[] = [
     {
       field: 'repository',
       headerName: '레포지토리',
@@ -256,6 +259,20 @@ function GithubPage() {
       editable: false,
       hideable: false,
       disableColumnMenu: true,
+      valueGetter(params) {
+        if (params.value) {
+          const date = new Date(params.value)
+          const parsedDate = new Intl.DateTimeFormat('ko-KR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+            hour12: false,
+          })
+            .format(date)
+            .split('. ')
+
+          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+        }
+      },
     },
     {
       field: 'status',
@@ -264,19 +281,15 @@ function GithubPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ({ field, row }) => {
-        if (!row) {
-          return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
-        } else if (row.status === '발행완료' || row.status === '수정요청') {
+      valueOptions: ({ row }) => {
+        if (row.initStatus === '발행완료') {
           return ['발행완료', '수정요청']
-        } else if (row.status === '발행실패') {
+        } else if (row.initStatus === '발행실패') {
           return ['발행실패', '발행요청']
-        } else if (row.status === '수정실패') {
+        } else if (row.initStatus === '수정실패') {
           return ['수정실패', '수정요청']
-        } else if (row.status === '발행요청') {
-          return ['발행요청']
         }
-        return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
+        return ['발행요청']
       },
       disableColumnMenu: true,
     },
@@ -288,6 +301,11 @@ function GithubPage() {
       editable: false,
       flex: 1,
       minWidth: 50,
+    },
+    {
+      field: 'initStatus',
+      headerName: 'initStatus',
+      editable: false,
     },
   ]
 
@@ -346,9 +364,6 @@ function GithubPage() {
       </div>
 
       <Card>
-        {/* {isLoading || githubInfo === undefined ? (
-          <div> 로딩중 ... </div>
-        ) : ( */}
         <StyledContainer>
           <Scrollbar>
             {/* 깃허브 로그인 되어있지 않으면 위에 씌우기 */}
@@ -367,17 +382,23 @@ function GithubPage() {
               hideFooterPagination
               hideFooterSelectedRowCount
               apiRef={apiRef}
-              cellModesModel={cellModesModel}
               columns={columns}
-              editMode="cell"
+              editMode="row"
               getRowId={(row) => row.githubId}
               loading={isLoading || githubInfoLoading}
               rows={rows}
+              initialState={{
+                columns: {
+                  ...columns,
+                  columnVisibilityModel: {
+                    // Hide columns status and traderName, the other columns will remain visible
+                    initStatus: false,
+                  },
+                },
+              }}
               slots={{
                 loadingOverlay: LinearProgress,
               }}
-              onCellClick={handleCellClick}
-              onCellModesModelChange={handleCellModesModelChange}
             />
           </Scrollbar>
         </StyledContainer>
@@ -392,7 +413,6 @@ export default GithubPage
 // ---------------------------------------------------------------------
 const StyledContainer = styled('div')(({ theme }) => ({
   position: 'relative',
-  // height: 'auto',
   minHeight: '200px',
   width: '100%',
 }))
