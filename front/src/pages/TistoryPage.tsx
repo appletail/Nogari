@@ -373,7 +373,6 @@ function TistoryPage() {
                 columns={columns}
                 editMode="cell"
                 getRowId={(row) => row.tistoryId}
-                // pageSizeOptions={[100]}
                 rows={rows}
                 onCellClick={handleCellClick}
                 onCellModesModelChange={handleCellModesModelChange}
