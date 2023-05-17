@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 
 import { postEmailLogin } from '../apis/apis'
+import closeEye from '../assets/icons/eye_invisible.svg'
+import openEye from '../assets/icons/eye_open.svg'
 import style from '../styles/Login.module.css'
 
 function Login() {
@@ -35,56 +37,44 @@ function Login() {
 
   return (
     <div className={style.Container}>
-      <img src="src/assets/logos/NogariLogo.png" style={{
-        width:'70%', 
-        marginTop:'30px',
-        marginBottom:'50px',
-        marginLeft: 'auto',
-        marginRight: 'auto'
-        }}>
-      </img>
+      <img className={style.Logo} src="src/assets/logos/NogariLogo.png" />
       <form className={style.LoginForm} onSubmit={handleSubmit(submitHandler)}>
-        <input type="email" {...register('email', { required: true })} placeholder="이메일(E-mail)" style={{
-              width:'70%',
-              marginBottom: '20px', 
-              marginLeft: 'auto',
-              marginRight: 'auto'
-              }}/>
-        {errors.email && <span>이메일을 입력해주세요.</span>}
-        <div>
+        <div className={style.InputBox}>
           <input
+            className={style.HiddenInput}
+            type="email"
+            {...register('email', { required: true })}
+            placeholder="이메일(E-mail)"
+          />
+        </div>
+        {errors.email && <span>이메일을 입력해주세요.</span>}
+        <div className={style.InputBox}>
+          <input
+            className={`${style.HiddenInput} ${style.Password}`}
             id="password"
             type={showPasseword}
             {...register('password', { required: true })}
-            placeholder="비밀번호(Password)" style={{
-              width:'70%', 
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              }}
+            placeholder="비밀번호(Password)"
           />
           <label
             htmlFor="password"
+            style={{ cursor: 'pointer' }}
             onClick={() => {
               showPasseword === 'password' ? setShowPassword('text') : setShowPassword('password')
             }}
-            >
-            {showPasseword}
+          >
+            {showPasseword === 'password' ? (
+              <img className={style.ShowPassword} src={closeEye} />
+            ) : (
+              <img className={style.ShowPassword} src={openEye} />
+            )}
           </label>
         </div>
         {errors.password && <span>비밀번호를 입력해주세요.</span>}
 
-        <button type="submit" style={{
-        width:'80%', 
-        marginTop:'40px',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        border: '0',
-        backgroundColor: 'transparent'
-        }}><img src="src/assets/logos/LoginButton.svg" style={{
-          width:'100%', 
-          marginLeft: 'auto',
-          marginRight: 'auto'
-          }}/></button>
+        <button className={style.LoginButton} type="submit">
+          로그인
+        </button>
       </form>
     </div>
   )
