@@ -12,6 +12,7 @@ import {
   GridColDef,
   GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
+  GridPreProcessEditCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
   GridRenderCellParams,
@@ -204,7 +205,7 @@ function TistoryPage() {
     수정실패: ['수정요청', '수정실패'],
   }
 
-  const columns: (GridColDef | GridSingleSelectColDef)[] = [
+  const columns: GridColDef[] = [
     {
       field: 'blogName',
       headerName: '블로그 선택',
@@ -293,6 +294,9 @@ function TistoryPage() {
         }
         return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
       },
+      // preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
+      //   console.log(params.props)
+      // },
       disableColumnMenu: true,
     },
     {
