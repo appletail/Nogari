@@ -145,33 +145,36 @@ function TistoryPage() {
   // 더블클릭 > 클릭 시 수정으로 변경
   const handleCellClick = useCallback((params: GridCellParams) => {
     if (!params.isEditable) return
-    setCellModesModel((prevModel: any) => {
-      return {
-        ...Object.keys(prevModel).reduce(
-          (acc, id) => ({
-            ...acc,
-            [id]: Object.keys(prevModel[id]).reduce(
-              (acc2, field) => ({
-                ...acc2,
+    if (params.cellMode === 'view') {
+      setCellModesModel((prevModel: any) => {
+        return {
+          [params.id]: {
+            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+              return {
+                ...acc,
                 [field]: { mode: GridCellModes.View },
-              }),
-              {}
-            ),
-          }),
-          {}
-        ),
-        [params.id]: {
-          ...Object.keys(prevModel[params.id] || {}).reduce(
-            (acc, field) => ({
-              ...acc,
-              [field]: { mode: GridCellModes.View },
-            }),
-            {}
-          ),
-          [params.field]: { mode: GridCellModes.Edit },
-        },
-      }
-    })
+              }
+            }, {}),
+            [params.field]: { mode: GridCellModes.Edit },
+          },
+        }
+      })
+    } else {
+      setCellModesModel((prevModel: any) => {
+        return {
+          [params.id]: {
+            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+              return {
+                ...acc,
+                [field]: { mode: GridCellModes.View },
+              }
+            }, {}),
+            [params.field]: { mode: GridCellModes.View },
+          },
+        }
+      })
+    }
+    params.hasFocus = !params.hasFocus
   }, [])
 
   const handleCellModesModelChange = useCallback((newModel: any) => {
