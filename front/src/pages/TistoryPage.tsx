@@ -12,13 +12,9 @@ import {
   GridColDef,
   GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
-  GridPreProcessEditCellProps,
-  GridCellParams,
   GridEditSingleSelectCell,
-  GridRenderCellParams,
-  GridCellModesModel,
-  GridCellModes,
   useGridApiRef,
+  GridRenderCellParams,
 } from '@mui/x-data-grid'
 
 import { getOauthStatus } from '@/apis/OauthApis'
@@ -93,11 +89,15 @@ function TistoryPage() {
   const [blogName, setBlogName] = useState(tistoryInfo?.data.result[1] || [''])
 
   // cell mode : edit or view
-  const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
+  // const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
   useEffect(() => {
     if (tistoryInfo) {
-      const RowData = tistoryInfo.data.result[0]
+      const data = tistoryInfo.data.result[0]
+      const RowData = data.reduce((acc: any, value: any) => {
+        const row = { ...value, initStatus: value.status }
+        return [...acc, row]
+      }, [])
       setRows(RowData)
       setBlogName(tistoryInfo?.data.result[1])
     }
@@ -155,57 +155,75 @@ function TistoryPage() {
 
   // 더블클릭 > 클릭 시 수정으로 변경
 
-  const handleCellClick = useCallback((params: GridCellParams) => {
-    if (!params.isEditable) return
-    if (params.cellMode === 'view') {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.Edit },
-          },
-        }
-      })
-    } else {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.View },
-          },
-        }
-      })
-    }
-    params.hasFocus = !params.hasFocus
-  }, [])
+  // const handleCellClick = useCallback((params: GridCellParams) => {
+  //   if (!params.isEditable) return
+  //   if (params.cellMode === 'view') {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         ...Object.keys(prevModel).reduce(
+  //           (acc, id) => ({
+  //             ...acc,
+  //             [id]: Object.keys(prevModel[id]).reduce(
+  //               (acc2, field) => ({
+  //                 ...acc2,
+  //                 [field]: { mode: GridCellModes.View },
+  //               }),
+  //               {}
+  //             ),
+  //           }),
+  //           {}
+  //         ),
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.Edit },
+  //         },
+  //       }
+  //     })
+  //   } else {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         ...Object.keys(prevModel).reduce(
+  //           (acc, id) => ({
+  //             ...acc,
+  //             [id]: Object.keys(prevModel[id]).reduce(
+  //               (acc2, field) => ({
+  //                 ...acc2,
+  //                 [field]: { mode: GridCellModes.View },
+  //               }),
+  //               {}
+  //             ),
+  //           }),
+  //           {}
+  //         ),
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.View },
+  //         },
+  //       }
+  //     })
+  //   }
+  // }, [])
 
-  const handleCellModesModelChange = useCallback((newModel: any) => {
-    setCellModesModel(newModel)
-  }, [])
+  // const handleCellModesModelChange = useCallback((newModel: any) => {
+  //   setCellModesModel(newModel)
+  // }, [])
 
   const visibilityOptions = [
-    { value: 0, label: '비공개' },
     { value: 3, label: '공개' },
+    { value: 0, label: '비공개' },
   ]
 
-  const statusOptions = {
-    발행요청: ['발행요청'],
-    발행완료: ['수정요청', '발행완료'],
-    발행실패: ['발행요청', '발행실패'],
-    수정실패: ['수정요청', '수정실패'],
-  }
-
-  const columns: GridColDef[] = [
+  const columns: (GridColDef | GridSingleSelectColDef)[] = [
     {
       field: 'blogName',
       headerName: '블로그 선택',
@@ -268,10 +286,24 @@ function TistoryPage() {
     {
       field: 'modifiedDate',
       headerName: '발행일자',
-      width: 120,
+      width: 125,
       editable: false,
       hideable: false,
       disableColumnMenu: true,
+      valueGetter(params) {
+        if (params.value) {
+          const date = new Date(params.value)
+          const parsedDate = new Intl.DateTimeFormat('ko-KR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+            hour12: false,
+          })
+            .format(date)
+            .split('. ')
+
+          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+        }
+      },
     },
     {
       field: 'status',
@@ -280,23 +312,16 @@ function TistoryPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ({ field, row }) => {
-        if (!row) {
-          return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
-        } else if (row.status === '발행완료' || row.status === '수정요청') {
+      valueOptions: ({ row }) => {
+        if (row.initStatus === '발행완료') {
           return ['발행완료', '수정요청']
-        } else if (row.status === '발행실패') {
+        } else if (row.initStatus === '발행실패') {
           return ['발행실패', '발행요청']
-        } else if (row.status === '수정실패') {
+        } else if (row.initStatus === '수정실패') {
           return ['수정실패', '수정요청']
-        } else if (row.status === '발행요청') {
-          return ['발행요청']
         }
-        return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
+        return ['발행요청']
       },
-      // preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
-      //   console.log(params.props)
-      // },
       disableColumnMenu: true,
     },
     {
@@ -317,6 +342,11 @@ function TistoryPage() {
         </a>
       ),
     },
+    {
+      field: 'initStatus',
+      headerName: 'initStatus',
+      editable: false,
+    },
   ]
 
   const tistoryLoginURL = import.meta.env.VITE_TISTORY_OAUTH_URL
@@ -324,7 +354,7 @@ function TistoryPage() {
   return (
     <>
       <Helmet>
-        <title>Nogari | Tistory</title>
+        <title> Tistory </title>
       </Helmet>
 
       {/* 티스토리 아이콘 & 로그인 */}
@@ -393,13 +423,19 @@ function TistoryPage() {
                 hideFooterPagination
                 hideFooterSelectedRowCount
                 apiRef={apiRef}
-                cellModesModel={cellModesModel}
                 columns={columns}
-                editMode="cell"
+                editMode="row"
                 getRowId={(row) => row.tistoryId}
                 rows={rows}
-                onCellClick={handleCellClick}
-                onCellModesModelChange={handleCellModesModelChange}
+                initialState={{
+                  columns: {
+                    ...columns,
+                    columnVisibilityModel: {
+                      // Hide columns status and traderName, the other columns will remain visible
+                      initStatus: false,
+                    },
+                  },
+                }}
               />
             </Scrollbar>
           </StyledContainer>

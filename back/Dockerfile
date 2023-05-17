@@ -11,6 +11,8 @@ RUN mvn package -Dmaven.test.skip=true
 
 FROM openjdk:11-jdk-slim-buster
 
+RUN ln -snf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && echo Asia/Seoul > /etc/timezone
+
 WORKDIR /app
 
 ARG JAR_FILE=*.jar
