@@ -21,7 +21,7 @@ import {
 
 import { postGithubPostList, postGithubPost } from '@/apis/githubApis'
 import { getOauthStatus } from '@/apis/OauthApis'
-import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
+import { ReactComponent as Github } from '@/assets/logos/github-mark.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
@@ -201,10 +201,10 @@ function GithubPage() {
   const columns: (GridColDef | GridSingleSelectColDef)[] = [
     {
       field: 'repository',
-      headerName: 'Repository',
+      headerName: '레포지토리',
       type: 'singleSelect',
       valueOptions: repository,
-      minWidth: 100,
+      minWidth: 150,
       flex: 0.3,
       editable: true,
       disableColumnMenu: true,
@@ -284,15 +284,116 @@ function GithubPage() {
     },
   ]
 
+  const githubLoginURL = import.meta.env.VITE_GITHUB_OAUTH_URL
+
   return (
-    <div>
+    <>
       <Helmet>
-        <title>Github</title>
+        <title>Nogari | Github</title>
       </Helmet>
-      {/* <TableSample /> */}
-      <div>준비중입니다...</div>
-    </div>
+
+      {/* github 아이콘 & 로그인 */}
+      <Stack alignItems="center" direction="row" mb={3}>
+        <Stack
+          alignItems="center"
+          direction="row"
+          spacing={1}
+          sx={{ marginRight: '1rem' }}
+        >
+          <Github style={{ width: 24, height: 24 }} />
+          <Typography gutterBottom variant="h4">
+            Github
+          </Typography>
+        </Stack>
+
+        {/* github 로그인 여부에 따라 로그인 / 발행하기 아이콘 변경 */}
+        {oauth && oauth?.data.result.github ? (
+          <Button
+            href=""
+            variant="contained"
+            sx={{
+              width: '70px',
+              height: '26px',
+              backgroundColor: '#007DFF',
+              fontSize: '0.1rem',
+              whiteSpace: 'nowrap',
+            }}
+            onClick={onClickHandler}
+          >
+            발행하기
+          </Button>
+        ) : (
+          <IconButton href={githubLoginURL}>
+            <LoginIcon />
+          </IconButton>
+        )}
+      </Stack>
+
+      {/* 새로운 행 추가하는 button */}
+
+      <div style={{ display: 'flex', justifyContent: 'end' }}>
+        <Button sx={{ display: 'flex', gap: '5px' }} onClick={handleAddRow}>
+          <AddCircleOutlineIcon />
+          add row
+        </Button>
+      </div>
+
+      <Card>
+        {isLoading || githubInfo === undefined ? (
+          <div> 로딩중 ... </div>
+        ) : (
+          <StyledContainer>
+            <Scrollbar>
+              {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
+              {!oauth?.data.result.tistory ? (
+                <StyledWrapper>
+                  <Typography variant="subtitle2">
+                    티스토리 로그인을 먼저 해주세요.
+                  </Typography>
+                </StyledWrapper>
+              ) : (
+                <div></div>
+              )}
+
+              <DataGrid
+                hideFooter
+                hideFooterPagination
+                hideFooterSelectedRowCount
+                apiRef={apiRef}
+                cellModesModel={cellModesModel}
+                columns={columns}
+                editMode="cell"
+                getRowId={(row) => row.githubId}
+                rows={rows}
+                onCellClick={handleCellClick}
+                onCellModesModelChange={handleCellModesModelChange}
+              />
+            </Scrollbar>
+          </StyledContainer>
+        )}
+      </Card>
+    </>
   )
 }
 
 export default GithubPage
+
+// ---------------------------------------------------------------------
+const StyledContainer = styled('div')(({ theme }) => ({
+  position: 'relative',
+  height: 'auto',
+  width: '100%',
+}))
+const StyledWrapper = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  top: '0px',
+  left: '0px',
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: '9999',
+}))

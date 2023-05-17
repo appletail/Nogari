@@ -5,14 +5,7 @@ import { useQuery } from 'react-query'
 import { faker } from '@faker-js/faker'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
-import {
-  Card,
-  Stack,
-  Button,
-  Typography,
-  IconButton,
-  Link,
-} from '@mui/material'
+import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   DataGrid,
@@ -327,7 +320,7 @@ function TistoryPage() {
   return (
     <>
       <Helmet>
-        <title> Tistory </title>
+        <title>Nogari | Tistory</title>
       </Helmet>
 
       {/* 티스토리 아이콘 & 로그인 */}
