@@ -141,7 +141,7 @@ function TistoryPage() {
     // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
     if (submitArray.length !== 0) {
       const response = await postTistoryPost(submitArray)
-      console.log(response)
+      // console.log(response)
       // api 호출에 성공한 경우에만 refetch 진행
       if (response.data.resultCode === 200) {
         refetch()
@@ -197,7 +197,8 @@ function TistoryPage() {
       headerName: '블로그 선택',
       type: 'singleSelect',
       valueOptions: blogName,
-      width: 180,
+      minWidth: 100,
+      flex: 0.3,
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
@@ -208,10 +209,11 @@ function TistoryPage() {
     {
       field: 'requestLink',
       headerName: '요청페이지 링크',
-      width: 220,
+      minWidth: 220,
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
+      flex: 1,
     },
     {
       field: 'visibility',
@@ -228,7 +230,7 @@ function TistoryPage() {
 
       valueOptions: ({ row }) => {
         if (!row) {
-          return [{ value: '', label: '카테고리없음' }]
+          return [{ value: 'None', label: '카테고리없음' }]
         }
 
         const index = blogName.indexOf(row.blogName)
@@ -237,7 +239,7 @@ function TistoryPage() {
           ? selectedCategories.map((category: tistoryCategory) => {
               return { value: category.id, label: category.name }
             })
-          : [{ value: '', label: '카테고리없음' }]
+          : [{ value: 'None', label: '카테고리없음' }]
       },
       editable: true,
       disableColumnMenu: true,
@@ -264,7 +266,20 @@ function TistoryPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ['발행요청', '발행완료', '수정요청', '발행실패'],
+      valueOptions: ({ field, row }) => {
+        if (!row) {
+          return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
+        } else if (row.status === '발행완료' || row.status === '수정요청') {
+          return ['발행완료', '수정요청']
+        } else if (row.status === '발행실패') {
+          return ['발행실패', '발행요청']
+        } else if (row.status === '수정실패') {
+          return ['수정실패', '수정요청']
+        } else if (row.status === '발행요청') {
+          return ['발행요청']
+        }
+        return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
+      },
       disableColumnMenu: true,
     },
     {
@@ -275,6 +290,10 @@ function TistoryPage() {
       editable: false,
       flex: 1,
       minWidth: 50,
+    },
+    {
+      field: 'firstStatus',
+      hideable: true,
     },
   ]
 
@@ -370,6 +389,7 @@ export default TistoryPage
 const StyledContainer = styled('div')(({ theme }) => ({
   position: 'relative',
   height: 'auto',
+  width: '100%',
 }))
 const StyledWrapper = styled('div')(({ theme }) => ({
   position: 'absolute',
