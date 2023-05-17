@@ -100,7 +100,11 @@ function TistoryPage() {
 
   useEffect(() => {
     if (tistoryInfo) {
-      const RowData = tistoryInfo.data.result[0]
+      const data = tistoryInfo.data.result[0]
+      const RowData = data.reduce((acc: any, value: any) => {
+        const row = { ...value, initStatus: value.status }
+        return [...acc, row]
+      }, [])
       setRows(RowData)
       setBlogName(tistoryInfo?.data.result[1])
     }
@@ -323,18 +327,14 @@ function TistoryPage() {
       editable: true,
       hideable: false,
       valueOptions: ({ row }) => {
-        if (!row) {
-          return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
-        } else if (row.status === '발행완료' || row.status === '수정요청') {
+        if (row.initStatus === '발행완료') {
           return ['발행완료', '수정요청']
-        } else if (row.status === '발행실패') {
+        } else if (row.initStatus === '발행실패') {
           return ['발행실패', '발행요청']
-        } else if (row.status === '수정실패') {
+        } else if (row.initStatus === '수정실패') {
           return ['수정실패', '수정요청']
-        } else if (row.status === '발행요청') {
-          return ['발행요청']
         }
-        return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
+        return ['발행요청']
       },
       disableColumnMenu: true,
     },
@@ -355,6 +355,11 @@ function TistoryPage() {
           {params.row.title}
         </a>
       ),
+    },
+    {
+      field: 'initStatus',
+      headerName: 'initStatus',
+      editable: false,
     },
   ]
 
@@ -436,6 +441,15 @@ function TistoryPage() {
                 editMode="row"
                 getRowId={(row) => row.tistoryId}
                 rows={rows}
+                initialState={{
+                  columns: {
+                    ...columns,
+                    columnVisibilityModel: {
+                      // Hide columns status and traderName, the other columns will remain visible
+                      initStatus: false,
+                    },
+                  },
+                }}
               />
             </Scrollbar>
           </StyledContainer>
