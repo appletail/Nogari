@@ -153,37 +153,33 @@ function TistoryPage() {
 
   // 더블클릭 > 클릭 시 수정으로 변경
   const handleCellClick = useCallback((params: GridCellParams) => {
-    if (!params.isEditable) return
-    if (params.cellMode === 'view') {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
+    setCellModesModel((prevModel: any) => {
+      return {
+        ...Object.keys(prevModel).reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: Object.keys(prevModel[id]).reduce(
+              (acc2, field) => ({
+                ...acc2,
                 [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.Edit },
-          },
-        }
-      })
-    } else {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.View },
-          },
-        }
-      })
-    }
-    params.hasFocus = !params.hasFocus
+              }),
+              {}
+            ),
+          }),
+          {}
+        ),
+        [params.id]: {
+          ...Object.keys(prevModel[params.id] || {}).reduce(
+            (acc, field) => ({
+              ...acc,
+              [field]: { mode: GridCellModes.View },
+            }),
+            {}
+          ),
+          [params.field]: { mode: GridCellModes.Edit },
+        },
+      }
+    })
   }, [])
 
   const handleCellModesModelChange = useCallback((newModel: any) => {
@@ -259,7 +255,7 @@ function TistoryPage() {
       field: 'modifiedDate',
       headerName: '발행일자',
       width: 120,
-      editable: false,
+      editable: true,
       hideable: false,
       disableColumnMenu: true,
     },
@@ -310,7 +306,7 @@ function TistoryPage() {
       </Helmet>
 
       {/* 티스토리 아이콘 & 로그인 */}
-      <Stack alignItems="center" direction="row" mb={3}>
+      <Stack alignItems="center" direction="row" mb={5}>
         <Stack
           alignItems="center"
           direction="row"
@@ -345,13 +341,6 @@ function TistoryPage() {
           </IconButton>
         )}
       </Stack>
-      <div style={{ display: 'flex', justifyContent: 'end' }}>
-        <Button sx={{ display: 'flex', gap: '5px' }} onClick={handleAddRow}>
-          <AddCircleOutlineIcon />
-          add row
-        </Button>
-      </div>
-
       <Card>
         {isLoading || tistoryInfo === undefined ? (
           <div> 로딩중 ... </div>
@@ -368,15 +357,23 @@ function TistoryPage() {
               ) : (
                 <div></div>
               )}
-
+              <Button
+                sx={{ display: 'flex', gap: '5px' }}
+                onClick={handleAddRow}
+              >
+                <AddCircleOutlineIcon />
+                add row
+              </Button>
               <DataGrid
-                disableRowSelectionOnClick
+                hideFooter
+                hideFooterPagination
+                hideFooterSelectedRowCount
                 apiRef={apiRef}
                 cellModesModel={cellModesModel}
                 columns={columns}
                 editMode="cell"
                 getRowId={(row) => row.tistoryId}
-                pageSizeOptions={[100]}
+                // pageSizeOptions={[100]}
                 rows={rows}
                 onCellClick={handleCellClick}
                 onCellModesModelChange={handleCellModesModelChange}
