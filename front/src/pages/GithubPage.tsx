@@ -5,7 +5,14 @@ import { useQuery } from 'react-query'
 import { faker } from '@faker-js/faker'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
-import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
+import {
+  Card,
+  Stack,
+  Button,
+  Typography,
+  IconButton,
+  LinearProgress,
+} from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   DataGrid,
@@ -83,13 +90,14 @@ function GithubPage() {
   // github 연결되어 있을 때에만 githubInfo를 받아옵니다.
   const apiRef = useGridApiRef()
   const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
-  const { data: githubInfo, refetch } = useQuery(
-    'githubInfo',
-    postGithubPostList,
-    {
-      enabled: !!oauth,
-    }
-  )
+  const {
+    isLoading: githubInfoLoading,
+    data: githubInfo,
+    refetch,
+  } = useQuery('githubInfo', postGithubPostList, {
+    refetchOnWindowFocus: false,
+    enabled: !!oauth,
+  })
 
   // data grid에서 사용하는 state
   // row data and blog name
@@ -138,17 +146,16 @@ function GithubPage() {
       // 발행 할 데이터 링크가 있고 발행요청 혹은 수정요청인 경우에만 발행
       if (
         row.requestLink &&
+        row.categoryName &&
         (row.status === '발행요청' || row.status === '수정요청')
       ) {
-        row['type'] = 'html'
+        row['type'] = 'md'
         submitArray.push(row)
       }
     })
-
     // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
     if (submitArray.length !== 0) {
       const response = await postGithubPost(submitArray)
-      // console.log(response)
       // api 호출에 성공한 경우에만 refetch 진행
       if (response.data.resultCode === 200) {
         refetch()
@@ -339,38 +346,42 @@ function GithubPage() {
       </div>
 
       <Card>
-        {isLoading || githubInfo === undefined ? (
+        {/* {isLoading || githubInfo === undefined ? (
           <div> 로딩중 ... </div>
-        ) : (
-          <StyledContainer>
-            <Scrollbar>
-              {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
-              {!oauth?.data.result.tistory ? (
-                <StyledWrapper>
-                  <Typography variant="subtitle2">
-                    티스토리 로그인을 먼저 해주세요.
-                  </Typography>
-                </StyledWrapper>
-              ) : (
-                <div></div>
-              )}
-
-              <DataGrid
-                hideFooter
-                hideFooterPagination
-                hideFooterSelectedRowCount
-                apiRef={apiRef}
-                cellModesModel={cellModesModel}
-                columns={columns}
-                editMode="cell"
-                getRowId={(row) => row.githubId}
-                rows={rows}
-                onCellClick={handleCellClick}
-                onCellModesModelChange={handleCellModesModelChange}
-              />
-            </Scrollbar>
-          </StyledContainer>
-        )}
+        ) : ( */}
+        <StyledContainer>
+          <Scrollbar>
+            {/* 깃허브 로그인 되어있지 않으면 위에 씌우기 */}
+            {!oauth?.data.result.github ? (
+              <StyledWrapper>
+                <Typography variant="subtitle2">
+                  깃허브 로그인을 먼저 해주세요.
+                </Typography>
+              </StyledWrapper>
+            ) : (
+              <div></div>
+            )}
+            <DataGrid
+              autoHeight
+              hideFooter
+              hideFooterPagination
+              hideFooterSelectedRowCount
+              apiRef={apiRef}
+              cellModesModel={cellModesModel}
+              columns={columns}
+              editMode="cell"
+              getRowId={(row) => row.githubId}
+              loading={isLoading || githubInfoLoading}
+              rows={rows}
+              slots={{
+                loadingOverlay: LinearProgress,
+              }}
+              onCellClick={handleCellClick}
+              onCellModesModelChange={handleCellModesModelChange}
+            />
+          </Scrollbar>
+        </StyledContainer>
+        {/* )} */}
       </Card>
     </>
   )
@@ -381,7 +392,8 @@ export default GithubPage
 // ---------------------------------------------------------------------
 const StyledContainer = styled('div')(({ theme }) => ({
   position: 'relative',
-  height: 'auto',
+  // height: 'auto',
+  minHeight: '200px',
   width: '100%',
 }))
 const StyledWrapper = styled('div')(({ theme }) => ({
