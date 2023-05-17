@@ -37,7 +37,7 @@ public class MemberServiceImpl implements MemberService {
 
 	@Override
 	public SignResponseDto login(LoginRequestDto request) {
-		Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(() ->
+		Member member = memberRepository.findAllByEmail(request.getEmail()).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 
 		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
@@ -95,7 +95,7 @@ public class MemberServiceImpl implements MemberService {
 
 	@Override
 	public SignResponseDto getMember(String email) throws Exception {
-		Member member = memberRepository.findByEmail(email)
+		Member member = memberRepository.findAllByEmail(email)
 			.orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
 		return new SignResponseDto(member);
 	}
@@ -149,7 +149,7 @@ public class MemberServiceImpl implements MemberService {
 	@Override
 	public JWTDto refreshAccessToken(JWTDto token) throws Exception {
 		String email = jwtProvider.getEmail(token.getAccess_token());
-		Member member = memberRepository.findByEmail(email).orElseThrow(() ->
+		Member member = memberRepository.findAllByEmail(email).orElseThrow(() ->
 			new BadCredentialsException("잘못된 계정정보입니다."));
 		JWT refreshToken = validRefreshToken(member, token.getRefresh_token());
 
