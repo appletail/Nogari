@@ -155,10 +155,24 @@ function TistoryPage() {
   // 더블클릭 > 클릭 시 수정으로 변경
 
   const handleCellClick = useCallback((params: GridCellParams) => {
+    console.log(params)
     if (!params.isEditable) return
     if (params.cellMode === 'view') {
       setCellModesModel((prevModel: any) => {
         return {
+          ...Object.keys(prevModel).reduce(
+            (acc, id) => ({
+              ...acc,
+              [id]: Object.keys(prevModel[id]).reduce(
+                (acc2, field) => ({
+                  ...acc2,
+                  [field]: { mode: GridCellModes.View },
+                }),
+                {}
+              ),
+            }),
+            {}
+          ),
           [params.id]: {
             ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
               return {
@@ -173,6 +187,19 @@ function TistoryPage() {
     } else {
       setCellModesModel((prevModel: any) => {
         return {
+          ...Object.keys(prevModel).reduce(
+            (acc, id) => ({
+              ...acc,
+              [id]: Object.keys(prevModel[id]).reduce(
+                (acc2, field) => ({
+                  ...acc2,
+                  [field]: { mode: GridCellModes.View },
+                }),
+                {}
+              ),
+            }),
+            {}
+          ),
           [params.id]: {
             ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
               return {
@@ -185,7 +212,6 @@ function TistoryPage() {
         }
       })
     }
-    params.hasFocus = !params.hasFocus
   }, [])
 
   const handleCellModesModelChange = useCallback((newModel: any) => {
@@ -279,7 +305,7 @@ function TistoryPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ({ field, row }) => {
+      valueOptions: ({ field, row, id }) => {
         if (!row) {
           return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
         } else if (row.status === '발행완료' || row.status === '수정요청') {
