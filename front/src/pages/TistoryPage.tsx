@@ -17,6 +17,7 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
+  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
