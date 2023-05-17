@@ -1,33 +1,37 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { useQuery, useQueryClient, useMutation } from 'react-query'
+import { useQuery } from 'react-query'
 
 import { faker } from '@faker-js/faker'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
-import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
+import {
+  Card,
+  Stack,
+  Button,
+  Typography,
+  IconButton,
+  Link,
+} from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
+  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
-  GridCellParams,
   GridEditSingleSelectCell,
-  GridCellModesModel,
-  GridCellModes,
   useGridApiRef,
+  GridRenderCellParams,
 } from '@mui/x-data-grid'
 
-import { sample, sampleSize } from 'lodash'
-
 import { getOauthStatus } from '@/apis/OauthApis'
-import { postTistoryPostList, postTistoryPost } from '@/apis/tistoryApis'
+import { postTistoryLogList, postTistoryPost } from '@/apis/tistoryApis'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
 // ------------------------------------------------------------------
-interface posting {
+interface tistoryPosting {
   id: string
   visibility: number
   status: string
@@ -79,8 +83,9 @@ function TistoryPage() {
   const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
   const { data: tistoryInfo, refetch } = useQuery(
     'tistoryInfo',
-    postTistoryPostList,
+    postTistoryLogList,
     {
+      refetchOnWindowFocus: false,
       enabled: !!oauth,
     }
   )
@@ -91,11 +96,15 @@ function TistoryPage() {
   const [blogName, setBlogName] = useState(tistoryInfo?.data.result[1] || [''])
 
   // cell mode : edit or view
-  const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
+  // const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
   useEffect(() => {
     if (tistoryInfo) {
-      const RowData = tistoryInfo.data.result[0]
+      const data = tistoryInfo.data.result[0]
+      const RowData = data.reduce((acc: any, value: any) => {
+        const row = { ...value, initStatus: value.status }
+        return [...acc, row]
+      }, [])
       setRows(RowData)
       setBlogName(tistoryInfo?.data.result[1])
     }
@@ -141,7 +150,7 @@ function TistoryPage() {
     // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
     if (submitArray.length !== 0) {
       const response = await postTistoryPost(submitArray)
-      console.log(response)
+      // console.log(response)
       // api 호출에 성공한 경우에만 refetch 진행
       if (response.data.resultCode === 200) {
         refetch()
@@ -152,56 +161,90 @@ function TistoryPage() {
   }
 
   // 더블클릭 > 클릭 시 수정으로 변경
-  const handleCellClick = useCallback((params: GridCellParams) => {
-    if (!params.isEditable) return
-    if (params.cellMode === 'view') {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.Edit },
-          },
-        }
-      })
-    } else {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.View },
-          },
-        }
-      })
-    }
-    params.hasFocus = !params.hasFocus
-  }, [])
 
-  const handleCellModesModelChange = useCallback((newModel: any) => {
-    setCellModesModel(newModel)
-  }, [])
+  // const handleCellClick = useCallback((params: GridCellParams) => {
+  //   if (!params.isEditable) return
+  //   if (params.cellMode === 'view') {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         ...Object.keys(prevModel).reduce(
+  //           (acc, id) => ({
+  //             ...acc,
+  //             [id]: Object.keys(prevModel[id]).reduce(
+  //               (acc2, field) => ({
+  //                 ...acc2,
+  //                 [field]: { mode: GridCellModes.View },
+  //               }),
+  //               {}
+  //             ),
+  //           }),
+  //           {}
+  //         ),
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.Edit },
+  //         },
+  //       }
+  //     })
+  //   } else {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         ...Object.keys(prevModel).reduce(
+  //           (acc, id) => ({
+  //             ...acc,
+  //             [id]: Object.keys(prevModel[id]).reduce(
+  //               (acc2, field) => ({
+  //                 ...acc2,
+  //                 [field]: { mode: GridCellModes.View },
+  //               }),
+  //               {}
+  //             ),
+  //           }),
+  //           {}
+  //         ),
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.View },
+  //         },
+  //       }
+  //     })
+  //   }
+  // }, [])
+
+  // const handleCellModesModelChange = useCallback((newModel: any) => {
+  //   setCellModesModel(newModel)
+  // }, [])
 
   const visibilityOptions = [
     { value: 0, label: '비공개' },
     { value: 3, label: '공개' },
   ]
 
-  const columns: GridColDef[] = [
+  // const statusOptions = {
+  //   발행요청: ['발행요청'],
+  //   발행완료: ['수정요청', '발행완료'],
+  //   발행실패: ['발행요청', '발행실패'],
+  //   수정실패: ['수정요청', '수정실패'],
+  // }
+
+  const columns: (GridColDef | GridSingleSelectColDef)[] = [
     {
       field: 'blogName',
       headerName: '블로그 선택',
       type: 'singleSelect',
       valueOptions: blogName,
-      width: 180,
+      minWidth: 100,
+      flex: 0.3,
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
@@ -212,10 +255,11 @@ function TistoryPage() {
     {
       field: 'requestLink',
       headerName: '요청페이지 링크',
-      width: 220,
+      minWidth: 220,
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
+      flex: 1,
     },
     {
       field: 'visibility',
@@ -232,7 +276,7 @@ function TistoryPage() {
 
       valueOptions: ({ row }) => {
         if (!row) {
-          return [{ value: '', label: '카테고리없음' }]
+          return [{ value: 'None', label: '카테고리없음' }]
         }
 
         const index = blogName.indexOf(row.blogName)
@@ -241,7 +285,7 @@ function TistoryPage() {
           ? selectedCategories.map((category: tistoryCategory) => {
               return { value: category.id, label: category.name }
             })
-          : [{ value: '', label: '카테고리없음' }]
+          : [{ value: 'None', label: '카테고리없음' }]
       },
       editable: true,
       disableColumnMenu: true,
@@ -256,10 +300,24 @@ function TistoryPage() {
     {
       field: 'modifiedDate',
       headerName: '발행일자',
-      width: 120,
+      width: 125,
       editable: false,
       hideable: false,
       disableColumnMenu: true,
+      valueGetter(params) {
+        if (params.value) {
+          const date = new Date(params.value)
+          const parsedDate = new Intl.DateTimeFormat('ko-KR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+            hour12: false,
+          })
+            .format(date)
+            .split('. ')
+
+          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+        }
+      },
     },
     {
       field: 'status',
@@ -268,7 +326,16 @@ function TistoryPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ['발행요청', '발행완료', '수정요청', '발행실패'],
+      valueOptions: ({ row }) => {
+        if (row.initStatus === '발행완료') {
+          return ['발행완료', '수정요청']
+        } else if (row.initStatus === '발행실패') {
+          return ['발행실패', '발행요청']
+        } else if (row.initStatus === '수정실패') {
+          return ['수정실패', '수정요청']
+        }
+        return ['발행요청']
+      },
       disableColumnMenu: true,
     },
     {
@@ -279,6 +346,20 @@ function TistoryPage() {
       editable: false,
       flex: 1,
       minWidth: 50,
+      renderCell: (params: GridRenderCellParams) => (
+        <a
+          href={params.row.responseLink}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {params.row.title}
+        </a>
+      ),
+    },
+    {
+      field: 'initStatus',
+      headerName: 'initStatus',
+      editable: false,
     },
   ]
 
@@ -326,6 +407,7 @@ function TistoryPage() {
           </IconButton>
         )}
       </Stack>
+
       <div style={{ display: 'flex', justifyContent: 'end' }}>
         <Button sx={{ display: 'flex', gap: '5px' }} onClick={handleAddRow}>
           <AddCircleOutlineIcon />
@@ -351,16 +433,23 @@ function TistoryPage() {
               )}
 
               <DataGrid
-                disableRowSelectionOnClick
+                hideFooter
+                hideFooterPagination
+                hideFooterSelectedRowCount
                 apiRef={apiRef}
-                cellModesModel={cellModesModel}
                 columns={columns}
-                editMode="cell"
+                editMode="row"
                 getRowId={(row) => row.tistoryId}
-                pageSizeOptions={[100]}
                 rows={rows}
-                onCellClick={handleCellClick}
-                onCellModesModelChange={handleCellModesModelChange}
+                initialState={{
+                  columns: {
+                    ...columns,
+                    columnVisibilityModel: {
+                      // Hide columns status and traderName, the other columns will remain visible
+                      initStatus: false,
+                    },
+                  },
+                }}
               />
             </Scrollbar>
           </StyledContainer>
@@ -376,6 +465,7 @@ export default TistoryPage
 const StyledContainer = styled('div')(({ theme }) => ({
   position: 'relative',
   height: 'auto',
+  width: '100%',
 }))
 const StyledWrapper = styled('div')(({ theme }) => ({
   position: 'absolute',

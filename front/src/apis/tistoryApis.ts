@@ -1,16 +1,5 @@
 import { axAuth } from './axiosInstance'
 
-// interface posting {
-//   tistoryId: string
-//   type: string
-//   blogName: string
-//   requestLink: string
-//   visibility: number
-//   categoryName: string
-//   tagList: string
-//   status: string
-// }
-
 // 블로그명과 카테고리 조회를 위한 api
 export async function postTistoryCategory() {
   const response = await axAuth.post(`/contents/tistory`, {
@@ -22,7 +11,7 @@ export async function postTistoryCategory() {
 
 // 전체 포스트 리스트 조회를 위한 api
 
-export async function postTistoryPostList() {
+export async function postTistoryLogList() {
   const response = await axAuth.post(`/contents/tistory`, {
     lastTistoryId: -1,
     pageSize: 100,
