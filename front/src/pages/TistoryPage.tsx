@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
+  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
@@ -152,34 +153,39 @@ function TistoryPage() {
   }
 
   // 더블클릭 > 클릭 시 수정으로 변경
+
   const handleCellClick = useCallback((params: GridCellParams) => {
-    setCellModesModel((prevModel: any) => {
-      return {
-        ...Object.keys(prevModel).reduce(
-          (acc, id) => ({
-            ...acc,
-            [id]: Object.keys(prevModel[id]).reduce(
-              (acc2, field) => ({
-                ...acc2,
+    if (!params.isEditable) return
+    if (params.cellMode === 'view') {
+      setCellModesModel((prevModel: any) => {
+        return {
+          [params.id]: {
+            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+              return {
+                ...acc,
                 [field]: { mode: GridCellModes.View },
-              }),
-              {}
-            ),
-          }),
-          {}
-        ),
-        [params.id]: {
-          ...Object.keys(prevModel[params.id] || {}).reduce(
-            (acc, field) => ({
-              ...acc,
-              [field]: { mode: GridCellModes.View },
-            }),
-            {}
-          ),
-          [params.field]: { mode: GridCellModes.Edit },
-        },
-      }
-    })
+              }
+            }, {}),
+            [params.field]: { mode: GridCellModes.Edit },
+          },
+        }
+      })
+    } else {
+      setCellModesModel((prevModel: any) => {
+        return {
+          [params.id]: {
+            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+              return {
+                ...acc,
+                [field]: { mode: GridCellModes.View },
+              }
+            }, {}),
+            [params.field]: { mode: GridCellModes.View },
+          },
+        }
+      })
+    }
+    params.hasFocus = !params.hasFocus
   }, [])
 
   const handleCellModesModelChange = useCallback((newModel: any) => {
@@ -190,6 +196,13 @@ function TistoryPage() {
     { value: 0, label: '비공개' },
     { value: 3, label: '공개' },
   ]
+
+  const statusOptions = {
+    발행요청: ['발행요청'],
+    발행완료: ['수정요청', '발행완료'],
+    발행실패: ['발행요청', '발행실패'],
+    수정실패: ['수정요청', '수정실패'],
+  }
 
   const columns: GridColDef[] = [
     {
@@ -255,7 +268,7 @@ function TistoryPage() {
       field: 'modifiedDate',
       headerName: '발행일자',
       width: 120,
-      editable: true,
+      editable: false,
       hideable: false,
       disableColumnMenu: true,
     },
@@ -291,10 +304,6 @@ function TistoryPage() {
       flex: 1,
       minWidth: 50,
     },
-    {
-      field: 'firstStatus',
-      hideable: true,
-    },
   ]
 
   const tistoryLoginURL = import.meta.env.VITE_TISTORY_OAUTH_URL
@@ -306,7 +315,7 @@ function TistoryPage() {
       </Helmet>
 
       {/* 티스토리 아이콘 & 로그인 */}
-      <Stack alignItems="center" direction="row" mb={5}>
+      <Stack alignItems="center" direction="row" mb={3}>
         <Stack
           alignItems="center"
           direction="row"
@@ -341,6 +350,14 @@ function TistoryPage() {
           </IconButton>
         )}
       </Stack>
+
+      <div style={{ display: 'flex', justifyContent: 'end' }}>
+        <Button sx={{ display: 'flex', gap: '5px' }} onClick={handleAddRow}>
+          <AddCircleOutlineIcon />
+          add row
+        </Button>
+      </div>
+
       <Card>
         {isLoading || tistoryInfo === undefined ? (
           <div> 로딩중 ... </div>
@@ -357,13 +374,7 @@ function TistoryPage() {
               ) : (
                 <div></div>
               )}
-              <Button
-                sx={{ display: 'flex', gap: '5px' }}
-                onClick={handleAddRow}
-              >
-                <AddCircleOutlineIcon />
-                add row
-              </Button>
+
               <DataGrid
                 hideFooter
                 hideFooterPagination
