@@ -10,7 +10,6 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
-  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
@@ -22,7 +21,7 @@ import {
 import { sample, sampleSize } from 'lodash'
 
 import { getOauthStatus } from '@/apis/OauthApis'
-import { postTistoryPostList, postTistoryPost } from '@/apis/tistoryApis'
+import { postTistoryLogList, postTistoryPost } from '@/apis/tistoryApis'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
@@ -80,8 +79,9 @@ function TistoryPage() {
   const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
   const { data: tistoryInfo, refetch } = useQuery(
     'tistoryInfo',
-    postTistoryPostList,
+    postTistoryLogList,
     {
+      refetchOnWindowFocus: false,
       enabled: !!oauth,
     }
   )
