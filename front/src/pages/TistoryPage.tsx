@@ -23,6 +23,7 @@ import {
   useGridApiRef,
   GridRenderCellParams,
 } from '@mui/x-data-grid'
+
 import { getOauthStatus } from '@/apis/OauthApis'
 import { postTistoryLogList, postTistoryPost } from '@/apis/tistoryApis'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
@@ -300,16 +301,18 @@ function TistoryPage() {
       hideable: false,
       disableColumnMenu: true,
       valueGetter(params) {
-        const date = new Date(params.value)
-        const parsedDate = new Intl.DateTimeFormat('ko-KR', {
-          dateStyle: 'short',
-          timeStyle: 'short',
-          hour12: false,
-        })
-          .format(date)
-          .split('. ')
+        if (params.value) {
+          const date = new Date(params.value)
+          const parsedDate = new Intl.DateTimeFormat('ko-KR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+            hour12: false,
+          })
+            .format(date)
+            .split('. ')
 
-        return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+        }
       },
     },
     {
