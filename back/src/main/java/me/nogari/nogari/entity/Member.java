@@ -51,7 +51,7 @@ public class Member {
 	@Column(name = "github_id")
 	private String githubId;
 
-	@OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@Builder.Default
 	private List<Authority> roles = new ArrayList<>();
 
@@ -63,7 +63,7 @@ public class Member {
 	@OneToMany(mappedBy = "member")
 	private List<Github> githubs = new ArrayList<>();
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "token_id", referencedColumnName = "token_id")
 	private Token token;
 
