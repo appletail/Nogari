@@ -1,11 +1,18 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { useQuery, useQueryClient, useMutation } from 'react-query'
+import { useQuery } from 'react-query'
 
 import { faker } from '@faker-js/faker'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
-import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
+import {
+  Card,
+  Stack,
+  Button,
+  Typography,
+  IconButton,
+  Link,
+} from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   DataGrid,
@@ -14,12 +21,11 @@ import {
   GridEditSingleSelectCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
+  GridRenderCellParams,
   GridCellModesModel,
   GridCellModes,
   useGridApiRef,
 } from '@mui/x-data-grid'
-
-import { sample, sampleSize } from 'lodash'
 
 import { getOauthStatus } from '@/apis/OauthApis'
 import { postTistoryPostList, postTistoryPost } from '@/apis/tistoryApis'
@@ -28,7 +34,7 @@ import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
 // ------------------------------------------------------------------
-interface posting {
+interface tistoryPosting {
   id: string
   visibility: number
   status: string
@@ -204,7 +210,7 @@ function TistoryPage() {
     수정실패: ['수정요청', '수정실패'],
   }
 
-  const columns: GridColDef[] = [
+  const columns: (GridColDef | GridSingleSelectColDef)[] = [
     {
       field: 'blogName',
       headerName: '블로그 선택',
@@ -303,6 +309,15 @@ function TistoryPage() {
       editable: false,
       flex: 1,
       minWidth: 50,
+      renderCell: (params: GridRenderCellParams) => (
+        <a
+          href={params.row.responseLink}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {params.row.title}
+        </a>
+      ),
     },
   ]
 

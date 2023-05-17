@@ -1,16 +1,5 @@
 import { axAuth } from './axiosInstance'
 
-// interface posting {
-//   tistoryId: string
-//   type: string
-//   blogName: string
-//   requestLink: string
-//   visibility: number
-//   categoryName: string
-//   tagList: string
-//   status: string
-// }
-
 // 블로그명과 카테고리 조회를 위한 api
 export async function postTistoryCategory() {
   const response = await axAuth.post(`/contents/tistory`, {
