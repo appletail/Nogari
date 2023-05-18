@@ -275,8 +275,9 @@ public class ContentServiceImpl implements ContentService {
 
 	private List<ArrayList> getGithubCates(List<String> repositoryList, List<ArrayList> categoriesList, Member member) {
 
-		// 토큰에서 github accesstoken 받아오기
-		String accessToken = member.getToken().getGithubToken();
+		// 토큰에서 github accesstoken 받아오고 복화화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getGithubToken());
 
 		if (!"".equals(accessToken) && accessToken != null) {
 
@@ -298,7 +299,7 @@ public class ContentServiceImpl implements ContentService {
 					HttpHeaders headers = new HttpHeaders();
 
 					headers.add("Accept", "application/vnd.github+json");
-					headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
+					headers.add("Authorization", "Bearer " + accessToken);
 					headers.add("X-GitHub-Api-Version", "2022-11-28");
 					headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -335,7 +336,11 @@ public class ContentServiceImpl implements ContentService {
 	}
 
 	private List<String> getGithubRepository(List<String> repositoryList, Member member) {
-		String ATK = member.getToken().getGithubToken();
+
+		// 토큰에서 github accesstoken 받아오고 복화화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String ATK = newStringEncryptor.decrypt(member.getToken().getGithubToken());
+
 
 		GitHubClient client = new GitHubClient();
 		client.setOAuth2Token(ATK);
