@@ -22,6 +22,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.jasypt.encryption.StringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,7 @@ import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.BaseResponse;
 import me.nogari.nogari.api.service.ContentServiceImpl;
 import me.nogari.nogari.common.security.CustomUserDetails;
+import me.nogari.nogari.config.JasyptConfig;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Token;
 
@@ -52,6 +54,9 @@ import me.nogari.nogari.entity.Token;
 public class ContentController {
 	@Autowired
 	private ContentServiceImpl contentService;
+
+	@Autowired
+	private JasyptConfig jasyptConfig;
 
 	@ResponseBody
 	@PostMapping("/tistory")
@@ -101,9 +106,10 @@ public class ContentController {
 
 		//String ATK = "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";
 
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
 		Member member = customUserDetails.getMember();
 		Token memberToken = member.getToken();
-		String ATK = memberToken.getGithubToken();
+		String ATK = newStringEncryptor.decrypt(memberToken.getGithubToken());
 
 		//create git folder
 		// File gitDir = new File("C:\\nogari-git-test\\git-clone-test");
@@ -227,8 +233,9 @@ public class ContentController {
 	public List<String> gitRepoList(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) throws GitAPIException, IOException {
 
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
 		Member member = customUserDetails.getMember();
-		String ATK = member.getToken().getGithubToken();
+		String ATK = newStringEncryptor.decrypt(member.getToken().getGithubToken());
 
 		GitHubClient client = new GitHubClient();
 		client.setOAuth2Token(ATK);

@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jasypt.encryption.StringEncryptor;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
-import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -32,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.config.JasyptConfig;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Token;
 import me.nogari.nogari.repository.MemberRepository;
@@ -53,10 +53,13 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.notion.oauth-client-secret}") private String NOTION_CLIENT_SECRET;
 
 	@Value("{jasypt.encryptor.password}") private String ENCRYPT_KEY;
-	@Value("{jasypt.encryptor.algorithm}") private String ENCRYPT_ALGORITHM;
+	@Value("{jasypt.encryptor.salt-generator}") private String SALT_GENERATOR;
 
 	private final MemberTokenRepository memberTokenRepository;
 	private final MemberRepository memberRepository;
+
+	@Autowired
+	private JasyptConfig jasyptConfig;
 
 	@Override
 	@Transactional
@@ -95,19 +98,15 @@ public class OauthServiceImpl implements OauthService {
 		);
 
 		// 토큰 암호화
-		StringEncryptor newStringEncryptor = createEncryptor();
-		String resultText = newStringEncryptor.encrypt(accessToken);
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String encryptedRslt = newStringEncryptor.encrypt(accessToken);
 
-		System.out.println("resultText= "+resultText);
-		token.setTistoryToken(resultText);
+		token.setTistoryToken(encryptedRslt);
 
-		// String encStr = encryptor.encrypt(str);
-		// String decStr = encryptor.decrypt(encStr);
-
-		// token.setTistoryToken(accessToken);
+		// System.out.println("암호화= "+ encryptedRslt);
+		// System.out.println("복호화= "+ newStringEncryptor.decrypt(encryptedRslt));
 
 		return accessToken;
-		// return resultText;
 	}
 
 
@@ -163,7 +162,12 @@ public class OauthServiceImpl implements OauthService {
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
 			() -> new IllegalArgumentException()
 		);
-		token.setGithubToken(ATK);
+		// token.setGithubToken(ATK);
+
+		// 토큰 암호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String encryptedRslt = newStringEncryptor.encrypt(ATK);
+		token.setGithubToken(encryptedRslt);
 
 		//깃허브 id 삽입
 		setGitHubId(member, ATK);
@@ -240,7 +244,11 @@ public class OauthServiceImpl implements OauthService {
 			() -> new IllegalArgumentException()
 		);
 
-		user.setNotionToken(ATK);
+		// user.setNotionToken(ATK);
+		// 토큰 암호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String encryptedRslt = newStringEncryptor.encrypt(ATK);
+		user.setNotionToken(encryptedRslt);
 
 		return response.getBody().getAccess_token();
 	}
@@ -259,20 +267,15 @@ public class OauthServiceImpl implements OauthService {
 	}
 
 	// 토큰 암호화 설정 메서드
-	private StringEncryptor createEncryptor( ){
-
-		StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-		SimpleStringPBEConfig config = new SimpleStringPBEConfig();
-		config.setPassword(ENCRYPT_KEY);
-		// config.setAlgorithm("PBEWithMD5AndTripleDES"); // 권장되는 기본 알고리즘
-		config.setAlgorithm(ENCRYPT_ALGORITHM);
-		config.setKeyObtentionIterations("1000");
-		config.setPoolSize("1");
-		config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
-		config.setStringOutputType("base64");
-		encryptor.setConfig(config);
-
-		return encryptor;
-	}
+	// private StringEncryptor createEncryptor( ){
+	//
+	// 	StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+	//
+	// 	encryptor.setPassword(ENCRYPT_KEY);
+	// 	encryptor.setAlgorithm("PBEWITHMD5ANDTRIPLEDES");
+	// 	encryptor.setSaltGenerator(new StringFixedSaltGenerator(SALT_GENERATOR));		// AES 사용 시 설정필수 : salt 생성방식 '고정'으로 변경
+	//
+	// 	return encryptor;
+	// }
 
 }
