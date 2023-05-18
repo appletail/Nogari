@@ -11,6 +11,7 @@ import org.springframework.util.MultiValueMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
+import me.nogari.nogari.api.request.TokenDecryptDto;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Tistory;
 
@@ -20,40 +21,41 @@ public class awsLambdaCallable implements Callable<LambdaResponse> {
 	private int index;
 	private PostNotionToTistoryDto post;
 	private Tistory tistory;
-	private Member member;
 
-	public awsLambdaCallable(int index, PostNotionToTistoryDto post, Tistory tistory, Member member) {
+	private TokenDecryptDto tokenDecryptDto;
+
+	public awsLambdaCallable(int index, PostNotionToTistoryDto post, Tistory tistory, TokenDecryptDto tokenDecryptDto) {
 		this.index = index;
 		this.post = post;
 		this.tistory = tistory;
-		this.member = member;
+		this.tokenDecryptDto = tokenDecryptDto;
 	}
 
 	public LambdaResponse tistoryAwsLambda(int index, PostNotionToTistoryDto post, Tistory tistory,
-		Member member) throws Exception {
+		TokenDecryptDto tokenDecryptDto) throws Exception {
 		LambdaResponse lambdaResponse = new LambdaResponse(index, tistory);
 
 		// STEP2-1. AWS Lambda와 통신하는 과정
-		Map<String, Object> data = awsLambdaResponse(post, member);
+		Map<String, Object> data = awsLambdaResponse(post, tokenDecryptDto);
 		String title = (String)data.get("title"); // Tistory에 게시될 게시글 제목
 		String content = (String)data.get("content"); // Tistory에 게시될 게시글 내용
 
 		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
 		HttpEntity<MultiValueMap<String, String>> httpTistoryRequest = getHttpLambdaRequest(title, content, tistory,
-			post, member);
+			post, tokenDecryptDto);
 		lambdaResponse.setTistoryRequest(httpTistoryRequest);
 
 		return lambdaResponse;
 	}
 
 	// STEP2-1. AWS Lambda와 통신하여 JSON 응답값을 받아오는 메소드
-	public Map<String, Object> awsLambdaResponse(PostNotionToTistoryDto post, Member member) throws Exception {
+	public Map<String, Object> awsLambdaResponse(PostNotionToTistoryDto post, TokenDecryptDto tokenDecryptDto) throws Exception {
 		String response = ""; // Tistory에 발행할 Notion 페이지를 html로 파싱한 JSON 응답값
 
 		// STEP2-1-1. AWS Lambda와 통신하는 과정
 		lambdaCallFunction = new LambdaCallFunction(
-			member.getNotionToken(),
-			member.getToken().getTistoryToken(),
+			tokenDecryptDto.getNotionToken(),
+			tokenDecryptDto.getTistoryToken(),
 			post.getBlogName(),
 			post.getRequestLink(),
 			post.getType()
@@ -69,12 +71,12 @@ public class awsLambdaCallable implements Callable<LambdaResponse> {
 
 	// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성하는 메소드
 	public HttpEntity<MultiValueMap<String, String>> getHttpLambdaRequest(
-		String title, String content, Tistory tistory, PostNotionToTistoryDto post, Member member) {
+		String title, String content, Tistory tistory, PostNotionToTistoryDto post, TokenDecryptDto tokenDecryptDto) {
 
 		HttpHeaders headers = new HttpHeaders();
 
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("access_token", member.getToken().getTistoryToken());
+		params.add("access_token", tokenDecryptDto.getTistoryToken());
 		params.add("output", "");
 		params.add("blogName", post.getBlogName()); // 블로그 이름
 		params.add("title", title); // 글 제목
@@ -97,6 +99,6 @@ public class awsLambdaCallable implements Callable<LambdaResponse> {
 
 	@Override
 	public LambdaResponse call() throws Exception {
-		return tistoryAwsLambda(index, post, tistory, member);
+		return tistoryAwsLambda(index, post, tistory, tokenDecryptDto);
 	}
 }
