@@ -22,9 +22,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.jasypt.encryption.StringEncryptor;
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.client.GitHubClient;
+import org.eclipse.egit.github.core.service.RepositoryService;
+
 import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -48,12 +54,16 @@ import me.nogari.nogari.api.aws.awsLambdaCallableGithub;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
+import me.nogari.nogari.api.request.TokenDecryptDto;
+import me.nogari.nogari.api.response.GithubContentResponseDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
+import me.nogari.nogari.config.JasyptConfig;
 import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Tistory;
 import me.nogari.nogari.repository.GithubRepository;
+import me.nogari.nogari.repository.GithubRepositoryCust;
 import me.nogari.nogari.repository.MemberRepository;
 import me.nogari.nogari.repository.TistoryRepository;
 
@@ -81,12 +91,17 @@ public class ContentServiceImpl implements ContentService {
 	private LambdaCallFunction lambdaCallFunction;
 
 	private final TistoryRepositoryCust tistoryRepositoryCust;
+	private final GithubRepositoryCust githubRepositoryCust;
+
+	@Autowired
+	private JasyptConfig jasyptConfig;
 
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList, Member member) {
 
-		// 토큰에서 tistory accesstoken 받아오기
-		String accessToken = member.getToken().getTistoryToken();
+		// 토큰에서 tistory accesstoken 받아오고 복호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getTistoryToken());
 
 		if (!"".equals(accessToken) && accessToken != null) {
 			String blogInfoUrl = "https://www.tistory.com/apis/blog/info?"
@@ -131,8 +146,9 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	public List<Object> getTistoryCates(List<String> blogNameList, List<Object> categoriesList, Member member) {
 
-		// 토큰에서 tistory accesstoken 받아오기
-		String accessToken = member.getToken().getTistoryToken();
+		// 토큰에서 tistory accesstoken 받아오고 복화화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getTistoryToken());
 
 		if (!"".equals(accessToken) && accessToken != null) {
 
@@ -227,6 +243,126 @@ public class ContentServiceImpl implements ContentService {
 		return rslt;
 	}
 
+	@Override
+	public List<Object> getGithubList(PaginationDto paginationDto, Member member) {
+		Long lastGithubId = paginationDto.getLastGithubId();
+
+		// 멤버의 레포지토리 이름 리스트
+		List<String> repositoryList = new ArrayList<>();
+
+		// 레포지토리별 카테고리 리스트
+		List<ArrayList> categoriesList = new ArrayList<ArrayList>();
+
+		// 티스토리 발행 이력
+		// List<TistoryResponseInterface> tistoryList = new ArrayList<>();
+
+		// 첫 호출인 경우 블로그이름 리스트, 카테고리 리스트와 같이 반환
+		if (lastGithubId == -1) {
+			lastGithubId = null;
+			repositoryList = getGithubRepository(repositoryList, member);
+			categoriesList = getGithubCates(repositoryList, categoriesList, member);
+		}
+
+		List<GithubContentResponseDto> githubList = githubRepositoryCust.githubPaginationNoOffset(paginationDto, member);
+
+		List<Object> rslt = new ArrayList<>();
+		rslt.add(githubList);
+		rslt.add(repositoryList);
+		rslt.add(categoriesList);
+
+		return rslt;
+
+	}
+
+	private List<ArrayList> getGithubCates(List<String> repositoryList, List<ArrayList> categoriesList, Member member) {
+
+		// 토큰에서 github accesstoken 받아오고 복화화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getGithubToken());
+
+		if (!"".equals(accessToken) && accessToken != null) {
+
+			for(int i = 0; i < repositoryList.size(); i++){
+				categoriesList.add(new ArrayList<Object>());
+			}
+
+			try {
+				String githubRequestURL = "https://api.github.com/repos/" + member.getGithubId() + "/";
+				// 각 블로그에 등록된 카테고리 리스트 저장 후 반환
+				for (int i = 0; i < repositoryList.size(); i++) {
+					String repository = repositoryList.get(i);
+					ResponseEntity<List<Map<String, Object>>> response = null;
+					Map<String, Object> responseBody = new HashMap<>();
+
+					RestTemplate rt = new RestTemplate();
+					String filePath = repository + "/" + "contents";
+
+					HttpHeaders headers = new HttpHeaders();
+
+					headers.add("Accept", "application/vnd.github+json");
+					headers.add("Authorization", "Bearer " + accessToken);
+					headers.add("X-GitHub-Api-Version", "2022-11-28");
+					headers.setContentType(MediaType.APPLICATION_JSON);
+
+					HttpEntity<String> entity = new HttpEntity<>(null, headers);
+					try {
+
+						response = rt.exchange(
+							githubRequestURL + filePath,
+							HttpMethod.GET,
+							entity,
+							new ParameterizedTypeReference<List<Map<String, Object>>>(){}
+						);
+
+						if (response != null && response.getBody() != null) {
+							for (Map<String, Object> item : response.getBody()) {
+								if ("dir".equals(item.get("type"))) {
+									categoriesList.get(i).add(item);
+								}
+							}
+						} else {
+							System.out.println("해당 레포지토리는 카테고리가 없습니다.");
+						}
+					} catch (HttpClientErrorException.NotFound e){
+						// 이미지 파일이 없는 경우에 대한 처리.
+						// response와 responseBody는 null 상태이므로 여기서는 다루지 않는다.
+						System.out.println("line 118 : 이미지 file 없음");
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return categoriesList;
+	}
+
+	private List<String> getGithubRepository(List<String> repositoryList, Member member) {
+
+		// 토큰에서 github accesstoken 받아오고 복화화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String ATK = newStringEncryptor.decrypt(member.getToken().getGithubToken());
+
+
+		GitHubClient client = new GitHubClient();
+		client.setOAuth2Token(ATK);
+
+		// RepositoryService 생성
+		RepositoryService repoService = new RepositoryService(client);
+
+		// 유저의 repositories 리스트 가져오기
+		try {
+			List<Repository> repositories = repoService.getRepositories();
+			for (Repository repo : repositories) {
+				repositoryList.add(repo.getName());
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
+		return repositoryList;
+
+	}
+
 	// [Multi Thread] : 사용자가 N개의 발행 요청시, 작업이 동시에 수행되어 처리시간이 기존 N초에서 (1/N)초 수준으로 단축된다.
 
 	// [Tistory Post]
@@ -268,10 +404,14 @@ public class ContentServiceImpl implements ContentService {
 
 		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
 		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToTistoryDtoList.size()];
-		
+
+		// 멤버에 대한 토큰 암호화 및 복호화를 수행하는 Encryptor
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
+			System.out.println("★ 프론트로부터 전달된 값 "+post);
 
 			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
 			Tistory tistory = null;
@@ -310,8 +450,14 @@ public class ContentServiceImpl implements ContentService {
 
 				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
-					// STEP4-1. 최초 발행요청에 해당하는 경우
-					if(post.getTistoryId()==null || post.getTistoryId().equals("")){
+					try{
+						tistory = tistoryRepository.findByTistoryId(Long.parseLong(post.getTistoryId()));
+					} catch(NumberFormatException e){
+						tistory = null;
+					}
+
+					// STEP4-1. 최초 발행요청(tistoryId="데이터베이스에 존재하지 않는 ID")에 해당하는 경우
+					if(tistory==null){
 						// STEP4-1-1. 클라이언트의 발행요청을 데이터베이스에 저장한다.
 						tistory = Tistory.builder()
 							.blogName(post.getBlogName())
@@ -325,14 +471,13 @@ public class ContentServiceImpl implements ContentService {
 							.build();
 						tistoryRepository.save(tistory);
 					}
-					// STEP4-2. 발행실패 이력에 대한 재발행요청에 해당하는 경우
+					// STEP4-2. 발행실패 이력에 대한 재발행요청(tistoryId="데이터베이스에 존재하는 ID")에 해당하는 경우
 					else{
 						// STEP4-2-1. 데이터베이스에 저장되어 있는 기존 이력을 조회한다.
 						try{
-							tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
-
 							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 							if(tistory.getStatus().equals("발행실패")){
+								tistory.setBlogName(post.getBlogName());
 								tistory.setCategoryName(post.getCategoryName());
 								tistory.setRequestLink(post.getRequestLink());
 								tistory.setTagList(post.getTagList());
@@ -366,7 +511,13 @@ public class ContentServiceImpl implements ContentService {
 					// STEP5-1. 조건검사와 상태검사를 모두 통과했다면 AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 					if(statusFlag){
 						try{
-							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
+							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
+							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getTistoryToken()),
+								newStringEncryptor.decrypt(member.getToken().getGithubToken())
+							);
+							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, tokenDecryptDto);
 							Future<?> future = completionService.submit(postLambdaCallable);
 							futureList.add(future);
 						} catch(Exception e){
@@ -404,10 +555,11 @@ public class ContentServiceImpl implements ContentService {
 				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 				if(testFlag){
 					try{
-						tistory = tistoryRepository.findByTistoryId(post.getTistoryId());
+						tistory = tistoryRepository.findByTistoryId(Long.parseLong(post.getTistoryId()));
 
 						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
 						if(tistory.getStatus().equals("발행완료") || tistory.getStatus().equals("수정실패")){
+							tistory.setBlogName(post.getBlogName());
 							tistory.setCategoryName(post.getCategoryName());
 							tistory.setRequestLink(post.getRequestLink());
 							tistory.setTagList(post.getTagList());
@@ -441,7 +593,13 @@ public class ContentServiceImpl implements ContentService {
 					if(statusFlag){
 						// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
 						try{
-							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
+							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
+							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getTistoryToken()),
+								newStringEncryptor.decrypt(member.getToken().getGithubToken())
+							);
+							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, tokenDecryptDto);
 							Future<?> future = completionService.submit(awsLambdaCallable);
 							futureList.add(future);
 						} catch(Exception e){
@@ -638,49 +796,90 @@ public class ContentServiceImpl implements ContentService {
 		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
 		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToGithubDtoList.size()];
 
+		// 멤버에 대한 토큰 암호화 및 복호화를 수행하는 Encryptor
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+
 		for(int i=0; i<postNotionToGithubDtoList.size(); i++){
 			PostNotionToGithubDto post = postNotionToGithubDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
 
 			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
+			Github github = null;
 			boolean testFlag = false;
+			boolean statusFlag = true;
 
-			// 발행상태 변화도 : 발행요청, 발행실패 -> 발행완료 <-> 수정요청 <- 수정실패
-			// 1. [발행요청]은 사용자가 신규로 생성한 튜플에 대해서만 가능하다. -> requestLink를 검사한다.
-			// 2. [발행실패]는 [발행요청]에 실패한 튜플로, 다시 [발행요청]을 시도한다. -> requestLink를 검사한다.
-			// 3. [발행완료]는 [발행요청] 및 [발행실패]에 대해 발행이 완료된 상태로, [수정요청]이 가능하다. -> 아무 작업도 수행하지 않는다.
-			// 4. [수정요청]은 사용자가 이미 발행했던 [발행완료] 튜플에 대해서만 가능하다. -> requestLink, responseLink를 검사한다.
-			// 5. [수정실패]는 [수정요청]에 실패한 튜플로, 다시 [수정요청]을 시도한다. -> requestLink, responseLink를 검사한다.
-
-			if(post.getStatus().equals("발행요청") || post.getStatus().equals("발행실패")){
-				// STEP2. 클라이언트의 발행요청을 데이터베이스에 저장한다.
-				Github github = Github.builder()
-					.repository(post.getRepository())
-					.requestLink(post.getRequestLink())
-					.categoryName(post.getCategoryName())
-					.filename(post.getFilename())
-					.status("발행요청")
-					//					.title(githubPosting.getTitle())
-					.member(member)
-					.build();
-				githubRepository.save(github);
-
-
-				// STEP3. 클라이언트로부터 전달받은 입력값을 검사한다.
+			if(post.getStatus().equals("발행요청")){
+				// STEP2. 클라이언트로부터 전달받은 입력값을 검사한다.
 				testFlag = conditionCheckGithub(post);
 
-				// STEP4-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
+				// STEP3-1. 조건검사 결과가 True인 경우, 최초 발행요청 및 재발행요청을 위한 발행 이력 상태를 검사한다.
 				if(testFlag){
 					try{
-						Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallableGithub(i, post, github, member);
-						Future<?> future = completionService.submit(postLambdaCallable);
-						futureList.add(future);
-					} catch(Exception e){
-						// Exception : 기타 예외의 경우
-						e.printStackTrace();
+						github = githubRepository.findByGithubId(Long.parseLong(post.getGithubId()));
+					} catch(NumberFormatException e){
+						github = null;
+					}
+					// STEP4-1. 최초 발행요청(tistoryId="데이터베이스에 존재하지 않는 ID")에 해당하는 경우
+					if(github == null){
+						github = Github.builder()
+							.repository(post.getRepository())
+							.requestLink(post.getRequestLink())
+							.categoryName(post.getCategoryName())
+							.filename(post.getFilename())
+							.status("발행요청")
+							.member(member)
+							.build();
+						githubRepository.save(github);
+					}
+					// STEP4-2. 발행실패 이력에 대한 재발행요청(githubId="데이터베이스에 존재하는 ID")에 해당하는 경우
+					else{
+						// STEP4-2-1. 데이터베이스에 저장되어 있는 기존 이력을 조회한다.
+						try {
+							// STEP4-2-2. 조회한 기존 이력의 상태가 [발행실패]가 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
+							if (github.getStatus().equals("발행실패")) {
+								github.setRepository(post.getRepository());
+								github.setCategoryName(post.getCategoryName());
+								github.setRequestLink(post.getRequestLink());
+
+								statusFlag = true;
+								github.setStatus("발행요청");
+							} else {
+								statusFlag = false;
+								responseBody.put("requestIndex", (i + 1));
+								responseBody.put("resultCode", 400);
+								responseBody.put("resultMessage", "[발행실패] 입력 값이 올바르지 않습니다.");
+								responseList.add(responseBody);
+							}
+						}catch(NullPointerException e){
+							// NullPointerException : 데이터베이스에 존재하지 않는 githubId를 입력한 경우
+							statusFlag = false;
+
+							responseBody.put("requestIndex", (i+1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[발행실패] 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+						}
+					}
+					// STEP5-1. 조건검사와 상태검사를 모두 통과했다면 AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
+					if(statusFlag) {
+						try {
+							post.setGithubId(member.getGithubId());
+							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
+							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getTistoryToken()),
+								newStringEncryptor.decrypt(member.getToken().getGithubToken())
+							);
+							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallableGithub(i, post, github, tokenDecryptDto);
+							Future<?> future = completionService.submit(postLambdaCallable);
+							futureList.add(future);
+						} catch (Exception e) {
+							// Exception : 기타 예외의 경우
+							e.printStackTrace();
+						}
 					}
 				}
-				// STEP4-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
+				// STEP5-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
 				else{
 					responseBody.put("requestIndex", (i+1));
 					responseBody.put("resultCode", 400);
@@ -690,36 +889,76 @@ public class ContentServiceImpl implements ContentService {
 					github.setStatus("발행실패");
 				}
 			}
+			///////////////////////////////////////
+			else if(post.getStatus().equals("발행실패")){
+				responseBody.put("requestIndex", (i+1));
+				responseBody.put("resultCode", 200);
+				responseBody.put("resultMessage", "[발행실패] 발행 실패된 페이지입니다. 요청에 대한 처리를 하지 않습니다. ");
+				responseList.add(responseBody);
+			}
 			else if(post.getStatus().equals("발행완료")){
 				responseBody.put("requestIndex", (i+1));
 				responseBody.put("resultCode", 200);
-				responseBody.put("resultMessage", "[발행완료] 이미 발행 완료된 페이지입니다.");
+				responseBody.put("resultMessage", "[발행실패] 발행 실패된 페이지입니다. 요청에 대한 처리를 하지 않습니다. ");
 				responseList.add(responseBody);
 			}
-			else if(post.getStatus().equals("수정요청") || post.getStatus().equals("수정실패")){
+			else if(post.getStatus().equals("수정요청")){
 				// STEP2. 클라이언트로부터 전달받은 입력값을 검사한다.
 				testFlag = conditionCheckGithub(post);
 
 				// STEP3-1. 조건검사 결과가 True인 경우, AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 				if(testFlag){
-					// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
 					try{
-						Github github = githubRepository.findByResponseLink(post.getResponseLink());
-						github.setRequestLink(post.getRequestLink());
-						github.setStatus("수정요청");
+						github = githubRepository.findByGithubId(Long.parseLong(post.getGithubId()));
 
-						Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallableGithub(i, post, github, member);
-						Future<?> future = completionService.submit(awsLambdaCallable);
-						futureList.add(future);
-					} catch(Exception e){
-						// HttpClientErrorException : 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
-						// JsonParseException : 입력값이 정상적으로 입력되지 않은 경우
-						// NullPointerException : responseLink가 잘못 입력된 경우
-						// Exception : 기타 예외의 경우
+						// STEP4-1. 조회한 기존 이력의 상태가 [발행완료] 혹은 [수정실패] 아닌 경우, 잘못된 튜플에 대한 요청으로 간주한다.
+						if(github.getStatus().equals("발행완료") || github.getStatus().equals("수정실패")){
+							github.setRepository(post.getRepository());
+							github.setCategoryName(post.getCategoryName());
+							github.setRequestLink(post.getRequestLink());
+
+							statusFlag = true;
+							github.setStatus("수정요청");
+						} else {
+							statusFlag = false;
+							responseBody.put("requestIndex", (i + 1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[수정실패] 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+						}
+					}catch(NullPointerException e){
+						// NullPointerException : 데이터베이스에 존재하지 않는 githubId를 입력한 경우
+						statusFlag = false;
+
 						responseBody.put("requestIndex", (i+1));
 						responseBody.put("resultCode", 400);
-						responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+						responseBody.put("resultMessage", "[수정실패] 입력 값이 올바르지 않습니다.");
 						responseList.add(responseBody);
+					}
+					// STEP4-2. 최초 수정요청 혹은 수정실패에 이력에 대한 수정요청에 해당하는 경우
+					if(statusFlag){
+						post.setGithubId(member.getGithubId());
+						// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
+						try{
+							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
+							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getTistoryToken()),
+								newStringEncryptor.decrypt(member.getToken().getGithubToken())
+							);
+							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallableGithub(i, post, github, tokenDecryptDto);
+							Future<?> future = completionService.submit(awsLambdaCallable);
+							futureList.add(future);
+						} catch(Exception e){
+							// HttpClientErrorException : 티스토리에서 이미 삭제된 게시글에 대해 수정 요청을 하는 경우
+							// JsonParseException : 입력값이 정상적으로 입력되지 않은 경우
+							// NullPointerException : responseLink가 잘못 입력된 경우
+							// Exception : 기타 예외의 경우
+							responseBody.put("requestIndex", (i+1));
+							responseBody.put("resultCode", 400);
+							responseBody.put("resultMessage", "[수정실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+							responseList.add(responseBody);
+						}
 					}
 				}
 				// STEP3-2. 조건검사 결과가 False인 경우, AWS Lambda를 호출하지 않고 API 응답 결과에 Bad Request를 추가한다.
@@ -727,15 +966,20 @@ public class ContentServiceImpl implements ContentService {
 					try{
 						responseBody.put("requestIndex", (i+1));
 						responseBody.put("resultCode", 400);
-						responseBody.put("resultMessage", "[발행실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
+						responseBody.put("resultMessage", "[수정실패] 클라이언트에서 전달받은 입력 값이 올바르지 않습니다.");
 						responseList.add(responseBody);
 
-						Github github = githubRepository.findByResponseLink(post.getResponseLink());
 						github.setStatus("수정실패");
 					} catch(NullPointerException e){
 						// NullPointerException : responseLink가 잘못 입력된 경우
 					}
 				}
+			}
+			else if(post.getStatus().equals("수정실패")){
+				responseBody.put("requestIndex", (i+1));
+				responseBody.put("resultCode", 200);
+				responseBody.put("resultMessage", "[수정실패] 수정 실패된 페이지입니다. 요청에 대한 처리를 하지 않습니다. ");
+				responseList.add(responseBody);
 			}
 			else{
 				responseBody.put("requestIndex", (i+1));
@@ -801,17 +1045,11 @@ public class ContentServiceImpl implements ContentService {
 					String sha = content.get("sha");
 					String htmlUrl = content.get("html_url");
 
-////////////////////////////////////////////////////////////////////////////////////////////
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					lambdaResponses[i].getGithub().setFilename(name);
 					lambdaResponses[i].getGithub().setSha(sha);
 					lambdaResponses[i].getGithub().setResponseLink(htmlUrl);
 					lambdaResponses[i].getGithub().setStatus("발행완료");
-
-					System.out.println("-------------------------------------------");
-					System.out.println(lambdaResponses[i].getGithub().getFilename());
-					System.out.println(lambdaResponses[i].getGithub().getSha());
-					System.out.println(lambdaResponses[i].getGithub().getResponseLink());
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 200);
@@ -819,13 +1057,13 @@ public class ContentServiceImpl implements ContentService {
 						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
 				} catch(HttpClientErrorException e){
-					// STEP6. [발행실패] Tistory 발행 상태 DB 갱신
-					// Case1. BlogName Error (HttpClientErrorException)
+					// STEP6. [발행실패] Github 발행 상태 DB 갱신
+					// Case1. repository Error (HttpClientErrorException)
 					lambdaResponses[i].getTistory().setStatus("발행실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);
-					responseBody.put("resultMessage", "[발행실패] Tistory 게시물 작성중 에러가 발생했습니다. (페이지 접근 권한이 없거나, 블로그 이름이 일치하지 않습니다.)");
+					responseBody.put("resultMessage", "[발행실패] Github 게시물 작성중 에러가 발생했습니다. (페이지 접근 권한이 없거나, 레포지토리 이름이 일치하지 않습니다.)");
 					responseList.add(responseBody);
 				}
 			}
@@ -847,7 +1085,6 @@ public class ContentServiceImpl implements ContentService {
 					Map<String, String> content = (Map<String, String>) responseBody.get("content");
 					String sha = content.get("sha");
 
-					////////////////////////////////////////////////////////////////////////////////////////////
 					// STEP6. [발행완료] Github 발행 상태 DB 갱신
 					//수정일 땐 DB의 sha 필드값만 변경한다.
 					lambdaResponses[i].getGithub().setSha(sha);
@@ -862,12 +1099,12 @@ public class ContentServiceImpl implements ContentService {
 						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
 				} catch(HttpClientErrorException e){
-					// STEP6. [발행실패] Github 발행 상태 DB 갱신
-					lambdaResponses[i].getGithub().setStatus("발행실패");
+					// STEP6. [수정실패] Github 발행 상태 DB 갱신
+					lambdaResponses[i].getGithub().setStatus("수정실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);
-					responseBody.put("resultMessage", "[발행실패] Github 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 레포지토리 이름이 일치하지 않습니다.)"
+					responseBody.put("resultMessage", "[수정실패] Github 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 레포지토리 이름이 일치하지 않습니다.)"
 						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
 				}
@@ -939,32 +1176,29 @@ public class ContentServiceImpl implements ContentService {
 		boolean testResult = false;
 
 		if(p.getStatus().equals("발행요청") || p.getStatus().equals("발행실패")){
-			// STEP1-1. 발행요청, 발행실패의 경우 blogName은 공백이 아니어야한다.
+			// STEP1-1. 발행요청, 발행실패의 경우 blogName은 공백이 아니어야한다. githubId는 공백일수도 있다.
 			if(!p.getRepository().equals("")){
 				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
 				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
 					// STEP3-1. 발행요청, 발행실패의 경우 responseLink에 대해서는 검사하지 않는다.
-						// STEP5. type은 'md' 혹은 'html'이어야한다.
+						// STEP4. type은 'md' 혹은 'html'이어야한다.
 						if(p.getType().equals("md") || p.getType().equals("html")){
-							// STEP6. categoryName, tagList는 별도의 조건이 없다.
+							// STEP5. categoryName는 별도의 조건이 없다.
 							testResult = true;
 						}
 				}
 			}
 		}
 		else if(p.getStatus().equals("수정요청") || p.getStatus().equals("수정실패")){
-			// STEP1-2. 수정요청, 수정실패의 경우 title ,blogName은 공백이 아니어야한다.
-			if(!p.getType().equals("") && !p.getRepository().equals("")){
+			// STEP1-2. 수정요청, 수정실패의 경우 title ,repository, githubId은 공백이 아니어야한다.
+			if(!p.getType().equals("") && !p.getRepository().equals("") && p.getGithubId()!=null && !p.getGithubId().equals("")){
 				// STEP2. requestLink는 'notion.so' 또는 'www.notion.so'를 포함한 링크여야한다.
 				if(p.getRequestLink().contains("notion.so") || p.getRequestLink().contains("www.notion.so")){
-					// STEP3-2. 수정요청, 수정실패에 대해서는 responseLink가 공백이 아닌지 검사한다.
-					if(!p.getResponseLink().equals("")){
-							// STEP5. type은 'md' 혹은 'html'이어야한다.
+							// STEP3. type은 'md' 혹은 'html'이어야한다.
 							if(p.getType().equals("md") || p.getType().equals("html")){
-								// STEP6. categoryName, tagList는 별도의 조건이 없다.
+								// STEP4. categoryName은 별도의 조건이 없다.
 								testResult = true;
 							}
-					}
 				}
 			}
 		}
@@ -988,7 +1222,7 @@ public class ContentServiceImpl implements ContentService {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Accept", "application/vnd.github+json");
-		headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
+		headers.add("Authorization", "Bearer " + jasyptConfig.createEncryptor().decrypt(member.getToken().getGithubToken()));
 		headers.add("X-GitHub-Api-Version", "2022-11-28");
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -1045,7 +1279,8 @@ public class ContentServiceImpl implements ContentService {
 		try{
 			lambdaCallFunction = new LambdaCallFunction(
 				notionToken,
-				member.getToken().getGithubToken(),
+				jasyptConfig.createEncryptor().decrypt(member.getToken().getGithubToken()),
+				// member.getToken().getGithubToken(),
 				githubPosting.getRepository(),
 				githubPosting.getRequestLink(),
 				githubPosting.getType()

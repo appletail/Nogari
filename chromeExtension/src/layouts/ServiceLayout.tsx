@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useOutlet } from 'react-router-dom'
 
 import { connectedConfig } from './config'
 import { getConnectedSite } from '../apis/apis'
 import refresh from '../assets/icons/refresh.svg'
 
+import nogariLogo from '../assets/logos/NogariLogo.png'
 import LoadingSpinner from '../components/loading'
 import { loadingInterceptors } from '../components/loading/LoadingInterceptors'
 import Logout from '../components/Logout'
@@ -38,39 +39,39 @@ function ServiceLayout() {
   }
 
   return (
-    <div>
+    <div className={style.ServiceWrapper}>
       <div className={style.TitleNav}>
-        <p>
-          <b>연결된 사이트</b>
-        </p>
+        <img src={nogariLogo} style={{ width: '156px' }} />
         <div className={style.Nav}>
           {outlet?.props.children.props.match.pathname === '/' ? <ToSetting /> : <ToHome />}
           <Logout />
         </div>
       </div>
-      <div className={style.Icons}>
-        {connectedConfig(isLogins).map((config) => {
-          return (
-            <a
-              key={config.title}
-              className={style.Icon}
-              href={config.path}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <img
-                alt={config.title}
-                src={config.icon}
-                style={{ width: 40, height: 40, opacity: config.isLogin ? '1' : '0.2' }}
-              />
-            </a>
-          )
-        })}
+      <div className={style.ConnectedText}>연결된 사이트</div>
+      <div className={style.ConnectedIcons}>
+        <div className={style.Icons}>
+          {connectedConfig(isLogins).map((config) => {
+            return (
+              <a
+                key={config.title}
+                className={style.Icon}
+                href={config.path}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <img
+                  alt={config.title}
+                  src={config.icon}
+                  style={{ width: 42, height: 42, opacity: config.isLogin ? '1' : '0.2' }}
+                />
+              </a>
+            )
+          })}
+        </div>
         <div className={style.Refresh} onClick={handleRefresh}>
-          <img alt="refresh" src={refresh} style={{ width: 20, height: 20 }} />
+          <img alt="refresh" src={refresh} style={{ width: 27, height: 27 }} />
         </div>
       </div>
-      <hr />
       <Outlet context={isLogins} />
       {loading && <LoadingSpinner />}
     </div>

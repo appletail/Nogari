@@ -83,19 +83,23 @@ function TistorySettings({ isConnected }: { isConnected: boolean }) {
   // 설정 저장
   const tistoryHandler = (data: TistorySetting) => {
     chrome.storage.sync.set({ [`${user}-tistory-setting`]: data })
+    alert('설정이 저장되었습니다.')
   }
 
   return (
-    <form style={{ position: 'relative' }} onSubmit={handleSubmit(tistoryHandler)}>
+    <form className={style.TistoryForm} onSubmit={handleSubmit(tistoryHandler)}>
       {!isConnected && <div className={style.Wrapper}>티스토리와 연결해 주세요.</div>}
-      <div>
-        <p>Tistory</p>
-        <div>
-          <label htmlFor="T-blogName">블로그 선택</label>
+      <div style={{ marginBottom: '10px' }}>Tistory</div>
+      <div className={style.SelectWrapper}>
+        <div className={style.SelectBox}>
+          <label className={style.SelectLabel} htmlFor="T-blogName">
+            블로그 선택
+          </label>
           <select
             id="T-blogName"
             value={settings.blogName}
             {...register('blogName', { required: true })}
+            className={style.Selects}
             onChange={changeBlog}
           >
             {blogNames.map((elem, idx) => {
@@ -107,12 +111,15 @@ function TistorySettings({ isConnected }: { isConnected: boolean }) {
             })}
           </select>
         </div>
-        <div>
-          <label htmlFor="T-visibility">공개여부</label>
+        <div className={style.SelectBox}>
+          <label className={style.SelectLabel} htmlFor="T-visibility">
+            공개여부
+          </label>
           <select
             id="T-visibility"
             value={settings.visibility}
             {...register('visibility', { required: true })}
+            className={style.Selects}
             onChange={(e) => {
               setSettings((prev) => ({ ...prev, visibility: e.target.value as '0' | '3' }))
             }}
@@ -121,11 +128,14 @@ function TistorySettings({ isConnected }: { isConnected: boolean }) {
             <option value="0">비공개</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="T-categoryName">카테고리</label>
+        <div className={style.SelectBox}>
+          <label className={style.SelectLabel} htmlFor="T-categoryName">
+            카테고리
+          </label>
           <select
             id="T-categoryName"
             {...register('categoryName', { required: true })}
+            className={style.Selects}
             value={settings.categoryName}
             onChange={(e) => setSettings((prev) => ({ ...prev, categoryName: e.target.value }))}
           >
@@ -139,7 +149,12 @@ function TistorySettings({ isConnected }: { isConnected: boolean }) {
           </select>
         </div>
       </div>
-      <button type="submit">티스토리 설정하기</button>
+
+      <div style={{ display: 'flex', justifyContent: 'end' }}>
+        <button className={style.postButton} type="submit">
+          저장하기
+        </button>
+      </div>
     </form>
   )
 }

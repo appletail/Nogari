@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import org.jasypt.encryption.StringEncryptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.nogari.nogari.api.response.KakaoAccessTokenResponse;
 import me.nogari.nogari.api.response.NotionAccessTokenResponse;
 import me.nogari.nogari.api.response.OAuthAccessTokenResponse;
+import me.nogari.nogari.config.JasyptConfig;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Token;
 import me.nogari.nogari.repository.MemberRepository;
@@ -51,6 +54,9 @@ public class OauthServiceImpl implements OauthService {
 
 	private final MemberTokenRepository memberTokenRepository;
 	private final MemberRepository memberRepository;
+
+	@Autowired
+	private JasyptConfig jasyptConfig;
 
 	@Override
 	@Transactional
@@ -87,10 +93,19 @@ public class OauthServiceImpl implements OauthService {
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
 			() -> new IllegalArgumentException()
 		);
-		token.setTistoryToken(accessToken);
+
+		// 토큰 암호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String encryptedRslt = newStringEncryptor.encrypt(accessToken);
+
+		token.setTistoryToken(encryptedRslt);
+
+		// System.out.println("암호화= "+ encryptedRslt);
+		// System.out.println("복호화= "+ newStringEncryptor.decrypt(encryptedRslt));
 
 		return accessToken;
 	}
+
 
 	@Override
 	@Transactional
@@ -144,7 +159,12 @@ public class OauthServiceImpl implements OauthService {
 		Token token = memberTokenRepository.findById(member.getToken().getTokenId()).orElseThrow(
 			() -> new IllegalArgumentException()
 		);
-		token.setGithubToken(ATK);
+		// token.setGithubToken(ATK);
+
+		// 토큰 암호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String encryptedRslt = newStringEncryptor.encrypt(ATK);
+		token.setGithubToken(encryptedRslt);
 
 		//깃허브 id 삽입
 		setGitHubId(member, ATK);
@@ -221,17 +241,17 @@ public class OauthServiceImpl implements OauthService {
 			() -> new IllegalArgumentException()
 		);
 
-		user.setNotionToken(ATK);
+		// user.setNotionToken(ATK);
+		// 토큰 암호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String encryptedRslt = newStringEncryptor.encrypt(ATK);
+		user.setNotionToken(encryptedRslt);
 
 		return response.getBody().getAccess_token();
 	}
 
 	@Override
-	public HashMap<String,Boolean> checkIfTokenIsEmpty(Member mem) {
-
-		Member member = memberRepository.findById(mem.getMemberId()).orElseThrow(
-			() -> new IllegalArgumentException()
-		);
+	public HashMap<String,Boolean> checkIfTokenIsEmpty(Member member) {
 
 		HashMap<String,Boolean> rslt = new HashMap<>();
 

@@ -1,7 +1,38 @@
+.ServiceWrapper {
+  padding: 22px 30px;
+}
+
+.TitleNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.ConnectedText {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.Nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.ConnectedIcons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+  gap: 80px;
+}
+
 .Icons {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  gap: 23px;
 }
 
 .Icon {
@@ -10,17 +41,4 @@
 
 .Refresh {
   cursor: pointer;
-}
-
-.TitleNav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.Nav {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
 }

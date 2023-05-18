@@ -62,6 +62,7 @@ public class OAuthController {
 				.build();
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			return BaseResponse.builder()
 				.result(null)
 				// .result(oauthService.getTistoryAccessToken(code, member.get()))
@@ -84,7 +85,7 @@ public class OAuthController {
 			Member member = customUserDetails.getMember();
 			OAuthAccessTokenResponse tokenResponse = oauthService.getGithubAccessToken(code, member);
 			String ATK = tokenResponse.getAccessToken();
-			System.out.println("ATK : " + ATK);
+			// System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
 				.result(ATK)
 				.resultCode(HttpStatus.OK.value())
@@ -111,7 +112,7 @@ public class OAuthController {
 		try {
 			Member member = customUserDetails.getMember();
 			String ATK = oauthService.getNotionAccessToken(code, member);
-			System.out.println("ATK : " + ATK);
+			// System.out.println("ATK : " + ATK);
 			return BaseResponse.builder()
 				.result(ATK)
 				.resultCode(HttpStatus.OK.value())

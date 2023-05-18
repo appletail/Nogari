@@ -1,4 +1,3 @@
-import React from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import GithubSetting from './GithubSetting'
@@ -11,7 +10,7 @@ function Settings() {
     <div>
       <TistorySettings isConnected={connectedSites.tistory} />
       <hr />
-      <GithubSetting isConnected={connectedSites.github} />
+      <GithubSetting />
       <hr />
     </div>
   )

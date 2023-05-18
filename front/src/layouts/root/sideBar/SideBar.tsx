@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 
 import { useQuery } from 'react-query'
 
-import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
+import { Link } from 'react-router-dom'
+
+import { Box, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 
 // mock
@@ -11,11 +13,9 @@ import { navConfig, settingConfig, connectedConfig } from './config'
 
 import { StyledNavContent, StyledNavConnectedSite } from './styles'
 
-import account from '@/_mock/account'
-
 // hooks
 import { getOauthStatus } from '@/apis/OauthApis'
-import { ReactComponent as Logo } from '@/assets/logos/nogari_spinner.svg'
+import { ReactComponent as Logo } from '@/assets/logos/nogari_logo.svg'
 import ConnectedSection from '@/components/connected-section'
 import NavSection from '@/components/nav-section'
 import SettingSection from '@/components/setting-section'
@@ -37,36 +37,55 @@ const StyledAccount = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Nav() {
-  const { data } = useQuery('oauths', getOauthStatus)
+  const [avatarNum, setAvatarNum] = useState(1)
+  useEffect(() => {
+    setAvatarNum(Math.floor(Math.random() * 25 + 1))
+  }, [])
 
+  const { data } = useQuery('oauths', getOauthStatus)
   const renderContent = (
     <>
-      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
-        <Logo height={'40px'} width={'40px'} />
+      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', paddingLeft: '25px' }}>
+        <Link to="/notice">
+          <Logo width="150px" />
+        </Link>
       </Box>
 
       <Box sx={{ mb: 5, mx: 2.5 }}>
-        <Link underline="none">
-          <StyledAccount>
-            <Avatar alt="photoURL" src={account.photoURL} />
+        <StyledAccount>
+          <Avatar
+            alt="photoURL"
+            src={`/assets/images/avatars/avatar_${avatarNum}.jpg`}
+          />
 
-            <Box sx={{ ml: 2 }}>
-              <Typography sx={{ color: 'text.primary' }} variant="subtitle2">
-                {account.displayName}
-              </Typography>
+          <Box
+            sx={{
+              ml: 2,
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: 'text.primary',
+              }}
+            >
+              {sessionStorage.getItem('email')?.split('@')[0]}
+            </Typography>
 
-              <Typography sx={{ color: 'text.secondary' }} variant="body2">
-                {account.role}
-              </Typography>
-            </Box>
-          </StyledAccount>
-        </Link>
+            <Typography sx={{ color: 'text.secondary' }} variant="body2">
+              {'일반회원'}
+            </Typography>
+          </Box>
+        </StyledAccount>
       </Box>
       <StyledNavContent>
         <NavSection data={navConfig} />
         <div>
           <div style={{ padding: '0 22px' }}>
-            <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
+            <p style={{ fontSize: '17px', margin: '5px 0' }}>사이트 연동하기</p>
             <StyledNavConnectedSite>
               <ConnectedSection
                 data={connectedConfig(

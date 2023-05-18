@@ -1,12 +1,54 @@
 .Container {
-  padding: 10px 10px 10px 10px;
+  padding: 1rem 2.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
+.Logo {
+  width: 85%;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .LoginForm {
   display: flex;
   flex-direction: column;
+}
+
+.InputBox {
+  height: 2.1rem;
+  padding: 2px;
+  display: flex;
+  border: solid 1px;
+  border-radius: 0.2rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.HiddenInput {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  border: none;
+}
+
+.LoginButton {
+  height: 2.8rem;
+  border: none;
+  border-radius: 0.2rem;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  background-color: #007dff;
+  box-shadow: 1px 3px 8px -2px gray;
+}
+
+.ShowPassword {
+  cursor: pointer;
+  filter: invert(47%) sepia(17%) saturate(441%) hue-rotate(166deg) brightness(89%) contrast(86%);
 }
