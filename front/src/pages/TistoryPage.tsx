@@ -12,6 +12,7 @@ import {
   Typography,
   IconButton,
   LinearProgress,
+  Box,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
@@ -271,14 +272,32 @@ function TistoryPage() {
         if (!row) {
           return [{ value: 'None', label: '카테고리없음' }]
         }
-
         const index = blogName.indexOf(row.blogName)
         const selectedCategories = tistoryInfo?.data.result[2][index]
-        return selectedCategories
-          ? selectedCategories.map((category: tistoryCategory) => {
-              return { value: category.id, label: category.name }
-            })
-          : [{ value: 'None', label: '카테고리없음' }]
+        if (selectedCategories) {
+          const categoryLabels = selectedCategories.map(
+            (category: tistoryCategory) => {
+              return { value: category.id, label: category.label }
+            }
+          )
+          return categoryLabels.sort((a: any, b: any) => {
+            if (a.label && b.label) {
+              const nameA = a.label.toUpperCase() // ignore upper and lowercase
+              const nameB = b.label.toUpperCase() // ignore upper and lowercase
+              if (nameA < nameB) {
+                return -1
+              }
+              if (nameA > nameB) {
+                return 1
+              }
+            }
+
+            // 이름이 같을 경우
+            return 0
+          })
+        } else {
+          return [{ value: 'None', label: '카테고리없음' }]
+        }
       },
       editable: true,
       disableColumnMenu: true,
@@ -426,47 +445,63 @@ function TistoryPage() {
             ) : (
               <div></div>
             )}
-
-            <DataGrid
-              autoHeight
-              hideFooter
-              hideFooterPagination
-              hideFooterSelectedRowCount
-              apiRef={apiRef}
-              columns={columns}
-              editMode="row"
-              getRowId={(row) => row.tistoryId}
-              loading={isLoading || tistoryInfoLoading}
-              rows={rows}
-              initialState={{
-                columns: {
-                  ...columns,
-                  columnVisibilityModel: {
-                    // Hide columns status and traderName, the other columns will remain visible
-                    initStatus: false,
-                  },
-                },
-              }}
-              slots={{
-                loadingOverlay: LinearProgress,
-              }}
+            <Box
               sx={{
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
-                  width: '0.2em',
+                '& .disabled': {
+                  backgroundColor: '#EDEFF1',
                 },
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                },
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
-                  backgroundColor: '#637381',
-                  opacity: 0.48,
-                },
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
-                  {
-                    background: '#555',
-                  },
               }}
-            />
+            >
+              <DataGrid
+                autoHeight
+                hideFooter
+                hideFooterPagination
+                hideFooterSelectedRowCount
+                apiRef={apiRef}
+                columns={columns}
+                editMode="cell"
+                getRowId={(row) => row.tistoryId}
+                loading={isLoading || tistoryInfoLoading}
+                rows={rows}
+                getCellClassName={(params) => {
+                  if (
+                    params.field === 'modifiedDate' ||
+                    params.field == 'title'
+                  ) {
+                    return 'disabled'
+                  }
+                  return ''
+                }}
+                initialState={{
+                  columns: {
+                    ...columns,
+                    columnVisibilityModel: {
+                      // Hide columns status and traderName, the other columns will remain visible
+                      initStatus: false,
+                    },
+                  },
+                }}
+                slots={{
+                  loadingOverlay: LinearProgress,
+                }}
+                sx={{
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+                    width: '0.2em',
+                  },
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                  },
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#637381',
+                    opacity: 0.48,
+                  },
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
+                    {
+                      background: '#555',
+                    },
+                }}
+              />
+            </Box>
           </Scrollbar>
         </StyledContainer>
       </Card>
