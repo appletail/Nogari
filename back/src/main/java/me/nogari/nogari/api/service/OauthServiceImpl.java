@@ -52,9 +52,6 @@ public class OauthServiceImpl implements OauthService {
 	@Value("${app.auth.notion.oauth-client-id}") private String NOTION_CLIENT_ID;
 	@Value("${app.auth.notion.oauth-client-secret}") private String NOTION_CLIENT_SECRET;
 
-	@Value("{jasypt.encryptor.password}") private String ENCRYPT_KEY;
-	@Value("{jasypt.encryptor.salt-generator}") private String SALT_GENERATOR;
-
 	private final MemberTokenRepository memberTokenRepository;
 	private final MemberRepository memberRepository;
 
@@ -265,17 +262,5 @@ public class OauthServiceImpl implements OauthService {
 
 		return rslt;
 	}
-
-	// 토큰 암호화 설정 메서드
-	// private StringEncryptor createEncryptor( ){
-	//
-	// 	StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-	//
-	// 	encryptor.setPassword(ENCRYPT_KEY);
-	// 	encryptor.setAlgorithm("PBEWITHMD5ANDTRIPLEDES");
-	// 	encryptor.setSaltGenerator(new StringFixedSaltGenerator(SALT_GENERATOR));		// AES 사용 시 설정필수 : salt 생성방식 '고정'으로 변경
-	//
-	// 	return encryptor;
-	// }
 
 }
