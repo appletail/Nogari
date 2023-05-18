@@ -16,6 +16,19 @@ function Notice() {
       <TimelineList>
         <TimelineItemContainer>
           <TimelineItem>
+            <Date>2023년 05월 18일</Date>
+            <Title>릴리즈 노트(v.1.0.0)</Title>
+            <Contents style={{whiteSpace: "pre-wrap"}}>
+            1. Nogari의 오픈 베타 서비스가 시작되었습니다. {"\n"}
+            2. 첫 방문시 등장하는 튜토리얼 페이지가 추가되었습니다. {"\n"}
+            3. 발행 이력 테이블에 Notion 토큰 검사가 추가되었습니다. {"\n"}
+            4. 메인 페이지 일부 디자인이 수정되었습니다. {"\n"}
+            </Contents>
+          </TimelineItem>
+        </TimelineItemContainer>
+        
+        <TimelineItemContainer>
+          <TimelineItem>
             <Date>2023년 05월 17일</Date>
             <Title>릴리즈 노트(v.0.6.0)</Title>
             <Contents style={{whiteSpace: "pre-wrap"}}>
