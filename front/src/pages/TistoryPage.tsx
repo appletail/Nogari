@@ -11,7 +11,7 @@ import {
   Button,
   Typography,
   IconButton,
-  Link,
+  LinearProgress,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
@@ -60,7 +60,6 @@ function CustomTypeEditComponent(props: CustomTypeEditComponentProps) {
 
   const handleValueChange = () => {
     setRows((prevRows) => {
-      // console.log(prevRows)
       return prevRows.map((row) =>
         row.id === props.id ? { ...row, categoryName: null } : row
       )
@@ -81,14 +80,14 @@ function TistoryPage() {
 
   const apiRef = useGridApiRef()
   const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
-  const { data: tistoryInfo, refetch } = useQuery(
-    'tistoryInfo',
-    postTistoryLogList,
-    {
-      refetchOnWindowFocus: false,
-      enabled: !!oauth,
-    }
-  )
+  const {
+    isLoading: tistoryInfoLoading,
+    data: tistoryInfo,
+    refetch,
+  } = useQuery('tistoryInfo', postTistoryLogList, {
+    refetchOnWindowFocus: false,
+    enabled: !!oauth,
+  })
 
   // data grid에서 사용하는 state
   // row data and blog name
@@ -226,18 +225,11 @@ function TistoryPage() {
   // }, [])
 
   const visibilityOptions = [
-    { value: 0, label: '비공개' },
     { value: 3, label: '공개' },
+    { value: 0, label: '비공개' },
   ]
 
-  // const statusOptions = {
-  //   발행요청: ['발행요청'],
-  //   발행완료: ['수정요청', '발행완료'],
-  //   발행실패: ['발행요청', '발행실패'],
-  //   수정실패: ['수정요청', '수정실패'],
-  // }
-
-  const columns: (GridColDef | GridSingleSelectColDef)[] = [
+  const columns: GridColDef[] = [
     {
       field: 'blogName',
       headerName: '블로그 선택',
@@ -368,7 +360,7 @@ function TistoryPage() {
   return (
     <>
       <Helmet>
-        <title> Tistory </title>
+        <title>Tistory | Nogari</title>
       </Helmet>
 
       {/* 티스토리 아이콘 & 로그인 */}
@@ -416,44 +408,45 @@ function TistoryPage() {
       </div>
 
       <Card>
-        {isLoading || tistoryInfo === undefined ? (
-          <div> 로딩중 ... </div>
-        ) : (
-          <StyledContainer>
-            <Scrollbar>
-              {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
-              {!oauth?.data.result.tistory ? (
-                <StyledWrapper>
-                  <Typography variant="subtitle2">
-                    티스토리 로그인을 먼저 해주세요.
-                  </Typography>
-                </StyledWrapper>
-              ) : (
-                <div></div>
-              )}
+        <StyledContainer>
+          <Scrollbar>
+            {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
+            {!oauth?.data.result.tistory ? (
+              <StyledWrapper>
+                <Typography variant="subtitle2">
+                  티스토리 로그인을 먼저 해주세요.
+                </Typography>
+              </StyledWrapper>
+            ) : (
+              <div></div>
+            )}
 
-              <DataGrid
-                hideFooter
-                hideFooterPagination
-                hideFooterSelectedRowCount
-                apiRef={apiRef}
-                columns={columns}
-                editMode="row"
-                getRowId={(row) => row.tistoryId}
-                rows={rows}
-                initialState={{
-                  columns: {
-                    ...columns,
-                    columnVisibilityModel: {
-                      // Hide columns status and traderName, the other columns will remain visible
-                      initStatus: false,
-                    },
+            <DataGrid
+              autoHeight
+              hideFooter
+              hideFooterPagination
+              hideFooterSelectedRowCount
+              apiRef={apiRef}
+              columns={columns}
+              editMode="row"
+              getRowId={(row) => row.tistoryId}
+              loading={isLoading || tistoryInfoLoading}
+              rows={rows}
+              initialState={{
+                columns: {
+                  ...columns,
+                  columnVisibilityModel: {
+                    // Hide columns status and traderName, the other columns will remain visible
+                    initStatus: false,
                   },
-                }}
-              />
-            </Scrollbar>
-          </StyledContainer>
-        )}
+                },
+              }}
+              slots={{
+                loadingOverlay: LinearProgress,
+              }}
+            />
+          </Scrollbar>
+        </StyledContainer>
       </Card>
     </>
   )
@@ -464,7 +457,7 @@ export default TistoryPage
 // ---------------------------------------------------------------------
 const StyledContainer = styled('div')(({ theme }) => ({
   position: 'relative',
-  height: 'auto',
+  minHeight: '200px',
   width: '100%',
 }))
 const StyledWrapper = styled('div')(({ theme }) => ({

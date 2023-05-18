@@ -5,12 +5,18 @@ import { useQuery } from 'react-query'
 import { faker } from '@faker-js/faker'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
-import { Card, Stack, Button, Typography, IconButton } from '@mui/material'
+import {
+  Card,
+  Stack,
+  Button,
+  Typography,
+  IconButton,
+  LinearProgress,
+} from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
-  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
   GridCellParams,
   GridEditSingleSelectCell,
@@ -21,7 +27,7 @@ import {
 
 import { postGithubPostList, postGithubPost } from '@/apis/githubApis'
 import { getOauthStatus } from '@/apis/OauthApis'
-import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
+import { ReactComponent as Github } from '@/assets/logos/github-mark.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
 
@@ -83,13 +89,14 @@ function GithubPage() {
   // github 연결되어 있을 때에만 githubInfo를 받아옵니다.
   const apiRef = useGridApiRef()
   const { isLoading, data: oauth } = useQuery('oauths', getOauthStatus)
-  const { data: githubInfo, refetch } = useQuery(
-    'githubInfo',
-    postGithubPostList,
-    {
-      enabled: !!oauth,
-    }
-  )
+  const {
+    isLoading: githubInfoLoading,
+    data: githubInfo,
+    refetch,
+  } = useQuery('githubInfo', postGithubPostList, {
+    refetchOnWindowFocus: false,
+    enabled: !!oauth,
+  })
 
   // data grid에서 사용하는 state
   // row data and blog name
@@ -103,7 +110,11 @@ function GithubPage() {
 
   useEffect(() => {
     if (githubInfo) {
-      const RowData = githubInfo.data.result[0]
+      const data = githubInfo.data.result[0]
+      const RowData = data.reduce((acc: any, value: any) => {
+        const row = { ...value, initStatus: value.status }
+        return [...acc, row]
+      }, [])
       setRows(RowData)
       setRepositoryName(githubInfo?.data.result[1])
     }
@@ -138,17 +149,16 @@ function GithubPage() {
       // 발행 할 데이터 링크가 있고 발행요청 혹은 수정요청인 경우에만 발행
       if (
         row.requestLink &&
+        row.categoryName &&
         (row.status === '발행요청' || row.status === '수정요청')
       ) {
-        row['type'] = 'html'
+        row['type'] = 'md'
         submitArray.push(row)
       }
     })
-
     // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
     if (submitArray.length !== 0) {
       const response = await postGithubPost(submitArray)
-      // console.log(response)
       // api 호출에 성공한 경우에만 refetch 진행
       if (response.data.resultCode === 200) {
         refetch()
@@ -160,51 +170,51 @@ function GithubPage() {
 
   // 더블클릭 > 클릭 시 수정으로 변경
 
-  const handleCellClick = useCallback((params: GridCellParams) => {
-    if (!params.isEditable) return
-    if (params.cellMode === 'view') {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.Edit },
-          },
-        }
-      })
-    } else {
-      setCellModesModel((prevModel: any) => {
-        return {
-          [params.id]: {
-            ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-              return {
-                ...acc,
-                [field]: { mode: GridCellModes.View },
-              }
-            }, {}),
-            [params.field]: { mode: GridCellModes.View },
-          },
-        }
-      })
-    }
-    params.hasFocus = !params.hasFocus
-  }, [])
+  // const handleCellClick = useCallback((params: GridCellParams) => {
+  //   if (!params.isEditable) return
+  //   if (params.cellMode === 'view') {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.Edit },
+  //         },
+  //       }
+  //     })
+  //   } else {
+  //     setCellModesModel((prevModel: any) => {
+  //       return {
+  //         [params.id]: {
+  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
+  //             return {
+  //               ...acc,
+  //               [field]: { mode: GridCellModes.View },
+  //             }
+  //           }, {}),
+  //           [params.field]: { mode: GridCellModes.View },
+  //         },
+  //       }
+  //     })
+  //   }
+  //   params.hasFocus = !params.hasFocus
+  // }, [])
 
-  const handleCellModesModelChange = useCallback((newModel: any) => {
-    setCellModesModel(newModel)
-  }, [])
+  // const handleCellModesModelChange = useCallback((newModel: any) => {
+  //   setCellModesModel(newModel)
+  // }, [])
 
-  const columns: (GridColDef | GridSingleSelectColDef)[] = [
+  const columns: GridColDef[] = [
     {
       field: 'repository',
-      headerName: 'Repository',
+      headerName: '레포지토리',
       type: 'singleSelect',
       valueOptions: repository,
-      minWidth: 100,
+      minWidth: 150,
       flex: 0.3,
       editable: true,
       disableColumnMenu: true,
@@ -249,6 +259,20 @@ function GithubPage() {
       editable: false,
       hideable: false,
       disableColumnMenu: true,
+      valueGetter(params) {
+        if (params.value) {
+          const date = new Date(params.value)
+          const parsedDate = new Intl.DateTimeFormat('ko-KR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+            hour12: false,
+          })
+            .format(date)
+            .split('. ')
+
+          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+        }
+      },
     },
     {
       field: 'status',
@@ -257,19 +281,15 @@ function GithubPage() {
       width: 100,
       editable: true,
       hideable: false,
-      valueOptions: ({ field, row }) => {
-        if (!row) {
-          return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
-        } else if (row.status === '발행완료' || row.status === '수정요청') {
+      valueOptions: ({ row }) => {
+        if (row.initStatus === '발행완료') {
           return ['발행완료', '수정요청']
-        } else if (row.status === '발행실패') {
+        } else if (row.initStatus === '발행실패') {
           return ['발행실패', '발행요청']
-        } else if (row.status === '수정실패') {
+        } else if (row.initStatus === '수정실패') {
           return ['수정실패', '수정요청']
-        } else if (row.status === '발행요청') {
-          return ['발행요청']
         }
-        return ['발행요청', '발행완료', '수정요청', '발행실패', '수정실패']
+        return ['발행요청']
       },
       disableColumnMenu: true,
     },
@@ -282,17 +302,130 @@ function GithubPage() {
       flex: 1,
       minWidth: 50,
     },
+    {
+      field: 'initStatus',
+      headerName: 'initStatus',
+      editable: false,
+    },
   ]
 
+  const githubLoginURL = import.meta.env.VITE_GITHUB_OAUTH_URL
+
   return (
-    <div>
+    <>
       <Helmet>
-        <title>Github</title>
+        <title>Nogari | Github</title>
       </Helmet>
-      {/* <TableSample /> */}
-      <div>준비중입니다...</div>
-    </div>
+
+      {/* github 아이콘 & 로그인 */}
+      <Stack alignItems="center" direction="row" mb={3}>
+        <Stack
+          alignItems="center"
+          direction="row"
+          spacing={1}
+          sx={{ marginRight: '1rem' }}
+        >
+          <Github style={{ width: 24, height: 24 }} />
+          <Typography gutterBottom variant="h4">
+            Github
+          </Typography>
+        </Stack>
+
+        {/* github 로그인 여부에 따라 로그인 / 발행하기 아이콘 변경 */}
+        {oauth && oauth?.data.result.github ? (
+          <Button
+            href=""
+            variant="contained"
+            sx={{
+              width: '70px',
+              height: '26px',
+              backgroundColor: '#007DFF',
+              fontSize: '0.1rem',
+              whiteSpace: 'nowrap',
+            }}
+            onClick={onClickHandler}
+          >
+            발행하기
+          </Button>
+        ) : (
+          <IconButton href={githubLoginURL}>
+            <LoginIcon />
+          </IconButton>
+        )}
+      </Stack>
+
+      {/* 새로운 행 추가하는 button */}
+
+      <div style={{ display: 'flex', justifyContent: 'end' }}>
+        <Button sx={{ display: 'flex', gap: '5px' }} onClick={handleAddRow}>
+          <AddCircleOutlineIcon />
+          add row
+        </Button>
+      </div>
+
+      <Card>
+        <StyledContainer>
+          <Scrollbar>
+            {/* 깃허브 로그인 되어있지 않으면 위에 씌우기 */}
+            {!oauth?.data.result.github ? (
+              <StyledWrapper>
+                <Typography variant="subtitle2">
+                  깃허브 로그인을 먼저 해주세요.
+                </Typography>
+              </StyledWrapper>
+            ) : (
+              <div></div>
+            )}
+            <DataGrid
+              autoHeight
+              hideFooter
+              hideFooterPagination
+              hideFooterSelectedRowCount
+              apiRef={apiRef}
+              columns={columns}
+              editMode="row"
+              getRowId={(row) => row.githubId}
+              loading={isLoading || githubInfoLoading}
+              rows={rows}
+              initialState={{
+                columns: {
+                  ...columns,
+                  columnVisibilityModel: {
+                    // Hide columns status and traderName, the other columns will remain visible
+                    initStatus: false,
+                  },
+                },
+              }}
+              slots={{
+                loadingOverlay: LinearProgress,
+              }}
+            />
+          </Scrollbar>
+        </StyledContainer>
+        {/* )} */}
+      </Card>
+    </>
   )
 }
 
 export default GithubPage
+
+// ---------------------------------------------------------------------
+const StyledContainer = styled('div')(({ theme }) => ({
+  position: 'relative',
+  minHeight: '200px',
+  width: '100%',
+}))
+const StyledWrapper = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  top: '0px',
+  left: '0px',
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: '9999',
+}))
