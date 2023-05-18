@@ -18,10 +18,9 @@ import {
   DataGrid,
   GridColDef,
   GridEditSingleSelectCellProps,
-  GridCellParams,
+  GridRenderCellParams,
   GridEditSingleSelectCell,
   GridCellModesModel,
-  GridCellModes,
   useGridApiRef,
 } from '@mui/x-data-grid'
 
@@ -301,6 +300,15 @@ function GithubPage() {
       editable: false,
       flex: 1,
       minWidth: 50,
+      renderCell: (params: GridRenderCellParams) => (
+        <a
+          href={params.row.responseLink}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {params.row.filename}
+        </a>
+      ),
     },
     {
       field: 'initStatus',
