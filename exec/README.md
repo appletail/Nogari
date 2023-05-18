@@ -1,13 +1,8 @@
 # Nogari 포팅메뉴얼
 
-
-![nogariLogo](/uploads/d374ec5995e94d1d7bd8662f714bc6f5/nogariLogo.png)
-
-**목차**
+![노가리_로고](/uploads/0fb3a94839304120138a77ca2c58739d/노가리_로고.png)
 
 ## 1. 서비스 소개
-
----
 
 ‘Nogari’는 ‘**Notion에서 가는 이야기**’의 줄임말로, 원스톱으로 **노션에서 타 포스팅 플랫폼으로 페이지를 발행해주는 서비스**입니다. 노션은 2500만명의 유저를 갖는 올인원 생산성 앱으로 동시 협업, 실시간 동기화, 탬플릿 활용을 통해 효율적인 기록을 가능하게 합니다. 
 
@@ -26,8 +21,6 @@
 
 ## 2. 개발환경
 
----
-
 - 프론트엔드 : React 18.2.0, TypeScript 4.9.5, react-hook-form 7.43.9
 - 백엔드 : Java 11, AWS Lambda, SpringBoot 2.7.10, SpringSecurity, JWT,Redis
 - DB : MySQL : 8.0.33, Redis 7.0.11
@@ -39,13 +32,9 @@
 
 ## 3. 빌드 방법
 
----
-
 [빌드 방법(Jenkins)](https://www.notion.so/Jenkins-b306348c288f4a6589750a56bdc3f423)
 
 ## 4. 외부 기술
-
----
 
 - JWT & Redis
 - [AWS Lambda](https://www.notion.so/AWS-Lambda-733190948f3f4a4bbb96c65d543396bc)
@@ -55,4 +44,3 @@
 
 ## 5. 사용자 인터페이스
 
----
