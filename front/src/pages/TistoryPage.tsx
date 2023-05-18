@@ -436,10 +436,18 @@ function TistoryPage() {
         <StyledContainer>
           <Scrollbar>
             {/* 티스토리 로그인 되어있지 않으면 위에 씌우기 */}
-            {!oauth?.data.result.tistory ? (
+            {!oauth?.data.result.notion ? (
               <StyledWrapper>
-                <Typography variant="subtitle2">
-                  티스토리 로그인을 먼저 해주세요.
+                <Typography variant="h5">
+                  왼쪽 아래 &quot;사이트 연동하기&quot;에서 노션 연동을 먼저
+                  해주세요.
+                </Typography>
+              </StyledWrapper>
+            ) : !oauth?.data.result.tistory ? (
+              <StyledWrapper>
+                <Typography variant="h5">
+                  왼쪽 아래 &quot;사이트 연동하기&quot;에서 티스토리 연동을 먼저
+                  해주세요.
                 </Typography>
               </StyledWrapper>
             ) : (

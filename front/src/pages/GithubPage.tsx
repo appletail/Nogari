@@ -12,6 +12,7 @@ import {
   Typography,
   IconButton,
   LinearProgress,
+  Box,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
@@ -386,54 +387,79 @@ function GithubPage() {
             }}
           >
             {/* 깃허브 로그인 되어있지 않으면 위에 씌우기 */}
-            {!oauth?.data.result.github ? (
+            {!oauth?.data.result.notion ? (
               <StyledWrapper>
-                <Typography variant="subtitle2">
-                  깃허브 로그인을 먼저 해주세요.
+                <Typography variant="h5">
+                  왼쪽아래 &quot;사이트 연동하기&quot;에서 노션 연동을 먼저
+                  해주세요.
+                </Typography>
+              </StyledWrapper>
+            ) : !oauth?.data.result.github ? (
+              <StyledWrapper>
+                <Typography variant="h5">
+                  왼쪽아래 &quot;사이트 연동하기&quot;에서 깃허브 연동을 먼저
+                  해주세요.
                 </Typography>
               </StyledWrapper>
             ) : (
               <div></div>
             )}
-            <DataGrid
-              autoHeight
-              hideFooter
-              hideFooterPagination
-              hideFooterSelectedRowCount
-              apiRef={apiRef}
-              columns={columns}
-              editMode="row"
-              getRowId={(row) => row.githubId}
-              loading={isLoading || githubInfoLoading}
-              rows={rows}
-              initialState={{
-                columns: {
-                  ...columns,
-                  columnVisibilityModel: {
-                    initStatus: false,
-                  },
-                },
-              }}
-              slots={{
-                loadingOverlay: LinearProgress,
-              }}
+            <Box
               sx={{
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
-                  width: '0.2em',
+                '& .disabled': {
+                  backgroundColor: '#EDEFF1',
                 },
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                },
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
-                  backgroundColor: '#637381',
-                  opacity: 0.48,
-                },
-                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
-                  {
-                    background: '#555',
-                  },
               }}
-            />
+            >
+              <DataGrid
+                autoHeight
+                hideFooter
+                hideFooterPagination
+                hideFooterSelectedRowCount
+                apiRef={apiRef}
+                columns={columns}
+                editMode="cell"
+                getRowId={(row) => row.githubId}
+                loading={isLoading || githubInfoLoading}
+                rows={rows}
+                getCellClassName={(params) => {
+                  if (
+                    params.field === 'modifiedDate' ||
+                    params.field == 'filename'
+                  ) {
+                    return 'disabled'
+                  }
+                  return ''
+                }}
+                initialState={{
+                  columns: {
+                    ...columns,
+                    columnVisibilityModel: {
+                      initStatus: false,
+                    },
+                  },
+                }}
+                slots={{
+                  loadingOverlay: LinearProgress,
+                }}
+                sx={{
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+                    width: '0.2em',
+                  },
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                  },
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#637381',
+                    opacity: 0.48,
+                  },
+                  '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
+                    {
+                      background: '#555',
+                    },
+                }}
+              />
+            </Box>
           </Scrollbar>
         </StyledContainer>
       </Card>

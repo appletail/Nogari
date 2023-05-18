@@ -85,7 +85,7 @@ export default function Nav() {
         <NavSection data={navConfig} />
         <div>
           <div style={{ padding: '0 22px' }}>
-            <p style={{ fontSize: '17px', margin: '5px 0' }}>연결된 사이트</p>
+            <p style={{ fontSize: '17px', margin: '5px 0' }}>사이트 연동하기</p>
             <StyledNavConnectedSite>
               <ConnectedSection
                 data={connectedConfig(
