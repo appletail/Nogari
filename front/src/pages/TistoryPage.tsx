@@ -234,7 +234,7 @@ function TistoryPage() {
       headerName: '블로그 선택',
       type: 'singleSelect',
       valueOptions: blogName,
-      minWidth: 100,
+      minWidth: 150,
       flex: 0.3,
       editable: true,
       disableColumnMenu: true,
@@ -246,6 +246,7 @@ function TistoryPage() {
     {
       field: 'requestLink',
       headerName: '요청페이지 링크',
+      minWidth: 220,
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
@@ -342,6 +343,7 @@ function TistoryPage() {
       hideSortIcons: true,
       editable: false,
       flex: 1,
+      minWidth: 50,
       renderCell: (params: GridRenderCellParams) => (
         <a
           href={params.row.responseLink}
@@ -447,6 +449,22 @@ function TistoryPage() {
               }}
               slots={{
                 loadingOverlay: LinearProgress,
+              }}
+              sx={{
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+                  width: '0.2em',
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#637381',
+                  opacity: 0.48,
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
+                  {
+                    background: '#555',
+                  },
               }}
             />
           </Scrollbar>
