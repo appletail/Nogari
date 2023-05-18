@@ -1107,10 +1107,11 @@ public class ContentServiceImpl implements ContentService {
 					responseBody.put("resultMessage", "[발행완료] Github 게시물 발행이 정상적으로 완료되었습니다."
 						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
-				} catch(HttpClientErrorException e){
+				} catch(Exception e){
 					// STEP6. [발행실패] Github 발행 상태 DB 갱신
 					// Case1. repository Error (HttpClientErrorException)
-					lambdaResponses[i].getTistory().setStatus("발행실패");
+					// lambdaResponses[i].getTistory().setStatus("발행실패");
+					lambdaResponses[i].getGithub().setStatus("발행실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);
