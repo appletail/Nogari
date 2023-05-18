@@ -1,4 +1,5 @@
 package me.nogari.nogari.api.aws;
+import me.nogari.nogari.api.request.TokenDecryptDto;
 import okhttp3.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -29,21 +30,21 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 	private int index;
 	private PostNotionToGithubDto post;
 	private Github github;
-	private Member member;
+	private TokenDecryptDto tokenDecryptDto;
 
-	public awsLambdaCallableGithub(int index, PostNotionToGithubDto post, Github github, Member member) {
+	public awsLambdaCallableGithub(int index, PostNotionToGithubDto post, Github github, TokenDecryptDto tokenDecryptDto) {
 		this.index = index;
 		this.post = post;
 		this.github = github;
-		this.member = member;
+		this.tokenDecryptDto = tokenDecryptDto;
 	}
 
 	public LambdaResponse githubAwsLambda(int index, PostNotionToGithubDto post, Github github,
-		Member member) throws Exception {
+		TokenDecryptDto tokenDecryptDto) throws Exception {
 		LambdaResponse lambdaResponse = new LambdaResponse(index, github);
 
 		// STEP2-1. AWS Lambda와 통신하는 과정
-		Map<String, Object> data = awsLambdaResponse(post, member);
+		Map<String, Object> data = awsLambdaResponse(post, tokenDecryptDto);
 		String title = (String)data.get("title"); // github에 게시될 게시글 제목
 		String content = (String)data.get("content"); // github에 게시될 게시글 내용
 
@@ -51,7 +52,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		String fileDate = null;
 		if (github.getStatus().equals("수정요청") || github.getStatus().equals("수정실패")) {
 			String filePath =
-				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/"
+				post.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/"
 					+ post.getFilename();
 			System.out.println("githubAwsLambda 수정요청 filePath : " + filePath);
 			lambdaResponse.setFilePath(filePath);
@@ -62,7 +63,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 			fileDate = simpleDateFormat.format(nowDate);
 
 			String filePath =
-				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/" + title
+				post.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/" + title
 					+ "_" + fileDate + "." + post.getType();
 			// String filePath =
 			// 	member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/" + title
@@ -72,7 +73,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		}
 		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
 		HttpEntity<Map<String, String>> httpGithubRequest = getHttpLambdaRequest(title, content, github,
-			post, member, fileDate);
+			post, tokenDecryptDto, fileDate);
 		lambdaResponse.setGithubRequest(httpGithubRequest);
 
 		return lambdaResponse;
@@ -87,7 +88,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 	}
 	public String uploadImageToGithub(
 		String imageUrl, String title, Github github,
-		PostNotionToGithubDto post, Member member, String fileDate, int idx, HttpHeaders headers ) throws IOException {
+		PostNotionToGithubDto post, TokenDecryptDto tokenDecryptDto, String fileDate, int idx, HttpHeaders headers ) throws IOException {
 		byte[] imageBytes = downloadImage(imageUrl);
 		ResponseEntity<Map<String, Object>> response = null;
 		Map<String, Object> responseBody = new HashMap<>();
@@ -101,7 +102,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 			String[] split = filename.split("\\.");
 			String splitFilename = split[0];
 			filePath =
-				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/imgs/"
+				post.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/imgs/"
 					+ splitFilename + "_" + idx + ".png";;
 
 			//수정 요청일 때 이미 업로드되어있던 이미지의 sha 가져오기
@@ -128,7 +129,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		}
 		else {
 			filePath =
-				member.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/imgs/"
+				post.getGithubId() + "/" + post.getRepository() + "/contents/" + post.getCategoryName() + "/imgs/"
 					+ title + "_" + fileDate + "_" + idx + ".png";
 		}
 
@@ -159,13 +160,13 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 	}
 
 	// STEP2-1. AWS Lambda와 통신하여 JSON 응답값을 받아오는 메소드
-	public Map<String, Object> awsLambdaResponse(PostNotionToGithubDto post, Member member) throws Exception {
+	public Map<String, Object> awsLambdaResponse(PostNotionToGithubDto post, TokenDecryptDto tokenDecryptDto) throws Exception {
 		String response = ""; // Tistory에 발행할 Notion 페이지를 md로 파싱한 JSON 응답값
 
 		// STEP2-1-1. AWS Lambda와 통신하는 과정
 		lambdaCallFunction = new LambdaCallFunction(
-			member.getNotionToken(),
-			member.getToken().getGithubToken(),
+			tokenDecryptDto.getNotionToken(),
+			tokenDecryptDto.getGithubToken(),
 			post.getRepository(),
 			post.getRequestLink(),
 			post.getType()
@@ -181,12 +182,12 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 
 	// STEP2-2. Github API를 이용하여 Github 포스팅을 진행하기 위해 HttpEntity를 구성하는 메소드
 	public HttpEntity<Map<String, String>> getHttpLambdaRequest(
-		String title, String content, Github github, PostNotionToGithubDto post, Member member, String fileDate) throws IOException {
+		String title, String content, Github github, PostNotionToGithubDto post, TokenDecryptDto tokenDecryptDto, String fileDate) throws IOException {
 
 		HttpHeaders headers = new HttpHeaders();
 
 		headers.add("Accept", "application/vnd.github+json");
-		headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
+		headers.add("Authorization", "Bearer " + tokenDecryptDto.getGithubToken());
 		headers.add("X-GitHub-Api-Version", "2022-11-28");
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -197,7 +198,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		int idx = 1;
 		while (matcher.find()) {
 			String imageUrl = matcher.group(1);
-			String newImageUrl = uploadImageToGithub(imageUrl, title, github, post, member, fileDate, idx++, headers);
+			String newImageUrl = uploadImageToGithub(imageUrl, title, github, post, tokenDecryptDto, fileDate, idx++, headers);
 			matcher.appendReplacement(newPostContent, "![](" + newImageUrl + ")");
 		}
 		matcher.appendTail(newPostContent);
@@ -218,6 +219,6 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 
 	@Override
 	public LambdaResponse call() throws Exception {
-		return githubAwsLambda(index, post, github, member);
+		return githubAwsLambda(index, post, github, tokenDecryptDto);
 	}
 }
