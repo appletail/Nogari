@@ -1,21 +1,18 @@
-.Icons {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.Icon {
-  cursor: pointer;
-}
-
-.Refresh {
-  cursor: pointer;
+.ServiceWrapper {
+  padding: 22px 30px;
 }
 
 .TitleNav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
+}
+
+.ConnectedText {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
 }
 
 .Nav {
@@ -25,40 +22,23 @@
   gap: 10px;
 }
 
-.postBox {
-  /* height: 2.8rem; */
+.ConnectedIcons {
   display: flex;
-  /* justify-content: space-between; */
+  justify-content: center;
   align-items: center;
-  border: none;
-  border-radius: 0.7rem;
-  color: black;
-  font-weight: bold;
-  font-size: 1rem;
-  background-color: lightgrey;
-  box-shadow: 1px 3px 8px -2px gray;
+  margin-bottom: 40px;
+  gap: 80px;
 }
 
-.postButton {
-  height: 1.8rem;
-  border: none;
-  border-radius: 0.2rem;
-  color: white;
-  font-weight: bold;
-  font-size: 1rem;
-  background-color: #007dff;
-  box-shadow: 1px 3px 8px -2px gray;
+.Icons {
+  display: flex;
+  gap: 23px;
+}
+
+.Icon {
   cursor: pointer;
 }
 
-.postButton:hover {
-  /* hover 시 적용되는 스타일 */
-  background-color: #555;
-}
-
-::placeholder {
-  /* Chrome, Firefox, Opera, Safari 10.1+ */
-  color: gray;
-  font-size: 0.3em;
-  opacity: 1; /* Firefox */
+.Refresh {
+  cursor: pointer;
 }
