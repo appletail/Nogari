@@ -1,0 +1,65 @@
+.TitleText {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.PostBox {
+  padding: 0 0.8rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 0.7rem;
+  color: black;
+  background-color: rgb(239, 239, 239);
+  box-shadow: 1px 3px 8px -4px gray;
+  overflow: hidden;
+}
+
+.OpenLink {
+  cursor: pointer;
+  color: rgb(0, 76, 255);
+  white-space: nowrap;
+}
+.OpenLink:hover {
+  color: rgb(107, 179, 207);
+}
+
+.LogText {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.TagInput {
+  width: 80%;
+  margin-right: 5px;
+  border-radius: 0.2rem;
+}
+
+.postButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 2rem;
+  padding: 10px;
+  border: none;
+  border-radius: 0.2rem;
+  color: white;
+  white-space: nowrap;
+  font-size: 14px;
+  background-color: #007dff;
+  box-shadow: 1px 3px 8px -4px gray;
+  cursor: pointer;
+}
+
+.postButton:hover {
+  /* hover 시 적용되는 스타일 */
+  background-color: #555;
+}
+
+::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: gray;
+  font-size: 0.3em;
+  opacity: 1; /* Firefox */
+}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { checkUrl } from './utils'
-import style from '../../../src/styles/ServiceLayout.module.css'
+import style from '../../../src/styles/Home.module.css'
 import { getLog, postTistory } from '../../apis/apis'
 
 function Home() {
@@ -86,39 +86,52 @@ function Home() {
 
   return (
     <div>
-      <h1>최근 발행 이력</h1>
-      <div className={style.postBox} style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
-        <div>
-          <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
-        </div>
+      <div className={style.TitleText} style={{ marginBottom: '9px' }}>
+        최근 발행 이력
+      </div>
 
-        <div>
-          <div style={{ cursor: 'pointer', color: 'blue' }} onClick={openLink}>
-            {log.title}
-          </div>
-
-          <div style={{ fontSize: '1rem' }}>
-            <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
-          </div>
-        </div>
+      <div className={style.PostBox} style={{ fontWeight: 'bold', marginBottom: '30px' }}>
+        {log.date ? (
+          <>
+            <div style={{ display: 'flex' }}>
+              <div style={{ fontSize: '14px', whiteSpace: 'nowrap', marginRight: '7px' }}>
+                {log.status}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className={style.OpenLink} onClick={openLink}>
+                  {log.title.length > 26 ? log.title.substr(0, 24).trim() + '...' : log.title}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#A5A5A5' }}>{log.date}</div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className={style.LogText}>{log.status}</div>
+        )}
       </div>
 
       <div>
-        <h1>간편 발행</h1>
+        <div className={style.TitleText} style={{ marginBottom: '9px' }}>
+          간편 발행
+        </div>
         <form onSubmit={handleSubmit(PublishHandler)}>
           {/* <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label> */}
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
             <input
               id="tistory-tag"
               type="text"
               {...register('tagList')}
-              placeholder="태그를 입력해주세요. 각 태그는 쉼표(,)로 구분합니다."
-              style={{ width: '70%' }}
+              className={style.TagInput}
+              placeholder="태그를 입력해주세요."
+              style={{}}
             />
             <button className={style.postButton} type="submit">
               발행하기
             </button>
           </div>
+          <label htmlFor="tistory-tag" style={{ fontSize: '12px', color: 'gray' }}>
+            각 태그는 쉼표(,)로 구분됩니다.
+          </label>
         </form>
       </div>
     </div>

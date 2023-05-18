@@ -35,6 +35,10 @@ function Login() {
     }
   }
 
+  const openLink = () => {
+    chrome.tabs.create({ url: 'https://www.nogari.me/signup' })
+  }
+
   return (
     <div className={style.Container}>
       <img className={style.Logo} src="src/assets/logos/NogariLogo.png" />
@@ -71,7 +75,11 @@ function Login() {
           </label>
         </div>
         {errors.password && <span>비밀번호를 입력해주세요.</span>}
-
+        <div style={{ display: 'flex', justifyContent: 'end', marginBottom: '10px' }}>
+          <a href="" onClick={openLink}>
+            회원가입을 안하셨나요?
+          </a>
+        </div>
         <button className={style.LoginButton} type="submit">
           로그인
         </button>
