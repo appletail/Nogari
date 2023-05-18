@@ -314,7 +314,7 @@ function GithubPage() {
   return (
     <>
       <Helmet>
-        <title>Nogari | Github</title>
+        <title>Github | Nogari</title>
       </Helmet>
 
       {/* github 아이콘 & 로그인 */}
