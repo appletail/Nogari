@@ -246,7 +246,6 @@ function TistoryPage() {
     {
       field: 'requestLink',
       headerName: '요청페이지 링크',
-      minWidth: 220,
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
@@ -259,6 +258,8 @@ function TistoryPage() {
       type: 'singleSelect',
       valueOptions: visibilityOptions,
       disableColumnMenu: true,
+      minWidth: 100,
+      flex: 0.2,
     },
     {
       field: 'categoryName',
@@ -280,6 +281,8 @@ function TistoryPage() {
       },
       editable: true,
       disableColumnMenu: true,
+      minWidth: 100,
+      flex: 0.4,
     },
     {
       field: 'tagList',
@@ -287,11 +290,11 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
+      flex: 0.2,
     },
     {
       field: 'modifiedDate',
       headerName: '발행일자',
-      width: 125,
       editable: false,
       hideable: false,
       disableColumnMenu: true,
@@ -309,12 +312,15 @@ function TistoryPage() {
           return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
         }
       },
+      minWidth: 125,
+      flex: 0.4,
     },
     {
       field: 'status',
       headerName: '발행상태',
       type: 'singleSelect',
-      width: 100,
+      minWidth: 100,
+      flex: 0.3,
       editable: true,
       hideable: false,
       valueOptions: ({ row }) => {
@@ -336,7 +342,6 @@ function TistoryPage() {
       hideSortIcons: true,
       editable: false,
       flex: 1,
-      minWidth: 50,
       renderCell: (params: GridRenderCellParams) => (
         <a
           href={params.row.responseLink}
