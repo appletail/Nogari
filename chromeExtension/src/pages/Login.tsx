@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { postEmailLogin } from '../apis/apis'
 import closeEye from '../assets/icons/eye_invisible.svg'
 import openEye from '../assets/icons/eye_open.svg'
+import Logo from '../assets/logos/NogariLogo.png'
 import style from '../styles/Login.module.css'
 
 function Login() {
@@ -41,7 +42,7 @@ function Login() {
 
   return (
     <div className={style.Container}>
-      <img className={style.Logo} src="src/assets/logos/NogariLogo.png" />
+      <img className={style.Logo} src={Logo} />
       <form className={style.LoginForm} onSubmit={handleSubmit(submitHandler)}>
         <div className={style.InputBox}>
           <input
