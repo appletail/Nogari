@@ -6,6 +6,7 @@ import { getBlockChildren } from "./notion-to-md/notion.js";
 import { Client } from "@notionhq/client";
 import { RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints.js";
 import axios from "axios";
+import getFileName from "./getFileName.js";
 
 
 const setCustomMarkdown = (
@@ -108,12 +109,10 @@ const setCustomMarkdown = (
   n2m.setCustomTransformer("image", async (block: any): Promise<any> => {
     let blockContent = block.image;
     let error_message: string = 'tistory 관련 알 수 없는 오류가 발생했습니다.'
-    const image_caption_plain = blockContent.caption
-      .map((item: RichTextItemResponse) => item.plain_text)
-      .join("");
+    const imageName = getFileName(blockContent.file.url)
     const image_type = blockContent.type;
     if (image_type === "external")
-      return md.image(image_caption_plain, blockContent.external.url);
+      return md.image(imageName, blockContent.external.url);
     if (image_type === "file") {
       if (tistory) {
         // getFile
@@ -144,12 +143,45 @@ const setCustomMarkdown = (
 
         // get tistory url
         if (!url) throw new Error(error_message)
-        return md.image(image_caption_plain, url);
+        return md.image(imageName, url);
       } else {
-        return md.image(image_caption_plain, blockContent.file.url);
+        return md.image(imageName, blockContent.file.url);
       }
     }
   });
+  n2m.setCustomTransformer("file", async (block: any): Promise<any> => {
+    let blockContent = block.file;
+    if (blockContent) {
+      const fileName = getFileName(blockContent.file.url)
+      const file_type = blockContent.type;
+      if (file_type === "external")
+        return md.link(fileName, blockContent.external.url);
+      if (file_type === "file")
+        return md.link(fileName, blockContent.file.url);
+    }
+  })
+  n2m.setCustomTransformer("video", async (block: any): Promise<any> => {
+    let blockContent = block.video;
+    if (blockContent) {
+      const fileName = getFileName(blockContent.file.url)
+      const file_type = blockContent.type;
+      if (file_type === "external")
+        return md.link(fileName, blockContent.external.url);
+      if (file_type === "file")
+        return md.link(fileName, blockContent.file.url);
+    }
+  })
+  n2m.setCustomTransformer("pdf", async (block: any): Promise<any> => {
+    let blockContent = block.pdf;
+    if (blockContent) {
+      const fileName = getFileName(blockContent.file.url)
+      const file_type = blockContent.type;
+      if (file_type === "external")
+        return md.link(fileName, blockContent.external.url);
+      if (file_type === "file")
+        return md.link(fileName, blockContent.file.url);
+    }
+  })
 
 
   return n2m

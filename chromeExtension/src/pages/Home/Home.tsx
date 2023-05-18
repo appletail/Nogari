@@ -64,7 +64,7 @@ function Home() {
           getLog().then((res) => {
             const data = res.data.result[0][0]
             const date = new Date(data.modifiedDate)
-            date.setHours(date.getHours() + 9)
+            date.setHours(date.getHours())
             const parsedLog = {
               title: data.title,
               status: data.status,
