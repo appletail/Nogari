@@ -21,12 +21,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import org.jasypt.encryption.StringEncryptor;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.RepositoryService;
+
 import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +57,7 @@ import me.nogari.nogari.api.request.PostNotionToTistoryDto;
 import me.nogari.nogari.api.response.GithubContentResponseDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
+import me.nogari.nogari.config.JasyptConfig;
 import me.nogari.nogari.entity.Github;
 import me.nogari.nogari.entity.Member;
 import me.nogari.nogari.entity.Tistory;
@@ -87,11 +92,15 @@ public class ContentServiceImpl implements ContentService {
 	private final TistoryRepositoryCust tistoryRepositoryCust;
 	private final GithubRepositoryCust githubRepositoryCust;
 
+	@Autowired
+	private JasyptConfig jasyptConfig;
+
 	@Override
 	public List<String> getTistoryBlogName(List<String> blogNameList, Member member) {
 
-		// 토큰에서 tistory accesstoken 받아오기
-		String accessToken = member.getToken().getTistoryToken();
+		// 토큰에서 tistory accesstoken 받아오고 복호화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getTistoryToken());
 
 		if (!"".equals(accessToken) && accessToken != null) {
 			String blogInfoUrl = "https://www.tistory.com/apis/blog/info?"
@@ -136,8 +145,9 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	public List<Object> getTistoryCates(List<String> blogNameList, List<Object> categoriesList, Member member) {
 
-		// 토큰에서 tistory accesstoken 받아오기
-		String accessToken = member.getToken().getTistoryToken();
+		// 토큰에서 tistory accesstoken 받아오고 복화화
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getTistoryToken());
 
 		if (!"".equals(accessToken) && accessToken != null) {
 
@@ -1175,7 +1185,7 @@ public class ContentServiceImpl implements ContentService {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Accept", "application/vnd.github+json");
-		headers.add("Authorization", "Bearer " + member.getToken().getGithubToken());
+		headers.add("Authorization", "Bearer " + jasyptConfig.createEncryptor().decrypt(member.getToken().getGithubToken()));
 		headers.add("X-GitHub-Api-Version", "2022-11-28");
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -1232,7 +1242,8 @@ public class ContentServiceImpl implements ContentService {
 		try{
 			lambdaCallFunction = new LambdaCallFunction(
 				notionToken,
-				member.getToken().getGithubToken(),
+				jasyptConfig.createEncryptor().decrypt(member.getToken().getGithubToken()),
+				// member.getToken().getGithubToken(),
 				githubPosting.getRepository(),
 				githubPosting.getRequestLink(),
 				githubPosting.getType()

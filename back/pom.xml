@@ -188,6 +188,21 @@
             <version>3.4.2</version>
         </dependency>
 
+        <!--   Jasypt : 암호화 라이브러리 (SpringBoot 2.x 버전기준) -->
+        <!-- https://mvnrepository.com/artifact/org.jasypt/jasypt -->
+<!--        <dependency>-->
+<!--            <groupId>org.jasypt</groupId>-->
+<!--            <artifactId>jasypt</artifactId>-->
+<!--            <version>1.9.3</version>-->
+<!--        </dependency>-->
+
+<!--         https://mvnrepository.com/artifact/com.github.ulisesbocchio/jasypt-spring-boot-starter -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>
