@@ -17,7 +17,6 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
-  GridSingleSelectColDef,
   GridEditSingleSelectCellProps,
   GridEditSingleSelectCell,
   useGridApiRef,
@@ -235,7 +234,7 @@ function TistoryPage() {
       headerName: '블로그 선택',
       type: 'singleSelect',
       valueOptions: blogName,
-      minWidth: 100,
+      minWidth: 150,
       flex: 0.3,
       editable: true,
       disableColumnMenu: true,
@@ -260,6 +259,8 @@ function TistoryPage() {
       type: 'singleSelect',
       valueOptions: visibilityOptions,
       disableColumnMenu: true,
+      minWidth: 100,
+      flex: 0.2,
     },
     {
       field: 'categoryName',
@@ -281,6 +282,8 @@ function TistoryPage() {
       },
       editable: true,
       disableColumnMenu: true,
+      minWidth: 100,
+      flex: 0.4,
     },
     {
       field: 'tagList',
@@ -288,11 +291,11 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
+      flex: 0.2,
     },
     {
       field: 'modifiedDate',
       headerName: '발행일자',
-      width: 125,
       editable: false,
       hideable: false,
       disableColumnMenu: true,
@@ -310,12 +313,15 @@ function TistoryPage() {
           return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
         }
       },
+      minWidth: 125,
+      flex: 0.4,
     },
     {
       field: 'status',
       headerName: '발행상태',
       type: 'singleSelect',
-      width: 100,
+      minWidth: 100,
+      flex: 0.3,
       editable: true,
       hideable: false,
       valueOptions: ({ row }) => {
@@ -443,6 +449,22 @@ function TistoryPage() {
               }}
               slots={{
                 loadingOverlay: LinearProgress,
+              }}
+              sx={{
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+                  width: '0.2em',
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#637381',
+                  opacity: 0.48,
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
+                  {
+                    background: '#555',
+                  },
               }}
             />
           </Scrollbar>

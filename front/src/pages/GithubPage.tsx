@@ -18,11 +18,10 @@ import {
   DataGrid,
   GridColDef,
   GridEditSingleSelectCellProps,
-  GridCellParams,
   GridEditSingleSelectCell,
   GridCellModesModel,
-  GridCellModes,
   useGridApiRef,
+  GridRenderCellParams,
 } from '@mui/x-data-grid'
 
 import { postGithubPostList, postGithubPost } from '@/apis/githubApis'
@@ -255,7 +254,8 @@ function GithubPage() {
     {
       field: 'modifiedDate',
       headerName: '발행일자',
-      width: 120,
+      minWidth: 125,
+      flex: 0.4,
       editable: false,
       hideable: false,
       disableColumnMenu: true,
@@ -278,7 +278,8 @@ function GithubPage() {
       field: 'status',
       headerName: '발행상태',
       type: 'singleSelect',
-      width: 100,
+      minWidth: 100,
+      flex: 0.3,
       editable: true,
       hideable: false,
       valueOptions: ({ row }) => {
@@ -301,6 +302,15 @@ function GithubPage() {
       editable: false,
       flex: 1,
       minWidth: 50,
+      renderCell: (params: GridRenderCellParams) => (
+        <a
+          href={params.row.responseLink}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {params.row.filename}
+        </a>
+      ),
     },
     {
       field: 'initStatus',
@@ -314,7 +324,7 @@ function GithubPage() {
   return (
     <>
       <Helmet>
-        <title>Nogari | Github</title>
+        <title>Github | Nogari</title>
       </Helmet>
 
       {/* github 아이콘 & 로그인 */}
@@ -365,7 +375,16 @@ function GithubPage() {
 
       <Card>
         <StyledContainer>
-          <Scrollbar>
+          <Scrollbar
+            sx={{
+              height: 1,
+              '& .simplebar-content': {
+                height: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              },
+            }}
+          >
             {/* 깃허브 로그인 되어있지 않으면 위에 씌우기 */}
             {!oauth?.data.result.github ? (
               <StyledWrapper>
@@ -391,7 +410,6 @@ function GithubPage() {
                 columns: {
                   ...columns,
                   columnVisibilityModel: {
-                    // Hide columns status and traderName, the other columns will remain visible
                     initStatus: false,
                   },
                 },
@@ -399,10 +417,25 @@ function GithubPage() {
               slots={{
                 loadingOverlay: LinearProgress,
               }}
+              sx={{
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {
+                  width: '0.2em',
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#637381',
+                  opacity: 0.48,
+                },
+                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover':
+                  {
+                    background: '#555',
+                  },
+              }}
             />
           </Scrollbar>
         </StyledContainer>
-        {/* )} */}
       </Card>
     </>
   )
