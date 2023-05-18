@@ -24,3 +24,41 @@
   align-items: center;
   gap: 10px;
 }
+
+.postBox {
+  /* height: 2.8rem; */
+  display: flex;
+  /* justify-content: space-between; */
+  align-items: center;
+  border: none;
+  border-radius: 0.7rem;
+  color: black;
+  font-weight: bold;
+  font-size: 1rem;
+  background-color: lightgrey;
+  box-shadow: 1px 3px 8px -2px gray;
+}
+
+.postButton {
+  height: 1.8rem;
+  border: none;
+  border-radius: 0.2rem;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  background-color: #007dff;
+  box-shadow: 1px 3px 8px -2px gray;
+  cursor: pointer;
+}
+
+.postButton:hover {
+  /* hover 시 적용되는 스타일 */
+  background-color: #555;
+}
+
+::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: gray;
+  font-size: 0.3em;
+  opacity: 1; /* Firefox */
+}

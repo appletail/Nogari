@@ -1,28 +1,34 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { axAuth } from '@/apis/axiosInstance'
+import { postOauthGit } from '@/apis/OauthApis'
+import { loadingInterceptors } from '@/components/loading/LoadingInterceptors'
+import LoadingSpinner from '@/components/loading/LoadingSpinner'
 
 function GithubOAuth() {
+  const [loading, setLoading] = useState(false)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
   useEffect(() => {
+    loadingInterceptors(setLoading)
     const code = searchParams.get('code')
-
-    axAuth({
-      method: 'post',
-      url: '/oauth/git',
-      data: { code },
-    })
-      .then((res) => {
-        if (res.data.resultCode === 200)
-          sessionStorage.setItem('github', 'true')
-      })
-      .then(() => navigate('/test'))
-      .catch((err) => console.log(err))
+    ;(async function () {
+      if (code) {
+        try {
+          const response = await postOauthGit(code)
+          const resultCode = response.data.resultCode
+          if (resultCode === 200) {
+            alert('깃허브 연동이 완료되었습니다.')
+            navigate('/github')
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    })()
   }, [])
-  return <div>GithubOAuth</div>
+  return <>{loading && <LoadingSpinner />}</>
 }
 
 export default GithubOAuth

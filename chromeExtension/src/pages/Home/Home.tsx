@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { checkUrl } from './utils'
+import style from '../../../src/styles/ServiceLayout.module.css'
 import { getLog, postTistory } from '../../apis/apis'
-import { loadingInterceptors } from '../../components/loading/LoadingInterceptors'
-import LoadingSpinner from '../../components/loading/LoadingSpinner'
 
 function Home() {
   const [log, setLog] = useState({
@@ -14,7 +13,6 @@ function Home() {
     date: '',
   })
   const { register, handleSubmit, reset } = useForm<Tpost>()
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const user = localStorage.getItem('user')
@@ -33,7 +31,6 @@ function Home() {
         const data = res.data.result[0][0]
         if (data) {
           const date = new Date(data.modifiedDate)
-          date.setHours(date.getHours() + 9)
           const parsedLog = {
             title: data.title,
             status: data.status,
@@ -52,7 +49,6 @@ function Home() {
     chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
       const tab = tabs[0]
       const requestLink = tab.url
-      loadingInterceptors(setLoading)
       if (!checkUrl(requestLink)) {
         alert('올바른 notion 페이지에서 발행해주세요.')
         return
@@ -90,24 +86,41 @@ function Home() {
 
   return (
     <div>
-      <h1>최신 발행 로그</h1>
-      <p style={{ fontWeight: 'bold' }}>
-        <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
-        <div style={{ fontSize: '1rem' }}>
-          <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
-          <span style={{ cursor: 'pointer', color: 'blue' }} onClick={openLink}>
-            {log.title}
-          </span>
-        </div>
-      </p>
-      <form onSubmit={handleSubmit(PublishHandler)}>
-        <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label>
+      <h1>최근 발행 이력</h1>
+      <div className={style.postBox} style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
         <div>
-          <input id="tistory-tag" type="text" {...register('tagList')} />
-          <button type="submit">발행하기</button>
+          <div style={{ fontSize: '1.3rem' }}>{log.status} </div>
         </div>
-      </form>
-      {loading && <LoadingSpinner />}
+
+        <div>
+          <div style={{ cursor: 'pointer', color: 'blue' }} onClick={openLink}>
+            {log.title}
+          </div>
+
+          <div style={{ fontSize: '1rem' }}>
+            <div style={{ fontSize: '0.8rem' }}>{log.date}</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h1>간편 발행</h1>
+        <form onSubmit={handleSubmit(PublishHandler)}>
+          {/* <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label> */}
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <input
+              id="tistory-tag"
+              type="text"
+              {...register('tagList')}
+              placeholder="태그를 입력해주세요. 각 태그는 쉼표(,)로 구분합니다."
+              style={{ width: '70%' }}
+            />
+            <button className={style.postButton} type="submit">
+              발행하기
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

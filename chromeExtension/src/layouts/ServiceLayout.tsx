@@ -5,6 +5,7 @@ import { connectedConfig } from './config'
 import { getConnectedSite } from '../apis/apis'
 import refresh from '../assets/icons/refresh.svg'
 
+import nogariLogo from '../assets/logos/NogariLogo.png'
 import LoadingSpinner from '../components/loading'
 import { loadingInterceptors } from '../components/loading/LoadingInterceptors'
 import Logout from '../components/Logout'
@@ -40,13 +41,16 @@ function ServiceLayout() {
   return (
     <div>
       <div className={style.TitleNav}>
-        <p>
-          <b>연결된 사이트</b>
-        </p>
+        <img src={nogariLogo} style={{ width: '40%' }} />
         <div className={style.Nav}>
           {outlet?.props.children.props.match.pathname === '/' ? <ToSetting /> : <ToHome />}
           <Logout />
         </div>
+      </div>
+      <div className={style.TitleNav}>
+        <p>
+          <b style={{ fontSize: 15 }}>연결된 사이트</b>
+        </p>
       </div>
       <div className={style.Icons}>
         {connectedConfig(isLogins).map((config) => {

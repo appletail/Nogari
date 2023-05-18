@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class PaginationDto {
 
 	private Long lastTistoryId;
+	private Long lastGithubId;
 	private int pageSize;
 	// 정렬
 	private String filter;
