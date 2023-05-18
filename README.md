@@ -1,6 +1,6 @@
 # Nogari 포팅메뉴얼
 
-![노가리_로고](/uploads/0fb3a94839304120138a77ca2c58739d/노가리_로고.png)
+![Nogari_Manual](/uploads/b8c02505c0a89f80f8641a49159bead0/Nogari_Manual.png)
 
 ## 1. 서비스 소개
 
