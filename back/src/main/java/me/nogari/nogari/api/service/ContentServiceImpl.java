@@ -514,7 +514,7 @@ public class ContentServiceImpl implements ContentService {
 							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
 							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
 								newStringEncryptor.decrypt(member.getNotionToken()),
-								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getTistoryToken()),
 								newStringEncryptor.decrypt(member.getToken().getGithubToken())
 							);
 							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, tokenDecryptDto);
@@ -596,7 +596,7 @@ public class ContentServiceImpl implements ContentService {
 							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
 							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
 								newStringEncryptor.decrypt(member.getNotionToken()),
-								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getTistoryToken()),
 								newStringEncryptor.decrypt(member.getToken().getGithubToken())
 							);
 							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, tokenDecryptDto);
