@@ -1,6 +1,6 @@
 # Nogari 포팅메뉴얼
 
-![Nogari_Manual](/uploads/b8c02505c0a89f80f8641a49159bead0/Nogari_Manual.png)
+![Nogari_Manual](/images/Nogari_Manual.png)
 
 ## 1. 서비스 소개
 
@@ -45,16 +45,16 @@
 ## 5. 사용자 인터페이스
 
 - <b>토큰 발행 (Notion, Tistory, Github)</b><br/>  
-![토큰발행](/uploads/0428cea96b6c85ad44d1cb53312850de/토큰발행.gif)<br/><br/>   
+![토큰발행](/images/토큰발행.gif)<br/><br/>   
 
 - <b>Notion에서 Tistory로 포스팅 발행</b><br/>  
-![티스토리발행](/uploads/4c89fa5762993bfe0ed9056a5d99e949/티스토리발행.gif)<br/><br/>   
+![티스토리발행](/images/티스토리발행.gif)<br/><br/>   
 
 - <b>크롬 확장프로그램 설치</b><br/>    
-![확장프로그램설치](/uploads/81eca24ddafd108246bf607f7462f609/확장프로그램설치.gif)<br/><br/>    
+![확장프로그램설치](/images/확장프로그램설치.gif)<br/><br/>    
 
 - <b>크롬 확장프로그램에서 Tistory로 포스팅</b><br/>  
-![확장프로그램사용](/uploads/9c4319c3e6405e44ced08b06687e805b/확장프로그램사용.gif)<br/><br/>    
+![확장프로그램사용](/images/확장프로그램사용.gif)<br/><br/>    
 
 
 
