@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { Stack, IconButton } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
@@ -10,11 +11,15 @@ import { postLogOut } from '@/apis/authApis'
 import Iconify from '@/components/iconify'
 import LoadingSpinner from '@/components/loading'
 import { loadingInterceptors } from '@/components/loading/LoadingInterceptors'
+import Tutorial from '@/components/tutorial/Tutorial'
 
 function RootLayout() {
   const [loading, setLoading] = useState(false)
+  const [tutorial, setTutorial] = useState(false)
+
   useEffect(() => {
     loadingInterceptors(setLoading)
+    if (!localStorage.getItem('tutorial')) setTutorial(true)
   }, [])
 
   const logoutHandler = async () => {
@@ -45,7 +50,30 @@ function RootLayout() {
           <Outlet />
         </StyledContainer>
       </StyledLeftBodyPadding>
+      {/* 로딩스피너 */}
       {loading && <LoadingSpinner />}
+      {/* 튜토리얼 */}
+      {tutorial && <Tutorial setTutorial={setTutorial} />}
+      <div
+        title="사이트 이용법"
+        style={{
+          position: 'fixed',
+          right: '70px',
+          bottom: '70px',
+          zIndex: 1000,
+          cursor: 'pointer',
+        }}
+        onClick={() => setTutorial(true)}
+      >
+        <HelpOutlineIcon
+          sx={{
+            width: '40px',
+            height: '40px',
+            backgroundColor: 'white',
+            borderRadius: '100px',
+          }}
+        />
+      </div>
     </>
   )
 }
