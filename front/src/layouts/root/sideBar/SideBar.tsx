@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 
 import { useQuery } from 'react-query'
 
-import { Box, Link, Drawer, Typography, Avatar } from '@mui/material'
+import { Link } from 'react-router-dom'
+
+import { Box, Drawer, Typography, Avatar } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 
 // mock
@@ -44,40 +46,40 @@ export default function Nav() {
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', paddingLeft: '25px' }}>
-        <Logo width={'150px'} />
+        <Link to="/notice">
+          <Logo width="150px" />
+        </Link>
       </Box>
 
       <Box sx={{ mb: 5, mx: 2.5 }}>
-        <Link underline="none">
-          <StyledAccount>
-            <Avatar
-              alt="photoURL"
-              src={`/assets/images/avatars/avatar_${avatarNum}.jpg`}
-            />
+        <StyledAccount>
+          <Avatar
+            alt="photoURL"
+            src={`/assets/images/avatars/avatar_${avatarNum}.jpg`}
+          />
 
-            <Box
+          <Box
+            sx={{
+              ml: 2,
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Typography
+              variant="subtitle2"
               sx={{
-                ml: 2,
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
+                color: 'text.primary',
               }}
             >
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: 'text.primary',
-                }}
-              >
-                {sessionStorage.getItem('email')?.split('@')[0]}
-              </Typography>
+              {sessionStorage.getItem('email')?.split('@')[0]}
+            </Typography>
 
-              <Typography sx={{ color: 'text.secondary' }} variant="body2">
-                {'일반회원'}
-              </Typography>
-            </Box>
-          </StyledAccount>
-        </Link>
+            <Typography sx={{ color: 'text.secondary' }} variant="body2">
+              {'일반회원'}
+            </Typography>
+          </Box>
+        </StyledAccount>
       </Box>
       <StyledNavContent>
         <NavSection data={navConfig} />

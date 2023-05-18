@@ -35,7 +35,11 @@ function SettingItem({ item }: { item: SettingConfig }) {
   const { title, path, icon } = item
 
   return (
-    <StyledSettingItem component={Link} to={path}>
+    <StyledSettingItem
+      component={Link}
+      target={path === '/notice' ? '_self' : '_blank'}
+      to={path}
+    >
       <StyledSettingItemIcon>{icon && icon}</StyledSettingItemIcon>
       <ListItemText disableTypography primary={title} />
     </StyledSettingItem>
