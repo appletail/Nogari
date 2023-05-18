@@ -54,6 +54,7 @@ import me.nogari.nogari.api.aws.awsLambdaCallableGithub;
 import me.nogari.nogari.api.request.PostNotionToGithubDto;
 
 import me.nogari.nogari.api.request.PostNotionToTistoryDto;
+import me.nogari.nogari.api.request.TokenDecryptDto;
 import me.nogari.nogari.api.response.GithubContentResponseDto;
 import me.nogari.nogari.api.response.TistoryCateDto;
 import me.nogari.nogari.api.response.TistoryContentResponseDto;
@@ -399,6 +400,9 @@ public class ContentServiceImpl implements ContentService {
 		// 각 Thread별 조건검사 및 발행 결과를 반환받는 LamdaResponse 배열
 		LambdaResponse[] lambdaResponses = new LambdaResponse[postNotionToTistoryDtoList.size()];
 
+		// 멤버에 대한 토큰 암호화 및 복호화를 수행하는 Encryptor
+		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
+
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
@@ -502,7 +506,13 @@ public class ContentServiceImpl implements ContentService {
 					// STEP5-1. 조건검사와 상태검사를 모두 통과했다면 AWS Lambda를 호출하고 스레드에 제출한 뒤, FutureList에 스레드의 실행 결과를 추가한다.
 					if(statusFlag){
 						try{
-							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
+							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
+							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getGithubToken())
+							);
+							Callable<LambdaResponse> postLambdaCallable = new awsLambdaCallable(i, post, tistory, tokenDecryptDto);
 							Future<?> future = completionService.submit(postLambdaCallable);
 							futureList.add(future);
 						} catch(Exception e){
@@ -578,7 +588,13 @@ public class ContentServiceImpl implements ContentService {
 					if(statusFlag){
 						// 데이터베이스의 기존 발행 이력을 조회한 뒤, 클라이언트의 수정요청을 데이터베이스에 반영한다.
 						try{
-							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, member);
+							// 서브 스레드의 발행 요청을 수행하기 전, 복호화를 수행한다.
+							TokenDecryptDto tokenDecryptDto = new TokenDecryptDto(
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getNotionToken()),
+								newStringEncryptor.decrypt(member.getToken().getGithubToken())
+							);
+							Callable<LambdaResponse> awsLambdaCallable = new awsLambdaCallable(i, post, tistory, tokenDecryptDto);
 							Future<?> future = completionService.submit(awsLambdaCallable);
 							futureList.add(future);
 						} catch(Exception e){
