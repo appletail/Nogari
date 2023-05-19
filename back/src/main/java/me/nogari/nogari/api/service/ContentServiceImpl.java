@@ -340,26 +340,77 @@ public class ContentServiceImpl implements ContentService {
 
 		// 토큰에서 github accesstoken 받아오고 복화화
 		StringEncryptor newStringEncryptor = jasyptConfig.createEncryptor();
-		String ATK = newStringEncryptor.decrypt(member.getToken().getGithubToken());
+		String accessToken = newStringEncryptor.decrypt(member.getToken().getGithubToken());
 
+		ResponseEntity<List<Map<String, Object>>>  response = null;
 
-		GitHubClient client = new GitHubClient();
-		client.setOAuth2Token(ATK);
+		if (!"".equals(accessToken) && accessToken != null) {
+			try {
+				String githubRequestURL = "https://api.github.com/users/" + member.getGithubId() + "/repos";
+					RestTemplate rt = new RestTemplate();
+					HttpHeaders headers = new HttpHeaders();
 
-		// RepositoryService 생성
-		RepositoryService repoService = new RepositoryService(client);
+					headers.add("Accept", "application/vnd.github+json");
+					headers.add("Authorization", "Bearer " + accessToken);
+					headers.add("X-GitHub-Api-Version", "2022-11-28");
 
-		// 유저의 repositories 리스트 가져오기
-		try {
-			List<Repository> repositories = repoService.getRepositories();
-			for (Repository repo : repositories) {
-				repositoryList.add(repo.getName());
+					HttpEntity<String> entity = new HttpEntity<>(null, headers);
+					try {
+						response = rt.exchange(
+							githubRequestURL,
+							HttpMethod.GET,
+							entity,
+							new ParameterizedTypeReference<List<Map<String, Object>>>(){}
+						);
+
+						for (Map<String, Object> repository : response.getBody()) {
+							Object name = repository.get("name");
+							repositoryList.add(name.toString());
+						}
+						// 저장소 이름 리스트 사용 예시
+						for (String repositoryName : repositoryList) {
+							System.out.println("Repository Name: " + repositoryName);
+						}
+
+						// // Map<String, Object> body = response.getBody();
+						// if (response != null && response.getBody() != null) {
+						// 	for (Map<String, Object> item : response.getBody()) {
+						// 		if ("dir".equals(item.get("type"))) {
+						// 			categoriesList.get(i).add(item);
+						// 		}
+						// 	}
+						// } else {
+						// 	System.out.println("해당 레포지토리는 카테고리가 없습니다.");
+						// }
+					} catch (HttpClientErrorException.NotFound e){
+						// 이미지 파일이 없는 경우에 대한 처리.
+						// response와 responseBody는 null 상태이므로 여기서는 다루지 않는다.
+						System.out.println("line 118 : 이미지 file 없음");
+					}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-		}catch (Exception e){
-			e.printStackTrace();
 		}
-
 		return repositoryList;
+
+
+		// GitHubClient client = new GitHubClient();
+		// client.setOAuth2Token(ATK);
+		//
+		// // RepositoryService 생성
+		// RepositoryService repoService = new RepositoryService(client);
+		//
+		// // 유저의 repositories 리스트 가져오기
+		// try {
+		// 	List<Repository> repositories = repoService.getRepositories();
+		// 	for (Repository repo : repositories) {
+		// 		repositoryList.add(repo.getName());
+		// 	}
+		// }catch (Exception e){
+		// 	e.printStackTrace();
+		// }
+		//
+		// return repositoryList;
 
 	}
 
@@ -1056,10 +1107,11 @@ public class ContentServiceImpl implements ContentService {
 					responseBody.put("resultMessage", "[발행완료] Github 게시물 발행이 정상적으로 완료되었습니다."
 						+ lambdaResponses[i].getGithub().getSha());
 					responseList.add(responseBody);
-				} catch(HttpClientErrorException e){
+				} catch(Exception e){
 					// STEP6. [발행실패] Github 발행 상태 DB 갱신
 					// Case1. repository Error (HttpClientErrorException)
-					lambdaResponses[i].getTistory().setStatus("발행실패");
+					// lambdaResponses[i].getTistory().setStatus("발행실패");
+					lambdaResponses[i].getGithub().setStatus("발행실패");
 
 					responseBody.put("requestIndex", i+1);
 					responseBody.put("resultCode", 400);

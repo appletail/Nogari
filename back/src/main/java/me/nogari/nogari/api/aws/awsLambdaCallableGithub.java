@@ -72,10 +72,17 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 			lambdaResponse.setFilePath(filePath);
 		}
 		// STEP2-2. Tistory API를 이용하여 Tistory 포스팅을 진행하기 위해 HttpEntity를 구성한다.
-		HttpEntity<Map<String, String>> httpGithubRequest = getHttpLambdaRequest(title, content, github,
-			post, tokenDecryptDto, fileDate);
-		lambdaResponse.setGithubRequest(httpGithubRequest);
-
+		try {
+			HttpEntity<Map<String, String>> httpGithubRequest = getHttpLambdaRequest(title, content, github,
+				post, tokenDecryptDto, fileDate);
+			lambdaResponse.setGithubRequest(httpGithubRequest);
+		}catch (Exception e){
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Accept", "ID_FAIL");
+			Map<String, String> body = new LinkedHashMap<>();
+			HttpEntity<Map<String, String>> httpGithubRequest = new HttpEntity<>(body, headers);
+			lambdaResponse.setGithubRequest(httpGithubRequest);
+		}
 		return lambdaResponse;
 	}
 
@@ -176,7 +183,6 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 		// STEP2-1-2. JSON 데이터로 구성된 파싱 결과를 형식에 맞게 읽어들인다.
 		ObjectMapper objectMapper = new ObjectMapper();
 		Map<String, Object> data = objectMapper.readValue(response, Map.class);
-
 		return data;
 	}
 

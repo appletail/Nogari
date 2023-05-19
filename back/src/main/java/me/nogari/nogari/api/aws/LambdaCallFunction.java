@@ -92,7 +92,6 @@ public class LambdaCallFunction {
 
 		// 요청 바디 설정
 		httpPost.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
-
 		try (CloseableHttpClient httpClient = HttpClients.createDefault();
 			 CloseableHttpResponse response = httpClient.execute(httpPost)
 		) {
