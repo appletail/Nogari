@@ -300,7 +300,7 @@ function GithubPage() {
         return (
           <Chip
             label={params.row.status}
-            size="small"
+            size="medium"
             variant="filled"
             sx={{
               backgroundColor: `${
@@ -321,7 +321,7 @@ function GithubPage() {
                   ? '#3D9C7D'
                   : '#B42318'
               }`,
-              typography: 'overline',
+              typography: 'button',
             }}
           />
         )

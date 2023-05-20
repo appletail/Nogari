@@ -362,7 +362,7 @@ function TistoryPage() {
         return (
           <Chip
             label={params.row.status}
-            size="small"
+            size="medium"
             variant="filled"
             sx={{
               backgroundColor: `${
