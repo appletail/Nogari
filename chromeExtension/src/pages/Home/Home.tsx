@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { checkUrl } from './utils'
+import { checkUrl, setBackgroundColor, setColor, setLogResponse } from './utils'
 import style from '../../../src/styles/Home.module.css'
 import { getLog, postTistory } from '../../apis/apis'
 
@@ -25,18 +25,11 @@ function Home() {
       reset(requestData)
     })
 
-    const logResponse = getLog()
-    logResponse
+    getLog()
       .then((res) => {
         const data = res.data.result[0][0]
         if (data) {
-          const date = new Date(data.modifiedDate)
-          const parsedLog = {
-            title: data.title,
-            status: data.status,
-            responseLink: data.responseLink,
-            date: date.toISOString().split('T')[0] + ' / ' + date.toTimeString().split(' ')[0],
-          }
+          const parsedLog = setLogResponse(data)
           setLog(parsedLog)
         } else {
           setLog((prev) => ({ ...prev, status: '발행 이력 없음' }))
@@ -63,18 +56,11 @@ function Home() {
         if (response.data.result.body[0].resultCode === 200) {
           getLog().then((res) => {
             const data = res.data.result[0][0]
-            const date = new Date(data.modifiedDate)
-            date.setHours(date.getHours() + 9)
-            const parsedLog = {
-              title: data.title,
-              status: data.status,
-              responseLink: data.responseLink,
-              date: date.toISOString().split('T')[0] + ' / ' + date.toTimeString().split(' ')[0],
-            }
+            const parsedLog = setLogResponse(data)
             setLog(parsedLog)
           })
         }
-      } catch (err: any) {
+      } catch (err) {
         alert('발행에 실패했습니다. 설정을 확인해 주세요.')
       }
     })
@@ -94,12 +80,18 @@ function Home() {
         {log.date ? (
           <>
             <div style={{ display: 'flex' }}>
-              <div style={{ fontSize: '14px', whiteSpace: 'nowrap', marginRight: '7px' }}>
+              <div
+                className={style.StatusPill}
+                style={{
+                  backgroundColor: setBackgroundColor(log.status),
+                  color: setColor(log.status),
+                }}
+              >
                 {log.status}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div className={style.OpenLink} onClick={openLink}>
-                  {log.title.length > 26 ? log.title.substr(0, 24).trim() + '...' : log.title}
+                  {log.title.length > 26 ? log.title.slice(0, 19).trim() + '...' : log.title}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: '#A5A5A5' }}>{log.date}</div>
               </div>
@@ -115,7 +107,6 @@ function Home() {
           간편 발행
         </div>
         <form onSubmit={handleSubmit(PublishHandler)}>
-          {/* <label htmlFor="tistory-tag">태그 ( , 로 구분합니다.)</label> */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
             <input
               id="tistory-tag"

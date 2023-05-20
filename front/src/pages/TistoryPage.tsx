@@ -31,6 +31,7 @@ import { postTistoryLogList, postTistoryPost } from '@/apis/tistoryApis'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
+import { toDoubleDigit } from '@/sections/utils'
 import palette from '@/theme/palette'
 
 // ------------------------------------------------------------------
@@ -332,7 +333,9 @@ function TistoryPage() {
             .format(date)
             .split('. ')
 
-          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+          return `${parsedDate[0]}.${toDoubleDigit(
+            parsedDate[1]
+          )}.${toDoubleDigit(parsedDate[2])} / ${parsedDate[3]}`
         }
       },
       minWidth: 125,
@@ -403,7 +406,9 @@ function TistoryPage() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          {params.row.title}
+          {params.row.title.length > 22
+            ? params.row.title.slice(0, 20).trim() + '...'
+            : params.row.title}
         </a>
       ),
     },

@@ -31,6 +31,7 @@ import { getOauthStatus } from '@/apis/OauthApis'
 import { ReactComponent as Github } from '@/assets/logos/github-mark.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
+import { toDoubleDigit } from '@/sections/utils'
 
 // ------------------------------------------------------------------
 // interface
@@ -272,7 +273,9 @@ function GithubPage() {
             .format(date)
             .split('. ')
 
-          return `${parsedDate[0]}.${parsedDate[1]}.${parsedDate[2]} / ${parsedDate[3]}`
+          return `${parsedDate[0]}.${toDoubleDigit(
+            parsedDate[1]
+          )}.${toDoubleDigit(parsedDate[2])} / ${parsedDate[3]}`
         }
       },
     },
@@ -340,8 +343,11 @@ function GithubPage() {
           href={params.row.responseLink}
           rel="noopener noreferrer"
           target="_blank"
+          title={params.row.filename}
         >
-          {params.row.filename}
+          {params.row.filename.length > 28
+            ? params.row.filename.slice(0, 26).trim() + '...'
+            : params.row.filename}
         </a>
       ),
     },
