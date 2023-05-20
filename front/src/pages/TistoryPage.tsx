@@ -383,7 +383,7 @@ function TistoryPage() {
                   ? '#3D9C7D'
                   : '#B42318'
               }`,
-              typography: 'overline',
+              typography: 'button',
             }}
           />
         )
