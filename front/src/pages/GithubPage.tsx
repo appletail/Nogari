@@ -7,6 +7,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
 import {
   Card,
+  Chip,
   Stack,
   Button,
   Typography,
@@ -294,6 +295,7 @@ function GithubPage() {
         return ['발행요청']
       },
       disableColumnMenu: true,
+      align: 'center',
       renderCell: (params: GridRenderCellParams) => {
         return (
           <Chip
