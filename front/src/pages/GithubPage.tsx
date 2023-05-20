@@ -7,6 +7,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import LoginIcon from '@mui/icons-material/Login'
 import {
   Card,
+  Chip,
   Stack,
   Button,
   Typography,
@@ -287,6 +288,37 @@ function GithubPage() {
           )
         )
         return value
+      },
+      align: 'center',
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Chip
+            label={params.row.status}
+            size="medium"
+            variant="filled"
+            sx={{
+              backgroundColor: `${
+                params.row.status === '발행요청'
+                  ? '#E7EEFD'
+                  : params.row.status === '수정요청'
+                  ? '#F6EADA'
+                  : params.row.status === '발행완료'
+                  ? '#E2F6F0'
+                  : '#FDE8E7'
+              }`,
+              color: `${
+                params.row.status === '발행요청'
+                  ? '#4769B1'
+                  : params.row.status === '수정요청'
+                  ? '#B54708'
+                  : params.row.status === '발행완료'
+                  ? '#3D9C7D'
+                  : '#B42318'
+              }`,
+              typography: 'button',
+            }}
+          />
+        )
       },
     },
     {
