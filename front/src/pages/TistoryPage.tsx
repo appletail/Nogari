@@ -8,6 +8,7 @@ import LoginIcon from '@mui/icons-material/Login'
 import {
   Card,
   Stack,
+  Chip,
   Button,
   Typography,
   IconButton,
@@ -15,6 +16,7 @@ import {
   Box,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
+
 import {
   DataGrid,
   GridColDef,
@@ -29,6 +31,7 @@ import { postTistoryLogList, postTistoryPost } from '@/apis/tistoryApis'
 import { ReactComponent as Tistory } from '@/assets/logos/tistory.svg'
 
 import Scrollbar from '@/components/scrollbar/Scrollbar'
+import palette from '@/theme/palette'
 
 // ------------------------------------------------------------------
 interface tistoryPosting {
@@ -354,6 +357,37 @@ function TistoryPage() {
         return ['발행요청']
       },
       disableColumnMenu: true,
+      align: 'center',
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Chip
+            label={params.row.status}
+            size="small"
+            variant="filled"
+            sx={{
+              backgroundColor: `${
+                params.row.status === '발행요청'
+                  ? '#E7EEFD'
+                  : params.row.status === '수정요청'
+                  ? '#F6EADA'
+                  : params.row.status === '발행완료'
+                  ? '#E2F6F0'
+                  : '#FDE8E7'
+              }`,
+              color: `${
+                params.row.status === '발행요청'
+                  ? '#4769B1'
+                  : params.row.status === '수정요청'
+                  ? '#B54708'
+                  : params.row.status === '발행완료'
+                  ? '#3D9C7D'
+                  : '#B42318'
+              }`,
+              typography: 'overline',
+            }}
+          />
+        )
+      },
     },
     {
       field: 'title',
@@ -410,7 +444,7 @@ function TistoryPage() {
             sx={{
               width: '70px',
               height: '26px',
-              backgroundColor: '#007DFF',
+              backgroundColor: `${palette.primary}`,
               fontSize: '0.1rem',
               whiteSpace: 'nowrap',
             }}
@@ -484,7 +518,6 @@ function TistoryPage() {
                   columns: {
                     ...columns,
                     columnVisibilityModel: {
-                      // Hide columns status and traderName, the other columns will remain visible
                       initStatus: false,
                     },
                   },
@@ -538,3 +571,10 @@ const StyledWrapper = styled('div')(({ theme }) => ({
   alignItems: 'center',
   zIndex: '9999',
 }))
+
+// const StyledChip = styled(Chip)`
+//   &.MuiChip-root {
+//     background-color: '#E2F6F0';
+//     color: '#3D9C7D';
+//   }
+// `
