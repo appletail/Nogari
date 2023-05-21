@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useQuery } from 'react-query'
 
@@ -19,7 +19,10 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
+  GridRowModel,
+  DataGridProps,
   GridCellModesModel,
+  GridCellEditStopReasons,
   useGridApiRef,
   GridRenderCellParams,
 } from '@mui/x-data-grid'
@@ -68,7 +71,7 @@ function GithubPage() {
   const [repository, setRepositoryName] = useState(
     githubInfo?.data.result[1] || ['']
   )
-
+  const editingRow = useRef<GridRowModel | null>(null)
   // // cell mode : edit or view
   // const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
@@ -135,43 +138,30 @@ function GithubPage() {
 
   // 더블클릭 > 클릭 시 수정으로 변경
 
-  // const handleCellClick = useCallback((params: GridCellParams) => {
-  //   if (!params.isEditable) return
-  //   if (params.cellMode === 'view') {
-  //     setCellModesModel((prevModel: any) => {
-  //       return {
-  //         [params.id]: {
-  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-  //             return {
-  //               ...acc,
-  //               [field]: { mode: GridCellModes.View },
-  //             }
-  //           }, {}),
-  //           [params.field]: { mode: GridCellModes.Edit },
-  //         },
-  //       }
-  //     })
-  //   } else {
-  //     setCellModesModel((prevModel: any) => {
-  //       return {
-  //         [params.id]: {
-  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-  //             return {
-  //               ...acc,
-  //               [field]: { mode: GridCellModes.View },
-  //             }
-  //           }, {}),
-  //           [params.field]: { mode: GridCellModes.View },
-  //         },
-  //       }
-  //     })
-  //   }
-  //   params.hasFocus = !params.hasFocus
-  // }, [])
+  const handleCellEditStart: DataGridProps['onCellEditStart'] = (params) => {
+    editingRow.current = rows.find((row) => row.tistoryId === params.id) || null
+  }
 
-  // const handleCellModesModelChange = useCallback((newModel: any) => {
-  //   setCellModesModel(newModel)
-  // }, [])
+  const handleCellEditStop: DataGridProps['onCellEditStop'] = (params) => {
+    if (params.reason === GridCellEditStopReasons.escapeKeyDown) {
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === editingRow.current?.id
+            ? { ...row, blogName: editingRow.current?.blogName }
+            : row
+        )
+      )
+    }
+  }
+
+  const processRowUpdate: DataGridProps['processRowUpdate'] = (newRow) => {
+    setRows((prevRows) =>
+      prevRows.map((row) =>
+        row.tistoryId === editingRow.current?.tistoryId ? newRow : row
+      )
+    )
+    return newRow
+  }
 
   const columns: GridColDef[] = [
     {
@@ -184,16 +174,6 @@ function GithubPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.githubId === params.id
-              ? { ...row, [params.field]: value, categoryName: '' }
-              : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'requestLink',
@@ -203,14 +183,6 @@ function GithubPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       flex: 1,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.githubId === params.id ? { ...row, [params.field]: value } : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'categoryName',
@@ -231,14 +203,6 @@ function GithubPage() {
       },
       editable: true,
       disableColumnMenu: true,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.githubId === params.id ? { ...row, [params.field]: value } : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'modifiedDate',
@@ -284,14 +248,7 @@ function GithubPage() {
         return ['발행요청']
       },
       disableColumnMenu: true,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.githubId === params.id ? { ...row, [params.field]: value } : row
-          )
-        )
-        return value
-      },
+
       align: 'center',
       renderCell: (params: GridRenderCellParams) => {
         return (
@@ -453,6 +410,7 @@ function GithubPage() {
                 editMode="cell"
                 getRowId={(row) => row.githubId}
                 loading={isLoading || githubInfoLoading}
+                processRowUpdate={processRowUpdate}
                 rows={rows}
                 getCellClassName={(params) => {
                   if (
@@ -490,6 +448,8 @@ function GithubPage() {
                       background: '#555',
                     },
                 }}
+                onCellEditStart={handleCellEditStart}
+                onCellEditStop={handleCellEditStop}
               />
             </Box>
           </Scrollbar>
