@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useQuery } from 'react-query'
 
@@ -20,8 +20,6 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
-  GridEditSingleSelectCellProps,
-  GridEditSingleSelectCell,
   useGridApiRef,
   GridRenderCellParams,
 } from '@mui/x-data-grid'
@@ -34,21 +32,6 @@ import Scrollbar from '@/components/scrollbar/Scrollbar'
 import palette from '@/theme/palette'
 
 // ------------------------------------------------------------------
-interface tistoryPosting {
-  id: string
-  visibility: number
-  status: string
-  title: string
-  categoryName: string
-  modifiedDate: string
-  blogName: string
-  requestLink: string
-  tagList: string
-}
-
-interface CustomTypeEditComponentProps extends GridEditSingleSelectCellProps {
-  setRows: React.Dispatch<React.SetStateAction<any[]>>
-}
 
 interface tistoryCategory {
   id: string
@@ -56,22 +39,6 @@ interface tistoryCategory {
   parent: string
   label: string
   entries: string
-}
-
-function CustomTypeEditComponent(props: CustomTypeEditComponentProps) {
-  const { setRows, ...other } = props
-
-  const handleValueChange = () => {
-    setRows((prevRows) => {
-      return prevRows.map((row) =>
-        row.id === props.id ? { ...row, categoryName: null } : row
-      )
-    })
-  }
-
-  return (
-    <GridEditSingleSelectCell onValueChange={handleValueChange} {...other} />
-  )
 }
 
 // ------------------------------------------------------------------
@@ -243,9 +210,16 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      renderEditCell: (params) => (
-        <CustomTypeEditComponent setRows={setRows} {...params} />
-      ),
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.tistoryId === params.id
+              ? { ...row, [params.field]: value, categoryName: '' }
+              : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'requestLink',
@@ -255,6 +229,16 @@ function TistoryPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       flex: 1,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.tistoryId === params.id
+              ? { ...row, [params.field]: value }
+              : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'visibility',
@@ -265,12 +249,21 @@ function TistoryPage() {
       disableColumnMenu: true,
       minWidth: 100,
       flex: 0.2,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.tistoryId === params.id
+              ? { ...row, [params.field]: value }
+              : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'categoryName',
       headerName: '카테고리',
       type: 'singleSelect',
-
       valueOptions: ({ row }) => {
         if (!row) {
           return [{ value: 'None', label: '카테고리없음' }]
@@ -306,6 +299,16 @@ function TistoryPage() {
       disableColumnMenu: true,
       minWidth: 100,
       flex: 0.4,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.tistoryId === params.id
+              ? { ...row, [params.field]: value }
+              : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'tagList',
@@ -314,6 +317,16 @@ function TistoryPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       flex: 0.2,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.tistoryId === params.id
+              ? { ...row, [params.field]: value }
+              : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'modifiedDate',
@@ -357,6 +370,16 @@ function TistoryPage() {
         return ['발행요청']
       },
       disableColumnMenu: true,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.tistoryId === params.id
+              ? { ...row, [params.field]: value }
+              : row
+          )
+        )
+        return value
+      },
       align: 'center',
       renderCell: (params: GridRenderCellParams) => {
         return (

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useQuery } from 'react-query'
 
@@ -19,8 +19,6 @@ import { styled } from '@mui/material/styles'
 import {
   DataGrid,
   GridColDef,
-  GridEditSingleSelectCellProps,
-  GridEditSingleSelectCell,
   GridCellModesModel,
   useGridApiRef,
   GridRenderCellParams,
@@ -34,23 +32,6 @@ import Scrollbar from '@/components/scrollbar/Scrollbar'
 
 // ------------------------------------------------------------------
 // interface
-
-interface githubPosting {
-  githubId: string
-  filename: string
-  repository: string
-  status: string
-  requestLink: string
-  responseLink: string
-  sha: string
-  categoryName: string
-  modifiedDate: string
-}
-
-interface CustomTypeEditComponentProps extends GridEditSingleSelectCellProps {
-  setRows: React.Dispatch<React.SetStateAction<any[]>>
-}
-
 interface githubCategory {
   name: string
   path: string
@@ -63,25 +44,6 @@ interface githubCategory {
   type: string
   _links: object
 }
-
-// -------------------------------------------------------------------------------
-
-function CustomTypeEditComponent(props: CustomTypeEditComponentProps) {
-  const { setRows, ...other } = props
-
-  const handleValueChange = () => {
-    setRows((prevRows) => {
-      return prevRows.map((row) =>
-        row.id === props.id ? { ...row, categoryName: null } : row
-      )
-    })
-  }
-
-  return (
-    <GridEditSingleSelectCell onValueChange={handleValueChange} {...other} />
-  )
-}
-
 // ------------------------------------------------------------------
 
 function GithubPage() {
@@ -106,8 +68,8 @@ function GithubPage() {
     githubInfo?.data.result[1] || ['']
   )
 
-  // cell mode : edit or view
-  const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
+  // // cell mode : edit or view
+  // const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
 
   useEffect(() => {
     if (githubInfo) {
@@ -157,6 +119,7 @@ function GithubPage() {
         submitArray.push(row)
       }
     })
+
     // 발행할 최종 데이터 리스트가 있는 경우에만 post 요청을 보냅니다
     if (submitArray.length !== 0) {
       const response = await postGithubPost(submitArray)
@@ -220,9 +183,16 @@ function GithubPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      renderEditCell: (params) => (
-        <CustomTypeEditComponent setRows={setRows} {...params} />
-      ),
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.githubId === params.id
+              ? { ...row, [params.field]: value, categoryName: '' }
+              : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'requestLink',
@@ -232,6 +202,14 @@ function GithubPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       flex: 1,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.githubId === params.id ? { ...row, [params.field]: value } : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'categoryName',
@@ -252,6 +230,14 @@ function GithubPage() {
       },
       editable: true,
       disableColumnMenu: true,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.githubId === params.id ? { ...row, [params.field]: value } : row
+          )
+        )
+        return value
+      },
     },
     {
       field: 'modifiedDate',
@@ -295,6 +281,14 @@ function GithubPage() {
         return ['발행요청']
       },
       disableColumnMenu: true,
+      valueParser(value, params: any) {
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.githubId === params.id ? { ...row, [params.field]: value } : row
+          )
+        )
+        return value
+      },
       align: 'center',
       renderCell: (params: GridRenderCellParams) => {
         return (
