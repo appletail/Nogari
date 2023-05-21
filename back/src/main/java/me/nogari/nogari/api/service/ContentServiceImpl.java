@@ -774,6 +774,9 @@ public class ContentServiceImpl implements ContentService {
 			// 프론트엔드 테이블 구조상 하나의 Tistory 게시글에 대한 수정요청은 한번만 가능하므로, 해당 경우에 대해서는 고려하지 않아도 된다.
 			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Tistory Modify API에 전달되지 않는다.
 			else if(lambdaResponses[i].getTistory().getStatus().equals("수정요청")){
+				System.out.println("수정요청이 들어올때 TistoryRequest의 Body입니다.");
+				System.out.println(lambdaResponses[i].getTistoryRequest().getBody());
+
 				tistoryRequestURL = "https://www.tistory.com/apis/post/modify";
 				try{
 					response = rt.exchange(
