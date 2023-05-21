@@ -462,7 +462,7 @@ public class ContentServiceImpl implements ContentService {
 		for(int i=0; i<postNotionToTistoryDtoList.size(); i++){
 			PostNotionToTistoryDto post = postNotionToTistoryDtoList.get(i);
 			Map<String, Object> responseBody = new HashMap<>();
-			System.out.println("★ 프론트로부터 전달된 값 "+post);
+			// sSystem.out.println("★ 프론트로부터 전달된 값 "+post);
 
 			// STEP1. 상태별 조건 검사를 수행한다.(조건검사에 따라 스레드 제출 여부를 검토한다.)
 			Tistory tistory = null;
@@ -775,12 +775,8 @@ public class ContentServiceImpl implements ContentService {
 			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Tistory Modify API에 전달되지 않는다.
 			else if(lambdaResponses[i].getTistory().getStatus().equals("수정요청")){
 				// Case1. RequestLink Error (수정의 경우 HttpClientErrorException이 발생하지 않으므로, 직접 처리한다.)
-				System.out.println("★★" + lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
-				System.out.println("★★" + lambdaResponses[i].getTistoryRequest().getBody().getFirst("content"));
-
 				if(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title")==null
 				&& lambdaResponses[i].getTistoryRequest().getBody().getFirst("content")==null){
-					System.out.println("수정에 실패해버렸다!");
 					lambdaResponses[i].getTistory().setStatus("수정실패");
 
 					responseBody.put("requestIndex", i+1);
@@ -824,14 +820,14 @@ public class ContentServiceImpl implements ContentService {
 			}
 		}
 
-		for(int i=0; i<lambdaResponses.length; i++){
-			if(lambdaResponses[i]==null){
-				System.out.println((i+1) + " " + "에러가 발생한 게시글");
-			}
-			else{
-				System.out.println((i+1) + " " + lambdaResponses[i].getTistory().getResponseLink());
-			}
-		}
+		// for(int i=0; i<lambdaResponses.length; i++){
+		// 	if(lambdaResponses[i]==null){
+		// 		System.out.println((i+1) + " " + "에러가 발생한 게시글");
+		// 	}
+		// 	else{
+		// 		System.out.println((i+1) + " " + lambdaResponses[i].getTistory().getResponseLink());
+		// 	}
+		// }
 
 		// 입력값이 잘못 전달된 요청에 대한 응답이 정상 발행되는 요청의 응답보다 먼저 출력되는 문제를 해결하기 위해, requestIndex 오름차순으로 정렬한다.
 		Collections.sort(responseList, new Comparator<Map<String, Object>>() {
