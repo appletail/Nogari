@@ -58,7 +58,7 @@ public class awsLambdaCallableGithub implements Callable<LambdaResponse> {
 			lambdaResponse.setFilePath(filePath);
 		} else {
 			//파일명 중복 방지를 위한 현재 날짜, 시간
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss");
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
 			Date nowDate = new Date();
 			fileDate = simpleDateFormat.format(nowDate);
 
