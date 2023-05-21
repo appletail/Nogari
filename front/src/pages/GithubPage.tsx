@@ -139,7 +139,7 @@ function GithubPage() {
   // 더블클릭 > 클릭 시 수정으로 변경
 
   const handleCellEditStart: DataGridProps['onCellEditStart'] = (params) => {
-    editingRow.current = rows.find((row) => row.tistoryId === params.id) || null
+    editingRow.current = rows.find((row) => row.githubId === params.id) || null
   }
 
   const handleCellEditStop: DataGridProps['onCellEditStop'] = (params) => {
@@ -157,7 +157,7 @@ function GithubPage() {
   const processRowUpdate: DataGridProps['processRowUpdate'] = (newRow) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
-        row.tistoryId === editingRow.current?.tistoryId ? newRow : row
+        row.githubId === editingRow.current?.githubId ? newRow : row
       )
     )
     return newRow
