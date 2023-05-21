@@ -47,7 +47,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 1.8rem;
+  height: 2rem;
   padding: 10px;
   border: none;
   border-radius: 0.2rem;
@@ -57,4 +57,9 @@
   background-color: #007dff;
   box-shadow: 1px 3px 8px -4px gray;
   cursor: pointer;
+}
+
+.postButton:hover {
+  /* hover 시 적용되는 스타일 */
+  background-color: #007bff94;
 }
