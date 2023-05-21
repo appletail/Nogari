@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useQuery } from 'react-query'
 
@@ -19,9 +19,13 @@ import { styled } from '@mui/material/styles'
 
 import {
   DataGrid,
+  GridRowModel,
+  DataGridProps,
   GridColDef,
   useGridApiRef,
   GridRenderCellParams,
+  GridCellEditStopReasons,
+  GridRenderEditCellParams,
 } from '@mui/x-data-grid'
 
 import { getOauthStatus } from '@/apis/OauthApis'
@@ -64,9 +68,7 @@ function TistoryPage() {
   // row data and blog name
   const [rows, setRows] = useState<any[]>([])
   const [blogName, setBlogName] = useState(tistoryInfo?.data.result[1] || [''])
-
-  // cell mode : edit or view
-  // const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({})
+  const editingRow = useRef<GridRowModel | null>(null)
 
   useEffect(() => {
     if (tistoryInfo) {
@@ -130,70 +132,30 @@ function TistoryPage() {
     }
   }
 
-  // 더블클릭 > 클릭 시 수정으로 변경
+  const handleCellEditStart: DataGridProps['onCellEditStart'] = (params) => {
+    editingRow.current = rows.find((row) => row.tistoryId === params.id) || null
+  }
 
-  // const handleCellClick = useCallback((params: GridCellParams) => {
-  //   if (!params.isEditable) return
-  //   if (params.cellMode === 'view') {
-  //     setCellModesModel((prevModel: any) => {
-  //       return {
-  //         ...Object.keys(prevModel).reduce(
-  //           (acc, id) => ({
-  //             ...acc,
-  //             [id]: Object.keys(prevModel[id]).reduce(
-  //               (acc2, field) => ({
-  //                 ...acc2,
-  //                 [field]: { mode: GridCellModes.View },
-  //               }),
-  //               {}
-  //             ),
-  //           }),
-  //           {}
-  //         ),
-  //         [params.id]: {
-  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-  //             return {
-  //               ...acc,
-  //               [field]: { mode: GridCellModes.View },
-  //             }
-  //           }, {}),
-  //           [params.field]: { mode: GridCellModes.Edit },
-  //         },
-  //       }
-  //     })
-  //   } else {
-  //     setCellModesModel((prevModel: any) => {
-  //       return {
-  //         ...Object.keys(prevModel).reduce(
-  //           (acc, id) => ({
-  //             ...acc,
-  //             [id]: Object.keys(prevModel[id]).reduce(
-  //               (acc2, field) => ({
-  //                 ...acc2,
-  //                 [field]: { mode: GridCellModes.View },
-  //               }),
-  //               {}
-  //             ),
-  //           }),
-  //           {}
-  //         ),
-  //         [params.id]: {
-  //           ...Object.keys(prevModel[params.id] || {}).reduce((acc, field) => {
-  //             return {
-  //               ...acc,
-  //               [field]: { mode: GridCellModes.View },
-  //             }
-  //           }, {}),
-  //           [params.field]: { mode: GridCellModes.View },
-  //         },
-  //       }
-  //     })
-  //   }
-  // }, [])
+  const handleCellEditStop: DataGridProps['onCellEditStop'] = (params) => {
+    if (params.reason === GridCellEditStopReasons.escapeKeyDown) {
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === editingRow.current?.id
+            ? { ...row, blogName: editingRow.current?.blogName }
+            : row
+        )
+      )
+    }
+  }
 
-  // const handleCellModesModelChange = useCallback((newModel: any) => {
-  //   setCellModesModel(newModel)
-  // }, [])
+  const processRowUpdate: DataGridProps['processRowUpdate'] = (newRow) => {
+    setRows((prevRows) =>
+      prevRows.map((row) =>
+        row.tistoryId === editingRow.current?.tistoryId ? newRow : row
+      )
+    )
+    return newRow
+  }
 
   const visibilityOptions = [
     { value: 3, label: '공개' },
@@ -211,16 +173,6 @@ function TistoryPage() {
       editable: true,
       disableColumnMenu: true,
       hideSortIcons: true,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.tistoryId === params.id
-              ? { ...row, [params.field]: value, categoryName: '' }
-              : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'requestLink',
@@ -230,16 +182,6 @@ function TistoryPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       flex: 1,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.tistoryId === params.id
-              ? { ...row, [params.field]: value }
-              : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'visibility',
@@ -250,16 +192,6 @@ function TistoryPage() {
       disableColumnMenu: true,
       minWidth: 100,
       flex: 0.2,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.tistoryId === params.id
-              ? { ...row, [params.field]: value }
-              : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'categoryName',
@@ -279,8 +211,8 @@ function TistoryPage() {
           )
           return categoryLabels.sort((a: any, b: any) => {
             if (a.label && b.label) {
-              const nameA = a.label.toUpperCase() // ignore upper and lowercase
-              const nameB = b.label.toUpperCase() // ignore upper and lowercase
+              const nameA = a.label.toUpperCase()
+              const nameB = b.label.toUpperCase()
               if (nameA < nameB) {
                 return -1
               }
@@ -300,16 +232,6 @@ function TistoryPage() {
       disableColumnMenu: true,
       minWidth: 100,
       flex: 0.4,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.tistoryId === params.id
-              ? { ...row, [params.field]: value }
-              : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'tagList',
@@ -318,16 +240,6 @@ function TistoryPage() {
       disableColumnMenu: true,
       hideSortIcons: true,
       flex: 0.2,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.tistoryId === params.id
-              ? { ...row, [params.field]: value }
-              : row
-          )
-        )
-        return value
-      },
     },
     {
       field: 'modifiedDate',
@@ -373,16 +285,7 @@ function TistoryPage() {
         return ['발행요청']
       },
       disableColumnMenu: true,
-      valueParser(value, params: any) {
-        setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.tistoryId === params.id
-              ? { ...row, [params.field]: value }
-              : row
-          )
-        )
-        return value
-      },
+
       align: 'center',
       renderCell: (params: GridRenderCellParams) => {
         return (
@@ -414,6 +317,9 @@ function TistoryPage() {
           />
         )
       },
+      // renderEditCell: (params: GridRenderEditCellParams) => {
+      //   return <Chip />
+      // },
     },
     {
       field: 'title',
@@ -532,6 +438,7 @@ function TistoryPage() {
                 editMode="cell"
                 getRowId={(row) => row.tistoryId}
                 loading={isLoading || tistoryInfoLoading}
+                processRowUpdate={processRowUpdate}
                 rows={rows}
                 getCellClassName={(params) => {
                   if (
@@ -569,6 +476,8 @@ function TistoryPage() {
                       background: '#555',
                     },
                 }}
+                onCellEditStart={handleCellEditStart}
+                onCellEditStop={handleCellEditStop}
               />
             </Box>
           </Scrollbar>
@@ -599,10 +508,3 @@ const StyledWrapper = styled('div')(({ theme }) => ({
   alignItems: 'center',
   zIndex: '9999',
 }))
-
-// const StyledChip = styled(Chip)`
-//   &.MuiChip-root {
-//     background-color: '#E2F6F0';
-//     color: '#3D9C7D';
-//   }
-// `
