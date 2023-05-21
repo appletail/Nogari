@@ -774,30 +774,12 @@ public class ContentServiceImpl implements ContentService {
 			// 프론트엔드 테이블 구조상 하나의 Tistory 게시글에 대한 수정요청은 한번만 가능하므로, 해당 경우에 대해서는 고려하지 않아도 된다.
 			// -> 최초 게시글에 대한 [수정요청] 이후 [발행완료] 상태가 되므로, 나머지 요청에 대해서는 Tistory Modify API에 전달되지 않는다.
 			else if(lambdaResponses[i].getTistory().getStatus().equals("수정요청")){
-				System.out.println("수정요청이 들어올때 TistoryRequest의 Body입니다.");
-				System.out.println(lambdaResponses[i].getTistoryRequest().getBody());
+				// Case1. RequestLink Error (수정의 경우 HttpClientErrorException이 발생하지 않으므로, 직접 처리한다.)
+				System.out.println("★★" + lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
+				System.out.println("★★" + lambdaResponses[i].getTistoryRequest().getBody().getFirst("content"));
 
-				tistoryRequestURL = "https://www.tistory.com/apis/post/modify";
-				try{
-					response = rt.exchange(
-						tistoryRequestURL,
-						HttpMethod.POST,
-						lambdaResponses[i].getTistoryRequest(),
-						String.class
-					);
-
-					// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
-					lambdaResponses[i].getTistory().setTitle(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
-					lambdaResponses[i].getTistory().setStatus("발행완료");
-
-					responseBody.put("requestIndex", i+1);
-					responseBody.put("resultCode", 200);
-					responseBody.put("resultMessage", "[발행완료] Tistory 게시물 수정이 정상적으로 완료되었습니다."
-						+ lambdaResponses[i].getTistory().getPostId());
-					responseList.add(responseBody);
-				} catch(HttpClientErrorException e){
-					// STEP6. [수정실패] Tistory 발행 상태 DB 갱신
-					// Case1. BlogName Error (HttpClientErrorException)
+				if(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title").equals(null)
+				&& lambdaResponses[i].getTistoryRequest().getBody().getFirst("content").equals(null)){
 					lambdaResponses[i].getTistory().setStatus("수정실패");
 
 					responseBody.put("requestIndex", i+1);
@@ -805,6 +787,38 @@ public class ContentServiceImpl implements ContentService {
 					responseBody.put("resultMessage", "[수정실패] Tistory 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 블로그 이름이 일치하지 않습니다.)"
 						+ lambdaResponses[i].getTistory().getPostId());
 					responseList.add(responseBody);
+				}
+
+				else{
+					tistoryRequestURL = "https://www.tistory.com/apis/post/modify";
+					try{
+						response = rt.exchange(
+							tistoryRequestURL,
+							HttpMethod.POST,
+							lambdaResponses[i].getTistoryRequest(),
+							String.class
+						);
+
+						// STEP6. [발행완료] Tistory 발행 상태 DB 갱신
+						lambdaResponses[i].getTistory().setTitle(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
+						lambdaResponses[i].getTistory().setStatus("발행완료");
+
+						responseBody.put("requestIndex", i+1);
+						responseBody.put("resultCode", 200);
+						responseBody.put("resultMessage", "[발행완료] Tistory 게시물 수정이 정상적으로 완료되었습니다."
+							+ lambdaResponses[i].getTistory().getPostId());
+						responseList.add(responseBody);
+					} catch(HttpClientErrorException e){
+						// STEP6. [수정실패] Tistory 발행 상태 DB 갱신
+						// Case2. BlogName Error (HttpClientErrorException)
+						lambdaResponses[i].getTistory().setStatus("수정실패");
+
+						responseBody.put("requestIndex", i+1);
+						responseBody.put("resultCode", 400);
+						responseBody.put("resultMessage", "[수정실패] Tistory 게시물 수정중 에러가 발생했습니다. (이미 삭제된 게시물이거나, 블로그 이름이 일치하지 않습니다.)"
+							+ lambdaResponses[i].getTistory().getPostId());
+						responseList.add(responseBody);
+					}
 				}
 			}
 		}
