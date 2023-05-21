@@ -778,8 +778,9 @@ public class ContentServiceImpl implements ContentService {
 				System.out.println("★★" + lambdaResponses[i].getTistoryRequest().getBody().getFirst("title"));
 				System.out.println("★★" + lambdaResponses[i].getTistoryRequest().getBody().getFirst("content"));
 
-				if(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title").equals(null)
-				&& lambdaResponses[i].getTistoryRequest().getBody().getFirst("content").equals(null)){
+				if(lambdaResponses[i].getTistoryRequest().getBody().getFirst("title")==null
+				&& lambdaResponses[i].getTistoryRequest().getBody().getFirst("content")==null){
+					System.out.println("수정에 실패해버렸다!");
 					lambdaResponses[i].getTistory().setStatus("수정실패");
 
 					responseBody.put("requestIndex", i+1);
