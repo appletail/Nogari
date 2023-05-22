@@ -14,6 +14,21 @@ function Notice() {
       <div style={{marginLeft: '0px', fontFamily: 'Public Sans'}}>Notice</div>
       </div>
       <TimelineList>
+      <TimelineItemContainer>
+          <TimelineItem>
+            <Date>2023년 05월 22일</Date>
+            <Title>릴리즈 노트(v.1.0.1)</Title>
+            <Contents style={{whiteSpace: "pre-wrap"}}>
+            1. Tistory 수정요청시, 요청 링크(Request Link) 에러에 대한 버그가 해결되었습니다. {"\n"}
+            2. Tistory 및 Github 발행 이력 테이블의 발행상태에 대한 시각화가 적용되었습니다. {"\n"}
+            3. Tistory 및 Github 발행 이력 테이블 입력 및 수정시 발생했던 버그가 해결되었습니다. {"\n"}
+            4. Chrome Extension 발행 이력 테이블의 발행상태에 대한 시각화가 적용되었습니다. {"\n"}
+            5. Chrome Extension 발행 이력 중, 발행일자에 UTC+9를 적용하였습니다. {"\n"}
+            6. Chrome Extension 일부 변경으로 인해, Chrome WebStore에서 게시가 일시 중단되었습니다. {"\n"}
+            </Contents>
+          </TimelineItem>
+        </TimelineItemContainer>
+
         <TimelineItemContainer>
           <TimelineItem>
             <Date>2023년 05월 18일</Date>
