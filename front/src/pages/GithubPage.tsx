@@ -379,14 +379,14 @@ function GithubPage() {
             {!oauth?.data.result.notion ? (
               <StyledWrapper>
                 <Typography variant="h5">
-                  왼쪽아래 &quot;사이트 연동하기&quot;에서 노션 연동을 먼저
+                  왼쪽 아래 &quot;사이트 연동하기&quot;에서 노션 연동을 먼저
                   해주세요.
                 </Typography>
               </StyledWrapper>
             ) : !oauth?.data.result.github ? (
               <StyledWrapper>
                 <Typography variant="h5">
-                  왼쪽아래 &quot;사이트 연동하기&quot;에서 깃허브 연동을 먼저
+                  왼쪽 아래 &quot;사이트 연동하기&quot;에서 깃허브 연동을 먼저
                   해주세요.
                 </Typography>
               </StyledWrapper>
